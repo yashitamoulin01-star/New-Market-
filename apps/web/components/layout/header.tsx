@@ -8,8 +8,13 @@ import { useLanguage } from "@/contexts/language-context"
 import { LanguageToggle } from "./language-toggle"
 import { UserNav } from "./user-nav"
 import { translations as t } from "@/lib/i18n"
+import type { User } from "@supabase/supabase-js"
 
-export function Header() {
+interface HeaderProps {
+  initialUser?: User | null
+}
+
+export function Header({ initialUser }: HeaderProps) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const { lang } = useLanguage()
@@ -45,7 +50,7 @@ export function Header() {
 
           <div className="flex items-center gap-2">
             <LanguageToggle />
-            <UserNav />
+            <UserNav initialUser={initialUser} />
             {/* Mobile hamburger */}
             <button
               className="rounded p-1.5 text-primary-foreground/80 hover:text-primary-foreground sm:hidden"

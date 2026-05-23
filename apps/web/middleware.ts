@@ -83,10 +83,14 @@ export async function middleware(request: NextRequest) {
 
   // Redirect logged-in users away from /login and /signup
   if ((pathname === "/login" || pathname === "/signup") && user) {
-    const redirectTo = request.nextUrl.searchParams.get("redirect") ?? "/"
+    const raw = request.nextUrl.searchParams.get("redirect") ?? "/"
+    const safePath =
+      raw.startsWith("/") && !raw.startsWith("//") && !raw.includes("://")
+        ? raw
+        : "/"
     const url = request.nextUrl.clone()
-    url.pathname = redirectTo
-    url.searchParams.delete("redirect")
+    url.pathname = safePath
+    url.search = ""
     return NextResponse.redirect(url)
   }
 

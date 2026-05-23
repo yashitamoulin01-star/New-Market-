@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider"
 import { LanguageProvider } from "@/contexts/language-context"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { createClient } from "@/lib/supabase/server"
 import "./globals.css"
 
 const inter = Inter({
@@ -71,11 +72,22 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Fetch user server-side so Header renders with correct auth state immediately
+  // — eliminates the "Sign In" flash after login
+  let initialUser = null
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.auth.getUser()
+    initialUser = data.user
+  } catch {
+    // fail silently — client-side auth will take over
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -90,7 +102,7 @@ export default function RootLayout({
         >
           <LanguageProvider>
             <div className="flex min-h-screen flex-col">
-              <Header />
+              <Header initialUser={initialUser} />
               <main className="flex-1">{children}</main>
               <Footer />
             </div>

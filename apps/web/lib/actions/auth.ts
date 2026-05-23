@@ -49,7 +49,14 @@ export async function signInAction(
 
   if (error) return { error: friendlyAuthError(error.message) }
 
-  redirect(String(formData.get("redirect") || "/"))
+  // Validate the redirect path to prevent open redirects
+  const rawRedirect = String(formData.get("redirect") || "/")
+  const safeRedirect =
+    rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") && !rawRedirect.includes("://")
+      ? rawRedirect
+      : "/"
+
+  redirect(safeRedirect)
 }
 
 export async function signUpAction(

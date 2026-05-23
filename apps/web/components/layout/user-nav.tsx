@@ -7,57 +7,68 @@ import { signOutAction } from "@/lib/actions/auth"
 import type { User } from "@supabase/supabase-js"
 import { Radio, LogOut, LayoutDashboard, User2, Shield } from "lucide-react"
 
-export function UserNav() {
-  const [user, setUser] = useState<User | null>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
+interface UserNavProps {
+  initialUser?: User | null
+}
+
+export function UserNav({ initialUser }: UserNavProps) {
+  const [user, setUser]       = useState<User | null>(initialUser ?? null)
+  const [isAdmin, setIsAdmin] = useState(
+    initialUser?.user_metadata?.role === "admin"
+  )
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const supabase = createClient()
 
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user)
-      if (data.user) {
-        // Check auth metadata first
-        if (data.user.user_metadata?.role === "admin") {
-          setIsAdmin(true)
-        } else {
-          // Fallback: check user_profiles table in database
-          supabase
-            .from("user_profiles")
-            .select("role")
-            .eq("id", data.user.id)
-            .single()
-            .then(({ data: profile }) => {
-              if (profile?.role === "admin") setIsAdmin(true)
-            })
-        }
-      }
-    })
+    // Sync state when server re-renders with updated initialUser
+    // (e.g. after sign-in/sign-out navigation)
+    setUser(initialUser ?? null)
+    if (initialUser?.user_metadata?.role === "admin") {
+      setIsAdmin(true)
+    } else if (initialUser) {
+      supabase
+        .from("user_profiles")
+        .select("role")
+        .eq("id", initialUser.id)
+        .single()
+        .then(({ data: profile }) => {
+          setIsAdmin(profile?.role === "admin")
+        })
+    } else {
+      setIsAdmin(false)
+    }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        if (session.user.user_metadata?.role === "admin") {
+    // Subscribe to live auth changes (sign-in from another tab, token refresh, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        const sessionUser = session?.user ?? null
+        setUser(sessionUser)
+
+        if (!sessionUser) {
+          setIsAdmin(false)
+          return
+        }
+
+        if (sessionUser.user_metadata?.role === "admin") {
           setIsAdmin(true)
         } else {
           supabase
             .from("user_profiles")
             .select("role")
-            .eq("id", session.user.id)
+            .eq("id", sessionUser.id)
             .single()
             .then(({ data: profile }) => {
-              if (profile?.role === "admin") setIsAdmin(true)
+              setIsAdmin(profile?.role === "admin")
             })
         }
-      } else {
-        setIsAdmin(false)
       }
-    })
+    )
 
     return () => subscription.unsubscribe()
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialUser?.id])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -79,12 +90,15 @@ export function UserNav() {
     )
   }
 
-  const initials = (user.user_metadata?.full_name as string | undefined)
-    ?.split(" ")
-    .map((w: string) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase() || user.email?.[0]?.toUpperCase() || "U"
+  const initials =
+    (user.user_metadata?.full_name as string | undefined)
+      ?.split(" ")
+      .map((w: string) => w[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() ||
+    user.email?.[0]?.toUpperCase() ||
+    "U"
 
   return (
     <div className="relative" ref={ref}>
@@ -96,7 +110,7 @@ export function UserNav() {
         {initials}
       </button>
 
-      {/* Dropdown — always in DOM, animated via opacity+scale */}
+      {/* Dropdown */}
       <div
         className={`absolute right-0 top-9 z-50 w-48 rounded-xl border bg-popover shadow-lg origin-top-right transition-all duration-150 ease-out ${
           open
@@ -105,11 +119,11 @@ export function UserNav() {
         }`}
       >
         <div className="border-b px-3 py-2.5">
-          <p className="text-xs font-semibold text-foreground truncate flex items-center gap-1">
+          <p className="flex items-center gap-1 truncate text-xs font-semibold text-foreground">
             {isAdmin && <Shield size={11} className="text-primary" />}
             {isAdmin ? "Admin" : (user.user_metadata?.full_name || "Community Member")}
           </p>
-          <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+          <p className="truncate text-[11px] text-muted-foreground">{user.email}</p>
         </div>
 
         <div className="py-1">
@@ -133,7 +147,7 @@ export function UserNav() {
 
           {isAdmin && (
             <Link
-              href="/admin/news"
+              href="/admin"
               onClick={() => setOpen(false)}
               className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-primary hover:bg-muted transition-colors"
             >
