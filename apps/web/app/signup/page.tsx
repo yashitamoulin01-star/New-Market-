@@ -38,12 +38,12 @@ export default function SignUpPage() {
             <div className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2">
               <Radio size={16} className="text-primary" />
               <span className="text-sm font-bold text-primary">
-                {hi ? "न्यूमार्केट.co.in" : "NewMarket.co.in"}
+                {hi ? "न्यू मार्केट.co.in" : "NewMarket.co.in"}
               </span>
             </div>
           </div>
           <h1 className="font-heading text-2xl font-bold">
-            {hi ? "न्यूमार्केट से जुड़ें" : "Join New Market"}
+            {hi ? "न्यू मार्केट से जुड़ें" : "Join New Market"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {hi ? "कम्युनिटी खाता बनाएँ — बिल्कुल मुफ़्त" : "Create a community account — it's free"}
@@ -107,7 +107,7 @@ export default function SignUpPage() {
 
             <p className="text-center text-xs text-muted-foreground">
               {hi
-                ? "साइन अप करके आप न्यूमार्केट कम्युनिटी में सम्मानपूर्वक योगदान देने के लिए सहमत हैं।"
+                ? "साइन अप करके आप न्यू मार्केट कम्युनिटी में सम्मानपूर्वक योगदान देने के लिए सहमत हैं।"
                 : "By signing up you agree to contribute respectfully to the New Market community."}
             </p>
           </form>

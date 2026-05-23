@@ -40,7 +40,7 @@ export function Header({ initialUser }: HeaderProps) {
             href="/"
             className="shrink-0 text-xl font-bold tracking-tight text-primary-foreground"
           >
-            {lang === "hi" ? "न्यूमार्केट" : "NewMarket"}
+            {lang === "hi" ? "न्यू मार्केट" : "NewMarket"}
             <span className="font-normal opacity-70">.co.in</span>
           </Link>
 

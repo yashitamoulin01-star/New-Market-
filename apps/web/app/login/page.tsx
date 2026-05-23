@@ -42,7 +42,7 @@ function LoginForm() {
             <div className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2">
               <Radio size={16} className="text-primary" />
               <span className="text-sm font-bold text-primary">
-                {hi ? "न्यूमार्केट.co.in" : "NewMarket.co.in"}
+                {hi ? "न्यू मार्केट.co.in" : "NewMarket.co.in"}
               </span>
             </div>
           </div>
@@ -109,7 +109,7 @@ function LoginForm() {
         </div>
 
         <p className="mt-5 text-center text-sm text-muted-foreground">
-          {hi ? "न्यूमार्केट में नए हैं? " : "New to New Market? "}
+          {hi ? "न्यू मार्केट में नए हैं? " : "New to New Market? "}
           <Link href="/signup" className="font-medium text-primary hover:underline">
             {hi ? "खाता बनाएँ" : "Create an account"}
           </Link>

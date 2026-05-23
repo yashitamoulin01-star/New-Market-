@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   },
   description:
     "The digital hub of New Market, Bhopal. Local news, job vacancies, shop directory, and property listings.",
-  keywords: ["New Market Bhopal", "local news", "jobs", "shops", "property", "न्यूमार्केट", "नई मार्केट", "Bhopal marketplace"],
+  keywords: ["New Market Bhopal", "local news", "jobs", "shops", "property", "न्यू मार्केट", "नई मार्केट", "Bhopal marketplace"],
   authors: [{ name: "NewMarket.co.in" }],
   creator: "NewMarket.co.in",
   openGraph: {

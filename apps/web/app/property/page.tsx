@@ -66,10 +66,10 @@ export default async function PropertyPage({ searchParams }: PageProps) {
             {result.total > 0 ? (
               <T
                 en={`${result.total} propert${result.total !== 1 ? "ies" : "y"} in New Market`}
-                hi={`न्यूमार्केट में ${result.total} संपत्तियाँ`}
+                hi={`न्यू मार्केट में ${result.total} संपत्तियाँ`}
               />
             ) : (
-              <T en="Commercial spaces in New Market, Bhopal" hi="न्यूमार्केट में व्यावसायिक स्थान" />
+              <T en="Commercial spaces in New Market, Bhopal" hi="न्यू मार्केट में व्यावसायिक स्थान" />
             )}
           </p>
         </div>
@@ -174,7 +174,7 @@ export default async function PropertyPage({ searchParams }: PageProps) {
                 <T en="Clear filters" hi="फ़िल्टर हटाएँ" />
               </Link>
             ) : (
-              <T en="Be the first to list a commercial space in New Market." hi="न्यूमार्केट में पहली संपत्ति लिस्ट करें।" />
+              <T en="Be the first to list a commercial space in New Market." hi="न्यू मार्केट में पहली संपत्ति लिस्ट करें।" />
             )}
           </p>
           <Link

@@ -44,8 +44,8 @@ export default async function NewsPage({
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {total > 0
-              ? <T en={`${total} article${total !== 1 ? "s" : ""} in New Market`} hi={`न्यूमार्केट में ${total} समाचार`} />
-              : <T en="News from New Market, Bhopal" hi="न्यूमार्केट, भोपाल के समाचार" />
+              ? <T en={`${total} article${total !== 1 ? "s" : ""} in New Market`} hi={`न्यू मार्केट में ${total} समाचार`} />
+              : <T en="News from New Market, Bhopal" hi="न्यू मार्केट, भोपाल के समाचार" />
             }
           </p>
         </div>

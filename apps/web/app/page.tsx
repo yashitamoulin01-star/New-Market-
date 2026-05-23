@@ -106,7 +106,7 @@ async function MastheadSection() {
       <div className="container flex flex-wrap items-center justify-between gap-2 py-1.5">
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <MapPin size={10} className="text-primary" />
-          <span className="font-medium text-foreground">न्यूमार्केट, भोपाल</span>
+          <span className="font-medium text-foreground">न्यू मार्केट, भोपाल</span>
           <span className="mx-1 text-border">|</span>
           <span>{today}</span>
         </div>
@@ -139,10 +139,10 @@ async function MainNewsSection() {
     // Inject stunning demo news if database fails
     items = [
       { id: "n-1", title: "New Market Association Announces Free Wi-Fi for Entire Market Premises", slug: "demo-1", category: "BUSINESS", cover_image_url: "https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: true, published_at: new Date().toISOString(), view_count: 421, excerpt: "The New Market Traders Association has announced the rollout of free public Wi-Fi across the entire market complex to modernize the shopping experience." },
-      { id: "n-2", title: "न्यूमार्केट में नया पार्किंग प्लाज़ा बनेगा — 500 गाड़ियों की जगह", slug: "demo-2", category: "GENERAL", cover_image_url: "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, published_at: new Date().toISOString(), view_count: 289 },
+      { id: "n-2", title: "न्यू मार्केट में नया पार्किंग प्लाज़ा बनेगा — 500 गाड़ियों की जगह", slug: "demo-2", category: "GENERAL", cover_image_url: "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, published_at: new Date().toISOString(), view_count: 289 },
       { id: "n-3", title: "Winter Festival at New Market: 3-Day Cultural Programme Starting Dec 20", slug: "demo-3", category: "EVENTS", cover_image_url: "https://images.unsplash.com/photo-1533174000273-e18fa1f7d235?auto=format&fit=crop&q=80&w=800", is_breaking: true, is_pinned: false, published_at: new Date().toISOString(), view_count: 567 },
       { id: "n-4", title: "Alert: Fake QR Code Scam Being Reported in New Market", slug: "demo-4", category: "SAFETY", cover_image_url: "https://images.unsplash.com/photo-1595054225515-d72b217dc3e3?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, published_at: new Date().toISOString(), view_count: 892 },
-      { id: "n-5", title: "बड़ी खबर: न्यूमार्केट रोड चौड़ीकरण परियोजना को मिली मंजूरी", slug: "demo-5", category: "GENERAL", cover_image_url: "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, published_at: new Date().toISOString(), view_count: 634 },
+      { id: "n-5", title: "बड़ी खबर: न्यू मार्केट रोड चौड़ीकरण परियोजना को मिली मंजूरी", slug: "demo-5", category: "GENERAL", cover_image_url: "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, published_at: new Date().toISOString(), view_count: 634 },
     ]
   }
 
@@ -608,7 +608,7 @@ function CommunityStrip() {
       <div className="container flex flex-wrap items-center justify-between gap-3 py-4">
         <div>
           <p className="editorial-headline text-base font-bold text-primary-foreground">
-            <T en="Something happening in New Market?" hi="न्यूमार्केट में कुछ हो रहा है?" />
+            <T en="Something happening in New Market?" hi="न्यू मार्केट में कुछ हो रहा है?" />
           </p>
           <p className="text-xs text-primary-foreground/60">
             <T

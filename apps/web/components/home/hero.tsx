@@ -10,7 +10,7 @@ export function HomeHero({ children }: { children?: React.ReactNode }) {
   const { lang } = useLanguage()
 
   const headline = lang === "hi"
-    ? "न्यूमार्केट की\nहर खबर, हर मौका।"
+    ? "न्यू मार्केट की\nहर खबर, हर मौका।"
     : "New Market —\nnews, jobs & more."
 
   return (
@@ -24,7 +24,7 @@ export function HomeHero({ children }: { children?: React.ReactNode }) {
           <span className="h-2 w-2 rounded-full bg-amber-400 opacity-90 shrink-0" />
           <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-white/60">
             <MapPin size={10} />
-            {lang === "hi" ? "न्यूमार्केट, भोपाल" : "New Market, Bhopal"}
+            {lang === "hi" ? "न्यू मार्केट, भोपाल" : "New Market, Bhopal"}
           </span>
         </div>
 

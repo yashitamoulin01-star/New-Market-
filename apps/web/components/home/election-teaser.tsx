@@ -113,7 +113,7 @@ export function ElectionTeaser({ election }: Props) {
       <div className="p-4">
         <p className="mb-4 text-[11px] text-muted-foreground">
           {hi
-            ? "न्यूमार्केट व्यापारी महासंघ, भोपाल — वार्षिक पदाधिकारी चुनाव"
+            ? "न्यू मार्केट व्यापारी महासंघ, भोपाल — वार्षिक पदाधिकारी चुनाव"
             : "New Market Vyapari Mahasangh, Bhopal — Annual Officer Elections"}
         </p>
 

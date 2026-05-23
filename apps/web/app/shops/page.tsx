@@ -56,10 +56,10 @@ export default async function ShopsPage({ searchParams }: PageProps) {
             {result.total > 0 ? (
               <T
                 en={`${result.total} shop${result.total !== 1 ? "s" : ""} in New Market`}
-                hi={`न्यूमार्केट में ${result.total} दुकानें`}
+                hi={`न्यू मार्केट में ${result.total} दुकानें`}
               />
             ) : (
-              <T en="Local businesses in New Market, Bhopal" hi="न्यूमार्केट, भोपाल की दुकानें" />
+              <T en="Local businesses in New Market, Bhopal" hi="न्यू मार्केट, भोपाल की दुकानें" />
             )}
           </p>
         </div>
@@ -147,7 +147,7 @@ export default async function ShopsPage({ searchParams }: PageProps) {
                 <T en="View all categories" hi="सभी श्रेणियाँ देखें" />
               </Link>
             ) : (
-              <T en="Be the first to list your shop in New Market." hi="न्यूमार्केट में अपनी दुकान पहले जोड़ें।" />
+              <T en="Be the first to list your shop in New Market." hi="न्यू मार्केट में अपनी दुकान पहले जोड़ें।" />
             )}
           </p>
           <Link

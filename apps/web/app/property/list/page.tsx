@@ -240,7 +240,7 @@ export default function ListPropertyPage() {
             <input
               id="address" name="address" type="text" required
               placeholder={hi
-                ? "जैसे — दुकान 23, ब्लॉक C, न्यूमार्केट, भोपाल"
+                ? "जैसे — दुकान 23, ब्लॉक C, न्यू मार्केट, भोपाल"
                 : "e.g. Shop 23, Block C, New Market, Bhopal"}
               className={inputCls}
             />

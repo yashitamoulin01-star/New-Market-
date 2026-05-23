@@ -8,12 +8,12 @@ export function Footer() {
         <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
           <div>
             <h3 className="mb-3 font-bold text-primary">
-              <T en="NewMarket.co.in" hi="न्यूमार्केट.co.in" />
+              <T en="NewMarket.co.in" hi="न्यू मार्केट.co.in" />
             </h3>
             <p className="text-xs leading-relaxed text-muted-foreground">
               <T
                 en="The digital identity of New Market, Bhopal. Connecting businesses, workers, and citizens."
-                hi="न्यूमार्केट, भोपाल की Digital पहचान। व्यापारियों, कामगारों और नागरिकों को जोड़ने का मंच।"
+                hi="न्यू मार्केट, भोपाल की Digital पहचान। व्यापारियों, कामगारों और नागरिकों को जोड़ने का मंच।"
               />
             </p>
           </div>
@@ -86,7 +86,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t pt-6 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} <T en="NewMarket.co.in" hi="न्यूमार्केट.co.in" /> —{" "}
+          © {new Date().getFullYear()} <T en="NewMarket.co.in" hi="न्यू मार्केट.co.in" /> —{" "}
           <T en="All rights reserved." hi="सर्वाधिकार सुरक्षित।" />
         </div>
       </div>

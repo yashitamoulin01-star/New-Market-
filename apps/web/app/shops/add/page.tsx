@@ -95,7 +95,7 @@ export default function AddShopPage() {
       </div>
       <p className="mb-8 text-sm text-muted-foreground">
         {hi
-          ? "न्यूमार्केट की डायरेक्टरी में अपनी दुकान दर्ज करें। 24 घंटे में समीक्षा कर प्रकाशित किया जाएगा।"
+          ? "न्यू मार्केट की डायरेक्टरी में अपनी दुकान दर्ज करें। 24 घंटे में समीक्षा कर प्रकाशित किया जाएगा।"
           : "List your New Market shop in the directory. It will be reviewed and published within 24 hours."}
       </p>
 
@@ -175,7 +175,7 @@ export default function AddShopPage() {
               <input
                 id="address" name="address" type="text" required
                 placeholder={hi
-                  ? "जैसे — दुकान 12, ब्लॉक A, न्यूमार्केट, भोपाल"
+                  ? "जैसे — दुकान 12, ब्लॉक A, न्यू मार्केट, भोपाल"
                   : "e.g. Shop 12, Block A, New Market, Bhopal"}
                 className={inputCls}
               />
