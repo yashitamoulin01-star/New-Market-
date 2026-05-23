@@ -249,7 +249,7 @@ export default async function JobDetailPage({ params }: PageProps) {
 
           <div className="rounded-xl border bg-primary/5 p-5 text-center">
             <p className="mb-2 text-sm font-medium">
-              <T en="Hiring in New Market?" hi="नई मार्केट में भर्ती चाहिए?" />
+              <T en="Hiring in New Market?" hi="न्यूमार्केट में भर्ती चाहिए?" />
             </p>
             <Link
               href="/jobs/post"

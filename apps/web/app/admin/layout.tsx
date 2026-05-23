@@ -82,12 +82,12 @@ function MobileNavLink({
   return (
     <Link
       href={href}
-      className="relative flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-slate-400 hover:bg-slate-800 hover:text-white"
+      className="relative flex shrink-0 flex-col items-center gap-1 rounded-lg px-3 py-2.5 text-[11px] font-medium text-slate-400 hover:bg-slate-800 hover:text-white active:bg-slate-700 min-w-[56px]"
     >
-      <Icon size={12} />
-      {label}
+      <Icon size={18} />
+      <span className="leading-none">{label}</span>
       {badge > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 rounded-full bg-primary px-1 text-[9px] font-bold text-white leading-none py-0.5">
+        <span className="absolute right-0.5 top-0.5 rounded-full bg-primary px-1 text-[9px] font-bold text-white leading-none py-0.5">
           {badge}
         </span>
       )}
@@ -162,17 +162,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="flex flex-1 flex-col">
           {/* Mobile nav strip */}
           {user && (
-            <nav className="overflow-x-auto border-b border-slate-800 bg-slate-900 px-2 py-1.5 md:hidden">
-              <div className="flex min-w-max gap-0.5">
-                <MobileNavLink href="/admin/news"      icon={Newspaper}     label="News"      badge={pending.news} />
-                <MobileNavLink href="/admin/jobs"      icon={Briefcase}     label="Jobs"      badge={pending.jobs} />
-                <MobileNavLink href="/admin/shops"     icon={Store}         label="Shops"     badge={pending.shops} />
-                <MobileNavLink href="/admin/property"  icon={Building2}     label="Property"  badge={pending.property} />
-                <MobileNavLink href="/admin/comments"  icon={MessageSquare} label="Comments" />
-                <MobileNavLink href="/admin/ads"       icon={Megaphone}     label="Ads" />
-                <MobileNavLink href="/admin/elections" icon={Vote}          label="Elections" />
-                <MobileNavLink href="/admin/users"     icon={Users}         label="Users" />
-                <MobileNavLink href="/admin/settings"  icon={Settings}      label="Settings" />
+            <nav className="overflow-x-auto border-b border-slate-800 bg-slate-900 px-2 py-2 md:hidden">
+              <div className="flex min-w-max gap-1">
+                <MobileNavLink href="/admin"           icon={LayoutDashboard} label="Dash" />
+                <MobileNavLink href="/admin/news"      icon={Newspaper}       label="News"      badge={pending.news} />
+                <MobileNavLink href="/admin/jobs"      icon={Briefcase}       label="Jobs"      badge={pending.jobs} />
+                <MobileNavLink href="/admin/shops"     icon={Store}           label="Shops"     badge={pending.shops} />
+                <MobileNavLink href="/admin/property"  icon={Building2}       label="Property"  badge={pending.property} />
+                <MobileNavLink href="/admin/comments"  icon={MessageSquare}   label="Comments" />
+                <MobileNavLink href="/admin/ads"       icon={Megaphone}       label="Ads" />
+                <MobileNavLink href="/admin/elections" icon={Vote}            label="Elections" />
+                <MobileNavLink href="/admin/users"     icon={Users}           label="Users" />
+                <MobileNavLink href="/admin/settings"  icon={Settings}        label="Settings" />
               </div>
             </nav>
           )}

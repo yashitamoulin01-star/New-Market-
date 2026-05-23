@@ -287,7 +287,7 @@ export default function PostJobPage() {
               </FieldLabel>
               <input
                 id="shop_address" name="shop_address" type="text"
-                placeholder={hi ? "जैसे — दुकान 45, नई मार्केट, भोपाल" : "e.g. Shop 45, New Market, Bhopal"}
+                placeholder={hi ? "जैसे — दुकान 45, न्यूमार्केट, भोपाल" : "e.g. Shop 45, New Market, Bhopal"}
                 className={inputCls}
               />
             </div>

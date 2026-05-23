@@ -37,7 +37,7 @@ export default function ElectionPage() {
           <p className="mt-2 text-sm text-white/60">
             <T
               en="New Market Vyapari Mahasangh, Bhopal — Annual Officer Elections"
-              hi="नई मार्केट व्यापारी महासंघ, भोपाल — वार्षिक पदाधिकारी चुनाव"
+              hi="न्यूमार्केट व्यापारी महासंघ, भोपाल — वार्षिक पदाधिकारी चुनाव"
             />
           </p>
 

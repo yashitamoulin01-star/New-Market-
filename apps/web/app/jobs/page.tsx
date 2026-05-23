@@ -60,10 +60,10 @@ export default async function JobsPage({ searchParams }: PageProps) {
             {result.total > 0 ? (
               <T
                 en={`${result.total} opening${result.total !== 1 ? "s" : ""} in New Market`}
-                hi={`नई मार्केट में ${result.total} नौकरियाँ`}
+                hi={`न्यूमार्केट में ${result.total} नौकरियाँ`}
               />
             ) : (
-              <T en="Local jobs in New Market, Bhopal" hi="नई मार्केट, भोपाल में नौकरियाँ" />
+              <T en="Local jobs in New Market, Bhopal" hi="न्यूमार्केट, भोपाल में नौकरियाँ" />
             )}
           </p>
         </div>
@@ -178,7 +178,7 @@ export default async function JobsPage({ searchParams }: PageProps) {
                 <T en="Clear filters" hi="फ़िल्टर हटाएँ" />
               </Link>
             ) : (
-              <T en="Be the first to post an opening in New Market." hi="नई मार्केट में पहली नौकरी पोस्ट करें।" />
+              <T en="Be the first to post an opening in New Market." hi="न्यूमार्केट में पहली नौकरी पोस्ट करें।" />
             )}
           </p>
           <Link

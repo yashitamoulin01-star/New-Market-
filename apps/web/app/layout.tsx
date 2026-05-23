@@ -2,8 +2,7 @@ import type { Metadata } from "next"
 import { Inter, Plus_Jakarta_Sans, Noto_Sans_Devanagari, Playfair_Display } from "next/font/google"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { LanguageProvider } from "@/contexts/language-context"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
+import { Shell } from "@/components/layout/shell"
 import { createClient } from "@/lib/supabase/server"
 import "./globals.css"
 
@@ -49,7 +48,7 @@ export const metadata: Metadata = {
   },
   description:
     "The digital hub of New Market, Bhopal. Local news, job vacancies, shop directory, and property listings.",
-  keywords: ["New Market Bhopal", "local news", "jobs", "shops", "property", "नई मार्केट", "Bhopal marketplace"],
+  keywords: ["New Market Bhopal", "local news", "jobs", "shops", "property", "न्यूमार्केट", "नई मार्केट", "Bhopal marketplace"],
   authors: [{ name: "NewMarket.co.in" }],
   creator: "NewMarket.co.in",
   openGraph: {
@@ -101,11 +100,9 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <LanguageProvider>
-            <div className="flex min-h-screen flex-col">
-              <Header initialUser={initialUser} />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
+            <Shell initialUser={initialUser}>
+              {children}
+            </Shell>
           </LanguageProvider>
         </ThemeProvider>
       </body>
