@@ -193,6 +193,21 @@ export const getCachedAds = unstable_cache(
   { revalidate: TTL, tags: ["ads"] }
 )
 
+// ── Site settings ─────────────────────────────────────────────────
+
+export const getCachedSiteSetting = unstable_cache(
+  async (key: string): Promise<string | null> => {
+    const { data } = await supabasePublic
+      .from("site_settings")
+      .select("value")
+      .eq("key", key)
+      .maybeSingle()
+    return data?.value ?? null
+  },
+  ["site-settings"],
+  { revalidate: TTL, tags: ["site-settings"] }
+)
+
 // ── Active election ───────────────────────────────────────────────
 
 export const getCachedActiveElection = unstable_cache(

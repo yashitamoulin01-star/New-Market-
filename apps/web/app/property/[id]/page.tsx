@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: PageProps) {
   if (!property) return { title: "Property Not Found" }
   return {
     title: `${property.title} — New Market`,
-    description: property.description.slice(0, 160),
+    description: property.description?.slice(0, 160) ?? "",
   }
 }
 

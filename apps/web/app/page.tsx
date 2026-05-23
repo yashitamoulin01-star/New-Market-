@@ -13,6 +13,7 @@ import {
 import { NewsTicker } from "@/components/home/news-ticker"
 import { AdBanner } from "@/components/home/ad-banner"
 import { ElectionTeaser } from "@/components/home/election-teaser"
+import { YouTubeSection } from "@/components/home/youtube-section"
 import { T } from "@/components/ui/t"
 import type { NewsCardData } from "@/lib/supabase/news"
 import type { JobCardData } from "@/lib/supabase/jobs-defs"
@@ -588,6 +589,9 @@ async function SidebarSection() {
   const election = await getCachedActiveElection().catch(() => null)
   return (
     <div className="flex flex-col gap-4">
+      <Suspense fallback={null}>
+        <YouTubeSection />
+      </Suspense>
       <ElectionTeaser election={election} />
       <Suspense fallback={null}>
         <PropertyTeaserSection />

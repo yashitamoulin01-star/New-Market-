@@ -68,7 +68,7 @@ export async function submitShop(input: SubmitShopInput) {
 
   const { data, error } = await supabase
     .from("shops")
-    .insert({ ...input, status: "PENDING" })
+    .insert({ ...input, status: "APPROVED" })
     .select("id, name")
     .single()
 

@@ -1,5 +1,5 @@
 import { adminListJobs, JOB_TYPE_LABELS, JOB_CATEGORY_LABELS, formatSalary, type ContentStatus } from "@/lib/supabase/jobs"
-import { approveJobAction, rejectJobAction, deleteJobAction } from "./actions"
+import { deleteJobAction } from "./actions"
 import Link from "next/link"
 
 interface PageProps {
@@ -9,10 +9,9 @@ interface PageProps {
 export const metadata = { title: "Admin — Jobs" }
 
 const STATUS_TABS: { label: string; value: ContentStatus | "" }[] = [
-  { label: "Pending", value: "PENDING" },
+  { label: "All",      value: "" },
   { label: "Approved", value: "APPROVED" },
   { label: "Rejected", value: "REJECTED" },
-  { label: "All", value: "" },
 ]
 
 const STATUS_COLORS: Record<ContentStatus, string> = {
@@ -23,7 +22,7 @@ const STATUS_COLORS: Record<ContentStatus, string> = {
 
 export default async function AdminJobsPage({ searchParams }: PageProps) {
   const params = await searchParams
-  const status = (params.status as ContentStatus) || "PENDING"
+  const status = (params.status as ContentStatus | "") || ""
   const page = Number(params.page ?? 1)
 
   const result = await adminListJobs({
@@ -53,7 +52,7 @@ export default async function AdminJobsPage({ searchParams }: PageProps) {
             key={tab.value}
             href={tabHref(tab.value)}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
-              status === tab.value || (!status && tab.value === "")
+              status === tab.value
                 ? "border-b-2 border-primary text-primary"
                 : "text-muted-foreground hover:text-foreground"
             }`}
@@ -65,14 +64,12 @@ export default async function AdminJobsPage({ searchParams }: PageProps) {
 
       {result.items.length === 0 ? (
         <div className="rounded-xl border border-dashed py-14 text-center text-muted-foreground">
-          No listings in this category.
+          No listings found.
         </div>
       ) : (
         <div className="space-y-4">
           {result.items.map((job) => {
-            const approveWithId = approveJobAction.bind(null, job.id)
-            const rejectWithId  = rejectJobAction.bind(null, job.id)
-            const deleteWithId  = deleteJobAction.bind(null, job.id)
+            const deleteWithId = deleteJobAction.bind(null, job.id)
 
             return (
               <div key={job.id} className="rounded-xl border bg-card p-5">
@@ -111,12 +108,6 @@ export default async function AdminJobsPage({ searchParams }: PageProps) {
 
                 <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">{job.description}</p>
 
-                {job.rejection_note && (
-                  <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                    Rejection note: {job.rejection_note}
-                  </div>
-                )}
-
                 <div className="flex flex-wrap items-center gap-2 border-t pt-3">
                   <Link
                     href={`/jobs/${job.id}`}
@@ -126,41 +117,7 @@ export default async function AdminJobsPage({ searchParams }: PageProps) {
                     View
                   </Link>
 
-                  {job.status !== "APPROVED" && (
-                    <form action={approveWithId}>
-                      <button
-                        type="submit"
-                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700"
-                      >
-                        Approve
-                      </button>
-                    </form>
-                  )}
-
-                  {job.status !== "REJECTED" && (
-                    <form action={rejectWithId} className="flex items-center gap-2">
-                      <input
-                        name="rejection_note"
-                        type="text"
-                        placeholder="Rejection reason (optional)"
-                        className="rounded-lg border px-3 py-1.5 text-xs outline-none focus:border-primary"
-                      />
-                      <button
-                        type="submit"
-                        className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-amber-600"
-                      >
-                        Reject
-                      </button>
-                    </form>
-                  )}
-
-                  <form
-                    action={deleteWithId}
-                    onSubmit={(e) => {
-                      if (!confirm("Delete this job listing permanently?")) e.preventDefault()
-                    }}
-                    className="ml-auto"
-                  >
+                  <form action={deleteWithId} className="ml-auto">
                     <button
                       type="submit"
                       className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50"

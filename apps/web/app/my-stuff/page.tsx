@@ -7,7 +7,14 @@ import {
   getUserProperties, getUserComments,
 } from "@/lib/supabase/user-content"
 import { T } from "@/components/ui/t"
-import { Newspaper, Briefcase, Store, Building2, MessageSquare, CheckCircle2, Clock, XCircle } from "lucide-react"
+import { Newspaper, Briefcase, Store, Building2, MessageSquare, CheckCircle2, Clock, XCircle, Trash2 } from "lucide-react"
+import {
+  deleteMyNewsAction,
+  deleteMyJobAction,
+  deleteMyShopAction,
+  deleteMyPropertyAction,
+  deleteMyCommentAction,
+} from "./actions"
 
 function StatusBadge({ status }: { status: string }) {
   if (status === "APPROVED")
@@ -98,31 +105,43 @@ export default async function MyStuffPage() {
           <EmptyState label="No news submissions yet." />
         ) : (
           <ul className="divide-y">
-            {myNews.map((item) => (
-              <li key={item.id} className="flex items-start justify-between gap-4 py-3">
-                <div className="min-w-0 flex-1">
-                  {item.status === "APPROVED" ? (
-                    <Link
-                      href={`/news/${item.slug}`}
-                      className="text-sm font-medium hover:text-primary transition-colors line-clamp-1"
-                    >
-                      {item.title}
-                    </Link>
-                  ) : (
-                    <p className="text-sm font-medium line-clamp-1">{item.title}</p>
-                  )}
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    {item.category} · {new Date(item.created_at).toLocaleDateString("en-IN")}
-                  </p>
-                  {item.rejection_note && (
-                    <p className="mt-1 text-[11px] text-destructive">
-                      <T en="Reason:" hi="कारण:" /> {item.rejection_note}
+            {myNews.map((item) => {
+              const deleteAction = deleteMyNewsAction.bind(null, item.id)
+              return (
+                <li key={item.id} className="flex items-start justify-between gap-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    {item.status === "APPROVED" ? (
+                      <Link
+                        href={`/news/${item.slug}`}
+                        className="text-sm font-medium hover:text-primary transition-colors line-clamp-1"
+                      >
+                        {item.title}
+                      </Link>
+                    ) : (
+                      <p className="text-sm font-medium line-clamp-1">{item.title}</p>
+                    )}
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {item.category} · {new Date(item.created_at).toLocaleDateString("en-IN")}
                     </p>
-                  )}
-                </div>
-                <StatusBadge status={item.status} />
-              </li>
-            ))}
+                    {item.rejection_note && (
+                      <p className="mt-1 text-[11px] text-destructive">
+                        <T en="Reason:" hi="कारण:" /> {item.rejection_note}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <StatusBadge status={item.status} />
+                    {item.status !== "APPROVED" && (
+                      <form action={deleteAction}>
+                        <button type="submit" className="rounded border border-red-200 p-1 text-red-500 transition hover:bg-red-50" title="Delete">
+                          <Trash2 size={12} />
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         )}
         <div className="mt-3 border-t pt-3">
@@ -141,31 +160,41 @@ export default async function MyStuffPage() {
           <EmptyState label="No job listings yet." />
         ) : (
           <ul className="divide-y">
-            {myJobs.map((item) => (
-              <li key={item.id} className="flex items-start justify-between gap-4 py-3">
-                <div className="min-w-0 flex-1">
-                  {item.status === "APPROVED" ? (
-                    <Link
-                      href={`/jobs/${item.id}`}
-                      className="text-sm font-medium hover:text-primary transition-colors line-clamp-1"
-                    >
-                      {item.title}
-                    </Link>
-                  ) : (
-                    <p className="text-sm font-medium line-clamp-1">{item.title}</p>
-                  )}
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    {item.shop_name} · {new Date(item.created_at).toLocaleDateString("en-IN")}
-                  </p>
-                  {item.rejection_note && (
-                    <p className="mt-1 text-[11px] text-destructive">
-                      <T en="Reason:" hi="कारण:" /> {item.rejection_note}
+            {myJobs.map((item) => {
+              const deleteAction = deleteMyJobAction.bind(null, item.id)
+              return (
+                <li key={item.id} className="flex items-start justify-between gap-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    {item.status === "APPROVED" ? (
+                      <Link
+                        href={`/jobs/${item.id}`}
+                        className="text-sm font-medium hover:text-primary transition-colors line-clamp-1"
+                      >
+                        {item.title}
+                      </Link>
+                    ) : (
+                      <p className="text-sm font-medium line-clamp-1">{item.title}</p>
+                    )}
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {item.shop_name} · {new Date(item.created_at).toLocaleDateString("en-IN")}
                     </p>
-                  )}
-                </div>
-                <StatusBadge status={item.status} />
-              </li>
-            ))}
+                    {item.rejection_note && (
+                      <p className="mt-1 text-[11px] text-destructive">
+                        <T en="Reason:" hi="कारण:" /> {item.rejection_note}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <StatusBadge status={item.status} />
+                    <form action={deleteAction}>
+                      <button type="submit" className="rounded border border-red-200 p-1 text-red-500 transition hover:bg-red-50" title="Delete">
+                        <Trash2 size={12} />
+                      </button>
+                    </form>
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         )}
         <div className="mt-3 border-t pt-3">
@@ -184,31 +213,41 @@ export default async function MyStuffPage() {
           <EmptyState label="No shops listed yet." />
         ) : (
           <ul className="divide-y">
-            {myShops.map((item) => (
-              <li key={item.id} className="flex items-start justify-between gap-4 py-3">
-                <div className="min-w-0 flex-1">
-                  {item.status === "APPROVED" ? (
-                    <Link
-                      href={`/shops/${item.id}`}
-                      className="text-sm font-medium hover:text-primary transition-colors line-clamp-1"
-                    >
-                      {item.name}
-                    </Link>
-                  ) : (
-                    <p className="text-sm font-medium line-clamp-1">{item.name}</p>
-                  )}
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    {item.category} · {new Date(item.created_at).toLocaleDateString("en-IN")}
-                  </p>
-                  {item.rejection_note && (
-                    <p className="mt-1 text-[11px] text-destructive">
-                      <T en="Reason:" hi="कारण:" /> {item.rejection_note}
+            {myShops.map((item) => {
+              const deleteAction = deleteMyShopAction.bind(null, item.id)
+              return (
+                <li key={item.id} className="flex items-start justify-between gap-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    {item.status === "APPROVED" ? (
+                      <Link
+                        href={`/shops/${item.id}`}
+                        className="text-sm font-medium hover:text-primary transition-colors line-clamp-1"
+                      >
+                        {item.name}
+                      </Link>
+                    ) : (
+                      <p className="text-sm font-medium line-clamp-1">{item.name}</p>
+                    )}
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {item.category} · {new Date(item.created_at).toLocaleDateString("en-IN")}
                     </p>
-                  )}
-                </div>
-                <StatusBadge status={item.status} />
-              </li>
-            ))}
+                    {item.rejection_note && (
+                      <p className="mt-1 text-[11px] text-destructive">
+                        <T en="Reason:" hi="कारण:" /> {item.rejection_note}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <StatusBadge status={item.status} />
+                    <form action={deleteAction}>
+                      <button type="submit" className="rounded border border-red-200 p-1 text-red-500 transition hover:bg-red-50" title="Delete">
+                        <Trash2 size={12} />
+                      </button>
+                    </form>
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         )}
         <div className="mt-3 border-t pt-3">
@@ -227,31 +266,41 @@ export default async function MyStuffPage() {
           <EmptyState label="No property listings yet." />
         ) : (
           <ul className="divide-y">
-            {myProperties.map((item) => (
-              <li key={item.id} className="flex items-start justify-between gap-4 py-3">
-                <div className="min-w-0 flex-1">
-                  {item.status === "APPROVED" ? (
-                    <Link
-                      href={`/property/${item.id}`}
-                      className="text-sm font-medium hover:text-primary transition-colors line-clamp-1"
-                    >
-                      {item.title}
-                    </Link>
-                  ) : (
-                    <p className="text-sm font-medium line-clamp-1">{item.title}</p>
-                  )}
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    {item.listing_type} · {item.property_type} · {new Date(item.created_at).toLocaleDateString("en-IN")}
-                  </p>
-                  {item.rejection_note && (
-                    <p className="mt-1 text-[11px] text-destructive">
-                      <T en="Reason:" hi="कारण:" /> {item.rejection_note}
+            {myProperties.map((item) => {
+              const deleteAction = deleteMyPropertyAction.bind(null, item.id)
+              return (
+                <li key={item.id} className="flex items-start justify-between gap-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    {item.status === "APPROVED" ? (
+                      <Link
+                        href={`/property/${item.id}`}
+                        className="text-sm font-medium hover:text-primary transition-colors line-clamp-1"
+                      >
+                        {item.title}
+                      </Link>
+                    ) : (
+                      <p className="text-sm font-medium line-clamp-1">{item.title}</p>
+                    )}
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {item.listing_type} · {item.property_type} · {new Date(item.created_at).toLocaleDateString("en-IN")}
                     </p>
-                  )}
-                </div>
-                <StatusBadge status={item.status} />
-              </li>
-            ))}
+                    {item.rejection_note && (
+                      <p className="mt-1 text-[11px] text-destructive">
+                        <T en="Reason:" hi="कारण:" /> {item.rejection_note}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <StatusBadge status={item.status} />
+                    <form action={deleteAction}>
+                      <button type="submit" className="rounded border border-red-200 p-1 text-red-500 transition hover:bg-red-50" title="Delete">
+                        <Trash2 size={12} />
+                      </button>
+                    </form>
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         )}
         <div className="mt-3 border-t pt-3">
@@ -270,22 +319,34 @@ export default async function MyStuffPage() {
           <EmptyState label="No comments yet." />
         ) : (
           <ul className="divide-y">
-            {myComments.map((item) => (
-              <li key={item.id} className="py-3">
-                <Link
-                  href={`/news/${item.article_slug}#comments`}
-                  className="text-xs font-medium text-primary hover:underline line-clamp-1"
-                >
-                  {item.article_title}
-                </Link>
-                <p className="mt-1 text-sm text-foreground/80 line-clamp-2">{item.content}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  {new Date(item.created_at).toLocaleDateString("en-IN", {
-                    day: "numeric", month: "short", year: "numeric",
-                  })}
-                </p>
-              </li>
-            ))}
+            {myComments.map((item) => {
+              const deleteAction = deleteMyCommentAction.bind(null, item.id)
+              return (
+                <li key={item.id} className="py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        href={`/news/${item.article_slug}#comments`}
+                        className="text-xs font-medium text-primary hover:underline line-clamp-1"
+                      >
+                        {item.article_title}
+                      </Link>
+                      <p className="mt-1 text-sm text-foreground/80 line-clamp-2">{item.content}</p>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        {new Date(item.created_at).toLocaleDateString("en-IN", {
+                          day: "numeric", month: "short", year: "numeric",
+                        })}
+                      </p>
+                    </div>
+                    <form action={deleteAction} className="shrink-0 pt-0.5">
+                      <button type="submit" className="rounded border border-red-200 p-1 text-red-500 transition hover:bg-red-50" title="Delete comment">
+                        <Trash2 size={12} />
+                      </button>
+                    </form>
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         )}
       </Section>

@@ -6,8 +6,6 @@ import {
   type ContentStatus,
 } from "@/lib/supabase/shops"
 import {
-  approveShopAction,
-  rejectShopAction,
   verifyShopAction,
   deleteShopAction,
 } from "./actions"
@@ -19,10 +17,9 @@ interface PageProps {
 export const metadata = { title: "Admin — Shops" }
 
 const STATUS_TABS: { label: string; value: ContentStatus | "" }[] = [
-  { label: "Pending", value: "PENDING" },
+  { label: "All",      value: "" },
   { label: "Approved", value: "APPROVED" },
   { label: "Rejected", value: "REJECTED" },
-  { label: "All", value: "" },
 ]
 
 const STATUS_COLORS: Record<ContentStatus, string> = {
@@ -33,7 +30,7 @@ const STATUS_COLORS: Record<ContentStatus, string> = {
 
 export default async function AdminShopsPage({ searchParams }: PageProps) {
   const params = await searchParams
-  const status = (params.status as ContentStatus) || "PENDING"
+  const status = (params.status as ContentStatus | "") || ""
   const page = Number(params.page ?? 1)
 
   const result = await adminListShops({ status: status || undefined, page, limit: 20 })
@@ -59,7 +56,7 @@ export default async function AdminShopsPage({ searchParams }: PageProps) {
             key={tab.value}
             href={tabHref(tab.value)}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
-              status === tab.value || (!status && tab.value === "")
+              status === tab.value
                 ? "border-b-2 border-primary text-primary"
                 : "text-muted-foreground hover:text-foreground"
             }`}
@@ -71,15 +68,13 @@ export default async function AdminShopsPage({ searchParams }: PageProps) {
 
       {result.items.length === 0 ? (
         <div className="rounded-xl border border-dashed py-14 text-center text-muted-foreground">
-          No shops in this category.
+          No shops found.
         </div>
       ) : (
         <div className="space-y-4">
           {result.items.map((shop) => {
-            const approveWithId = approveShopAction.bind(null, shop.id)
-            const rejectWithId  = rejectShopAction.bind(null, shop.id)
-            const verifyWithId  = verifyShopAction.bind(null, shop.id)
-            const deleteWithId  = deleteShopAction.bind(null, shop.id)
+            const verifyWithId = verifyShopAction.bind(null, shop.id)
+            const deleteWithId = deleteShopAction.bind(null, shop.id)
 
             return (
               <div key={shop.id} className="rounded-xl border bg-card p-5">
@@ -129,12 +124,6 @@ export default async function AdminShopsPage({ searchParams }: PageProps) {
                   </div>
                 )}
 
-                {shop.rejection_note && (
-                  <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                    Rejection note: {shop.rejection_note}
-                  </div>
-                )}
-
                 <div className="flex flex-wrap items-center gap-2 border-t pt-3">
                   <Link
                     href={`/shops/${shop.id}`}
@@ -144,59 +133,23 @@ export default async function AdminShopsPage({ searchParams }: PageProps) {
                     View
                   </Link>
 
-                  {shop.status !== "APPROVED" && (
-                    <form action={approveWithId}>
-                      <button
-                        type="submit"
-                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700"
-                      >
-                        Approve
-                      </button>
-                    </form>
-                  )}
-
-                  {shop.status !== "REJECTED" && (
-                    <form action={rejectWithId} className="flex items-center gap-2">
-                      <input
-                        name="rejection_note"
-                        type="text"
-                        placeholder="Rejection reason (optional)"
-                        className="rounded-lg border px-3 py-1.5 text-xs outline-none focus:border-primary"
-                      />
-                      <button
-                        type="submit"
-                        className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-amber-600"
-                      >
-                        Reject
-                      </button>
-                    </form>
-                  )}
-
                   {/* Verify / Unverify toggle */}
-                  {shop.status === "APPROVED" && (
-                    <form action={verifyWithId}>
-                      <input type="hidden" name="verified" value={shop.is_verified ? "false" : "true"} />
-                      <button
-                        type="submit"
-                        className={`flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
-                          shop.is_verified
-                            ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                            : "border-slate-200 text-slate-600 hover:bg-muted"
-                        }`}
-                      >
-                        <BadgeCheck size={11} />
-                        {shop.is_verified ? "Unverify" : "Mark Verified"}
-                      </button>
-                    </form>
-                  )}
+                  <form action={verifyWithId}>
+                    <input type="hidden" name="verified" value={shop.is_verified ? "false" : "true"} />
+                    <button
+                      type="submit"
+                      className={`flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
+                        shop.is_verified
+                          ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                          : "border-slate-200 text-slate-600 hover:bg-muted"
+                      }`}
+                    >
+                      <BadgeCheck size={11} />
+                      {shop.is_verified ? "Unverify" : "Mark Verified"}
+                    </button>
+                  </form>
 
-                  <form
-                    action={deleteWithId}
-                    onSubmit={(e) => {
-                      if (!confirm("Delete this shop listing permanently?")) e.preventDefault()
-                    }}
-                    className="ml-auto"
-                  >
+                  <form action={deleteWithId} className="ml-auto">
                     <button
                       type="submit"
                       className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50"
