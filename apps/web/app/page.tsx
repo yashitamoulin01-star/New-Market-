@@ -3,10 +3,12 @@ import Image from "next/image"
 import { Suspense } from "react"
 import {
   ChevronRight, Briefcase, Store, Eye, Building2,
-  Flame, Clock, Newspaper, MapPin, Zap,
+  Flame, Clock, Newspaper, MapPin, Zap, Pin,
 } from "lucide-react"
 import {
-  getCachedNews, getCachedJobs, getCachedShops, getCachedProperties,
+  getCachedNews, getCachedBreakingNews, getCachedHomepageNews,
+  getCachedJobs, getCachedShops, getCachedProperties,
+  getCachedActiveElection,
 } from "@/lib/data/cached"
 import { NewsTicker } from "@/components/home/news-ticker"
 import { AdBanner } from "@/components/home/ad-banner"
@@ -61,8 +63,14 @@ function timeAgo(iso: string) {
 
 async function TickerSection() {
   try {
-    const news = await getCachedNews({ page: 1, limit: 10 })
-    const headlines = news.items.map((a) => ({ title: a.title, slug: a.slug }))
+    // Breaking news first; fallback to latest
+    let breaking = await getCachedBreakingNews(12)
+    if (breaking.length < 5) {
+      const { items } = await getCachedNews({ page: 1, limit: 10 })
+      const ids = new Set(breaking.map((b) => b.id))
+      breaking = [...breaking, ...items.filter((a) => !ids.has(a.id))].slice(0, 12)
+    }
+    const headlines = breaking.map((a) => ({ title: a.title, slug: a.slug }))
     return <NewsTicker headlines={headlines} />
   } catch { return null }
 }
@@ -112,12 +120,24 @@ async function MastheadSection() {
 
 async function MainNewsSection() {
   try {
-    const { items } = await getCachedNews({ page: 1, limit: 12 })
+    const items = await getCachedHomepageNews(12)
     if (items.length === 0) return <EmptyNews />
 
-    const [featured, ...rest] = items
-    const sideStack = rest.slice(0, 4)
-    const secondRow = rest.slice(4, 7)
+    // Pick headline: prefer homepage_slot === "headline", else first item
+    const headlineIdx = items.findIndex((a) => a.homepage_slot === "headline")
+    const featured = headlineIdx >= 0 ? items[headlineIdx] : items[0]
+
+    // Remaining items excluding featured
+    const rest = items.filter((a) => a.id !== featured.id)
+
+    // Side stack: prefer ticker-slotted items, else top 4 by order
+    const tickerItems = rest.filter((a) => a.homepage_slot === "ticker")
+    const nonTicker   = rest.filter((a) => a.homepage_slot !== "ticker")
+    const sideStack = [...tickerItems, ...nonTicker].slice(0, 4)
+
+    // Second row
+    const usedIds = new Set([featured.id, ...sideStack.map((a) => a.id)])
+    const secondRow = rest.filter((a) => !usedIds.has(a.id)).slice(0, 3)
 
     return (
       <>
@@ -126,7 +146,7 @@ async function MainNewsSection() {
           <div className="container flex items-center justify-between py-2">
             <div className="flex items-center gap-2">
               <span className="h-4 w-1 rounded-full bg-primary" />
-              <span className="text-sm font-bold">
+              <span className="text-sm font-bold editorial-headline">
                 <T en="Top Stories" hi="प्रमुख समाचार" />
               </span>
             </div>
@@ -138,14 +158,11 @@ async function MainNewsSection() {
         </div>
 
         <div className="container py-4">
-          {/* ── Main grid: big featured + right stack ── */}
+          {/* ── Main grid ── */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-            {/* Big featured article */}
             <div className="lg:col-span-2">
               <FeaturedArticle article={featured} />
             </div>
-
-            {/* Right stack */}
             <div className="flex flex-col gap-0 divide-y overflow-hidden rounded-xl border bg-card shadow-sm">
               <div className="bg-muted/40 px-4 py-2.5">
                 <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -153,9 +170,7 @@ async function MainNewsSection() {
                   <T en="Latest" hi="ताज़ा" />
                 </span>
               </div>
-              {sideStack.map((a) => (
-                <SideHeadline key={a.id} article={a} />
-              ))}
+              {sideStack.map((a) => <SideHeadline key={a.id} article={a} />)}
               <div className="px-4 py-3">
                 <Link href="/news" className="flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline">
                   <T en="View all stories" hi="सभी खबरें देखें" />
@@ -165,18 +180,38 @@ async function MainNewsSection() {
             </div>
           </div>
 
-          {/* ── Second row of 3 cards ── */}
+          {/* ── Second row ── */}
           {secondRow.length > 0 && (
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              {secondRow.map((a) => (
-                <SmallNewsCard key={a.id} article={a} />
-              ))}
+              {secondRow.map((a) => <SmallNewsCard key={a.id} article={a} />)}
             </div>
           )}
         </div>
       </>
     )
   } catch { return null }
+}
+
+function ArticleBadges({ article }: { article: NewsCardData }) {
+  return (
+    <>
+      {article.is_breaking && (
+        <span className="breaking-badge inline-block rounded-sm bg-red-500 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+          ⚡ Breaking
+        </span>
+      )}
+      {article.is_pinned && !article.is_breaking && (
+        <span className="inline-block rounded-sm bg-blue-500/90 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+          <Pin size={8} className="inline" /> Pinned
+        </span>
+      )}
+      {article.is_trending && (
+        <span className="inline-block rounded-sm bg-orange-500/90 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+          <Flame size={8} className="inline" /> Trending
+        </span>
+      )}
+    </>
+  )
 }
 
 function FeaturedArticle({ article }: { article: NewsCardData }) {
@@ -189,12 +224,15 @@ function FeaturedArticle({ article }: { article: NewsCardData }) {
       {article.cover_image_url ? (
         <div className="relative h-64 w-full overflow-hidden sm:h-80 lg:h-96">
           <Image src={article.cover_image_url} alt={article.title} fill priority className="object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5">
-            <span className={`mb-2 inline-block rounded-sm px-2 py-0.5 text-[11px] font-bold ${CAT_CHIP[cat] ?? CAT_CHIP.GENERAL}`}>
-              <T en={CAT_EN[cat] ?? cat} hi={CAT_HI[cat] ?? cat} />
-            </span>
-            <h2 className="font-heading text-xl font-bold leading-snug text-white sm:text-2xl line-clamp-3">
+            <div className="mb-2 flex flex-wrap items-center gap-1.5">
+              <span className={`inline-block rounded-sm px-2 py-0.5 text-[11px] font-bold ${CAT_CHIP[cat] ?? CAT_CHIP.GENERAL}`}>
+                <T en={CAT_EN[cat] ?? cat} hi={CAT_HI[cat] ?? cat} />
+              </span>
+              <ArticleBadges article={article} />
+            </div>
+            <h2 className="editorial-headline text-xl font-bold leading-snug text-white sm:text-2xl line-clamp-3">
               {article.title}
             </h2>
             {article.excerpt && (
@@ -211,10 +249,13 @@ function FeaturedArticle({ article }: { article: NewsCardData }) {
       ) : (
         <div className="p-6">
           <div className={`mb-3 h-1 w-12 rounded-full ${CAT_BAR[cat] ?? CAT_BAR.GENERAL}`} />
-          <span className={`mb-3 inline-block rounded-sm px-2 py-0.5 text-[11px] font-bold ${CAT_CHIP[cat] ?? CAT_CHIP.GENERAL}`}>
-            <T en={CAT_EN[cat] ?? cat} hi={CAT_HI[cat] ?? cat} />
-          </span>
-          <h2 className="font-heading text-2xl font-bold leading-snug transition-colors group-hover:text-primary">
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+            <span className={`inline-block rounded-sm px-2 py-0.5 text-[11px] font-bold ${CAT_CHIP[cat] ?? CAT_CHIP.GENERAL}`}>
+              <T en={CAT_EN[cat] ?? cat} hi={CAT_HI[cat] ?? cat} />
+            </span>
+            <ArticleBadges article={article} />
+          </div>
+          <h2 className="editorial-headline text-2xl font-bold leading-snug transition-colors group-hover:text-primary">
             {article.title}
           </h2>
           {article.excerpt && (
@@ -239,6 +280,11 @@ function SideHeadline({ article }: { article: NewsCardData }) {
     >
       <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${CAT_BAR[cat] ?? "bg-primary"}`} />
       <div className="min-w-0 flex-1">
+        {article.is_breaking && (
+          <span className="breaking-badge mb-0.5 inline-block rounded-sm bg-red-500 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white">
+            Breaking
+          </span>
+        )}
         <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
           {article.title}
         </p>
@@ -265,9 +311,14 @@ function SmallNewsCard({ article }: { article: NewsCardData }) {
       {article.cover_image_url ? (
         <div className="relative h-40 w-full overflow-hidden">
           <Image src={article.cover_image_url} alt={article.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
-          <span className={`absolute left-3 top-3 rounded-sm px-2 py-0.5 text-[10px] font-bold shadow ${CAT_CHIP[cat] ?? CAT_CHIP.GENERAL}`}>
-            <T en={CAT_EN[cat] ?? cat} hi={CAT_HI[cat] ?? cat} />
-          </span>
+          <div className="absolute left-3 top-3 flex flex-wrap gap-1">
+            <span className={`rounded-sm px-2 py-0.5 text-[10px] font-bold shadow ${CAT_CHIP[cat] ?? CAT_CHIP.GENERAL}`}>
+              <T en={CAT_EN[cat] ?? cat} hi={CAT_HI[cat] ?? cat} />
+            </span>
+            {article.is_breaking && (
+              <span className="breaking-badge rounded-sm bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white">⚡</span>
+            )}
+          </div>
         </div>
       ) : (
         <div className={`h-1 w-full ${CAT_BAR[cat] ?? "bg-primary"}`} />
@@ -447,9 +498,7 @@ async function PropertyTeaserSection() {
                 <Building2 size={13} className="text-primary" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="line-clamp-1 text-[13px] font-semibold transition-colors group-hover:text-primary">
-                  {p.title}
-                </p>
+                <p className="line-clamp-1 text-[13px] font-semibold transition-colors group-hover:text-primary">{p.title}</p>
                 <p className="text-[11px] text-muted-foreground">
                   {p.listing_type === "RENT" ? <T en="For Rent" hi="किराये पर" /> :
                    p.listing_type === "SALE" ? <T en="For Sale" hi="बिक्री हेतु" /> :
@@ -478,6 +527,20 @@ async function PropertyTeaserSection() {
   } catch { return null }
 }
 
+// ── Sidebar with election ─────────────────────────────────────────
+
+async function SidebarSection() {
+  const election = await getCachedActiveElection().catch(() => null)
+  return (
+    <div className="flex flex-col gap-4">
+      <ElectionTeaser election={election} />
+      <Suspense fallback={null}>
+        <PropertyTeaserSection />
+      </Suspense>
+    </div>
+  )
+}
+
 // ── Community strip ───────────────────────────────────────────────
 
 function CommunityStrip() {
@@ -485,7 +548,7 @@ function CommunityStrip() {
     <div className="border-t bg-primary">
       <div className="container flex flex-wrap items-center justify-between gap-3 py-4">
         <div>
-          <p className="font-heading text-base font-bold text-primary-foreground">
+          <p className="editorial-headline text-base font-bold text-primary-foreground">
             <T en="Something happening in New Market?" hi="नई मार्केट में कुछ हो रहा है?" />
           </p>
           <p className="text-xs text-primary-foreground/60">
@@ -534,54 +597,45 @@ function NewsGridSkeleton() {
 export default function HomePage() {
   return (
     <div className="bg-[#f7f4f0]">
-      {/* Ticker — keep */}
       <Suspense fallback={null}>
         <TickerSection />
       </Suspense>
 
-      {/* Masthead: date + stats strip */}
       <Suspense fallback={null}>
         <MastheadSection />
       </Suspense>
 
-      {/* Main news grid — content hits first */}
       <div className="bg-white">
         <Suspense fallback={<NewsGridSkeleton />}>
           <MainNewsSection />
         </Suspense>
       </div>
 
-      {/* Mid-page ad */}
-      <AdBanner slot="homepage-mid-1" size="leaderboard" />
+      <Suspense fallback={null}>
+        <AdBanner slot="homepage-mid-1" size="leaderboard" />
+      </Suspense>
 
-      {/* Jobs + Sidebar: 2/3 + 1/3 */}
       <div className="container py-5">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          {/* Jobs column — 2/3 */}
           <div className="lg:col-span-2">
             <Suspense fallback={null}>
               <JobsSection />
             </Suspense>
           </div>
-          {/* Sidebar — 1/3: Election + Property */}
-          <div className="flex flex-col gap-4">
-            <ElectionTeaser />
-            <Suspense fallback={null}>
-              <PropertyTeaserSection />
-            </Suspense>
-          </div>
+          <Suspense fallback={null}>
+            <SidebarSection />
+          </Suspense>
         </div>
       </div>
 
-      {/* Shops strip */}
       <Suspense fallback={null}>
         <ShopsStripSection />
       </Suspense>
 
-      {/* Bottom ad */}
-      <AdBanner slot="homepage-bottom" size="strip" />
+      <Suspense fallback={null}>
+        <AdBanner slot="homepage-bottom" size="strip" />
+      </Suspense>
 
-      {/* Community CTA */}
       <CommunityStrip />
     </div>
   )

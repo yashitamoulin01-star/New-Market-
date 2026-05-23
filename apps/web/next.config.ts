@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
         hostname: "*.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
+      // Ad banner images come from admin-uploaded URLs (unknown domains)
+      {
+        protocol: "https",
+        hostname: "**",
+      },
     ],
   },
 }

@@ -1,8 +1,16 @@
 import Link from "next/link"
 import type { Metadata } from "next"
-import { Clock, CheckCircle, XCircle, Eye, Inbox, ShieldOff } from "lucide-react"
+import {
+  Clock, CheckCircle, XCircle, Eye, Inbox, ShieldOff,
+  Zap, Pin, Flame, Star, ChevronDown,
+} from "lucide-react"
 import { adminListNews, type ContentStatus } from "@/lib/supabase/news"
-import { approveNewsAction, rejectNewsAction, deleteNewsAction } from "./actions"
+import {
+  approveNewsAction, rejectNewsAction, deleteNewsAction,
+  toggleNewsFlagAction, setHomepageSlotAction, setPriorityRankAction,
+  schedulePublishAction, editNewsAction,
+} from "./actions"
+import { EditNewsPanel } from "./edit-panel"
 
 export const metadata: Metadata = { title: "Newsroom — News Queue" }
 
@@ -36,6 +44,36 @@ function formatDate(iso: string) {
   })
 }
 
+// ── Reusable small flag toggle button ────────────────────────────
+
+function FlagButton({
+  id, field, active, label, icon: Icon, activeColor,
+}: {
+  id: string
+  field: "is_featured" | "is_breaking" | "is_pinned" | "is_trending"
+  active: boolean
+  label: string
+  icon: React.ElementType
+  activeColor: string
+}) {
+  return (
+    <form action={toggleNewsFlagAction.bind(null, id, field, !active)}>
+      <button
+        type="submit"
+        title={active ? `Remove ${label}` : `Mark as ${label}`}
+        className={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-bold transition ${
+          active
+            ? `${activeColor} border border-current/20`
+            : "border border-border bg-muted/40 text-muted-foreground hover:bg-muted"
+        }`}
+      >
+        <Icon size={10} className={active ? "" : "opacity-50"} />
+        {label}
+      </button>
+    </form>
+  )
+}
+
 export default async function AdminNewsPage({
   searchParams,
 }: {
@@ -56,7 +94,7 @@ export default async function AdminNewsPage({
       <div className="mb-6">
         <h1 className="font-heading text-2xl font-bold">News Queue</h1>
         <p className="text-sm text-muted-foreground">
-          {total} article{total !== 1 ? "s" : ""} · Review submissions before they go live
+          {total} article{total !== 1 ? "s" : ""} · Review and control homepage placement
         </p>
       </div>
 
@@ -96,6 +134,7 @@ export default async function AdminNewsPage({
             const statusCfg = STATUS_CONFIG[article.status]
             const StatusIcon = statusCfg.icon
             const catColor = CATEGORY_COLORS[article.category] ?? CATEGORY_COLORS.GENERAL
+            const isApproved = article.status === "APPROVED"
 
             return (
               <div key={article.id} className="rounded-xl border bg-card p-5 shadow-sm">
@@ -110,9 +149,13 @@ export default async function AdminNewsPage({
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${catColor}`}>
                         {article.category.charAt(0) + article.category.slice(1).toLowerCase()}
                       </span>
-                      {article.is_featured && (
-                        <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
-                          Featured
+                      {article.is_featured  && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">⭐ Featured</span>}
+                      {article.is_breaking  && <span className="breaking-badge rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">⚡ Breaking</span>}
+                      {article.is_pinned    && <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">📌 Pinned</span>}
+                      {article.is_trending  && <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-800">🔥 Trending</span>}
+                      {article.homepage_slot && (
+                        <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold text-violet-800">
+                          🏠 {article.homepage_slot}
                         </span>
                       )}
                     </div>
@@ -140,15 +183,16 @@ export default async function AdminNewsPage({
                       <Eye size={10} />
                       {article.view_count.toLocaleString()} views
                     </div>
+                    <div className="mt-1 text-[10px] text-muted-foreground/60">
+                      Rank: {article.priority_rank}
+                    </div>
                   </div>
                 </div>
 
                 {/* Excerpt or content preview */}
                 {(article.excerpt || article.content) && (
                   <p className="mb-3 line-clamp-2 rounded-lg bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-                    {article.excerpt
-                      ? article.excerpt
-                      : article.content.slice(0, 200) + (article.content.length > 200 ? "…" : "")}
+                    {article.excerpt ?? article.content.slice(0, 200) + (article.content.length > 200 ? "…" : "")}
                   </p>
                 )}
 
@@ -160,7 +204,7 @@ export default async function AdminNewsPage({
                   </div>
                 )}
 
-                {/* Actions */}
+                {/* ── Moderation actions ─────────────────────── */}
                 <div className="flex flex-wrap items-center gap-2 border-t pt-3">
                   {article.status === "APPROVED" && (
                     <Link
@@ -188,7 +232,7 @@ export default async function AdminNewsPage({
                       <input
                         name="note"
                         type="text"
-                        placeholder="Reason for rejection (optional)"
+                        placeholder="Rejection reason (optional)"
                         className="rounded-lg border bg-background px-3 py-1.5 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
                       />
                       <button
@@ -209,6 +253,79 @@ export default async function AdminNewsPage({
                     </button>
                   </form>
                 </div>
+
+                {/* ── Editorial controls (approved only) ────────── */}
+                {isApproved && (
+                  <div className="mt-3 space-y-3 rounded-xl border border-dashed bg-muted/20 p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Editorial Controls
+                    </p>
+
+                    {/* Flag toggles */}
+                    <div className="flex flex-wrap gap-2">
+                      <FlagButton id={article.id} field="is_featured" active={article.is_featured}
+                        label="Featured" icon={Star} activeColor="bg-amber-100 text-amber-800" />
+                      <FlagButton id={article.id} field="is_breaking" active={article.is_breaking}
+                        label="Breaking" icon={Zap} activeColor="bg-red-500 text-white" />
+                      <FlagButton id={article.id} field="is_pinned" active={article.is_pinned}
+                        label="Pinned" icon={Pin} activeColor="bg-blue-100 text-blue-800" />
+                      <FlagButton id={article.id} field="is_trending" active={article.is_trending}
+                        label="Trending" icon={Flame} activeColor="bg-orange-100 text-orange-800" />
+                    </div>
+
+                    {/* Slot + Rank + Schedule row */}
+                    <div className="flex flex-wrap items-end gap-3">
+                      {/* Homepage slot */}
+                      <form action={setHomepageSlotAction.bind(null, article.id)} className="flex items-center gap-1.5">
+                        <label className="text-[11px] font-semibold text-muted-foreground">Slot</label>
+                        <div className="relative">
+                          <select
+                            name="slot"
+                            defaultValue={article.homepage_slot ?? ""}
+                            className="appearance-none rounded-lg border bg-background py-1.5 pl-2.5 pr-7 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+                          >
+                            <option value="">None</option>
+                            <option value="headline">Headline</option>
+                            <option value="ticker">Ticker</option>
+                            <option value="sidebar">Sidebar</option>
+                            <option value="featured">Featured</option>
+                          </select>
+                          <ChevronDown size={10} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                        </div>
+                        <button type="submit" className="rounded-md bg-muted px-2 py-1 text-[11px] font-semibold hover:bg-muted/80 transition">Set</button>
+                      </form>
+
+                      {/* Priority rank */}
+                      <form action={setPriorityRankAction.bind(null, article.id)} className="flex items-center gap-1.5">
+                        <label className="text-[11px] font-semibold text-muted-foreground">Rank</label>
+                        <input
+                          name="rank"
+                          type="number"
+                          defaultValue={article.priority_rank}
+                          min={1}
+                          max={999}
+                          className="w-16 rounded-lg border bg-background py-1.5 px-2.5 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+                        />
+                        <button type="submit" className="rounded-md bg-muted px-2 py-1 text-[11px] font-semibold hover:bg-muted/80 transition">Set</button>
+                      </form>
+
+                      {/* Schedule */}
+                      <form action={schedulePublishAction.bind(null, article.id)} className="flex items-center gap-1.5">
+                        <label className="text-[11px] font-semibold text-muted-foreground">Schedule</label>
+                        <input
+                          name="datetime"
+                          type="datetime-local"
+                          defaultValue={article.scheduled_publish_at?.slice(0, 16) ?? ""}
+                          className="rounded-lg border bg-background py-1.5 px-2.5 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+                        />
+                        <button type="submit" className="rounded-md bg-muted px-2 py-1 text-[11px] font-semibold hover:bg-muted/80 transition">Set</button>
+                      </form>
+                    </div>
+
+                    {/* Inline edit */}
+                    <EditNewsPanel article={article} editAction={editNewsAction} />
+                  </div>
+                )}
               </div>
             )
           })}

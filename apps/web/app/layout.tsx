@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Inter, Plus_Jakarta_Sans, Noto_Sans_Devanagari } from "next/font/google"
+import { Inter, Plus_Jakarta_Sans, Noto_Sans_Devanagari, Playfair_Display } from "next/font/google"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { LanguageProvider } from "@/contexts/language-context"
 import { Header } from "@/components/layout/header"
@@ -23,6 +23,13 @@ const devanagari = Noto_Sans_Devanagari({
   subsets: ["devanagari"],
   variable: "--font-devanagari",
   weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+})
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-editorial",
+  weight: ["700", "800", "900"],
   display: "swap",
 })
 
@@ -72,7 +79,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${jakarta.variable} ${devanagari.variable} font-sans antialiased`}
+        className={`${inter.variable} ${jakarta.variable} ${devanagari.variable} ${playfair.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
         <ThemeProvider

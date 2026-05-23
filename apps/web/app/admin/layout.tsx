@@ -5,7 +5,10 @@ import { adminListNews } from "@/lib/supabase/news"
 import { adminListJobs } from "@/lib/supabase/jobs"
 import { adminListShops } from "@/lib/supabase/shops"
 import { adminListProperties } from "@/lib/supabase/property"
-import { Newspaper, Briefcase, Store, Building2, Radio, MessageSquare } from "lucide-react"
+import {
+  Newspaper, Briefcase, Store, Building2, MessageSquare,
+  Megaphone, Vote, Users, Radio, LayoutDashboard,
+} from "lucide-react"
 
 async function getPendingCounts() {
   const [news, jobs, shops, property] = await Promise.allSettled([
@@ -22,89 +25,162 @@ async function getPendingCounts() {
   }
 }
 
-function NavLink({
+function Badge({ count }: { count: number }) {
+  if (count === 0) return null
+  return (
+    <span className="ml-auto rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+      {count}
+    </span>
+  )
+}
+
+function SideLink({
   href,
   icon: Icon,
   label,
-  pending,
+  badge = 0,
 }: {
   href: string
   icon: React.ElementType
   label: string
-  pending: number
+  badge?: number
 }) {
   return (
     <Link
       href={href}
-      className="group flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
     >
       <Icon size={14} className="shrink-0" />
+      <span className="flex-1">{label}</span>
+      <Badge count={badge} />
+    </Link>
+  )
+}
+
+function SideSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-4">
+      <p className="mb-1 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-600">
+        {title}
+      </p>
+      <div className="space-y-0.5">{children}</div>
+    </div>
+  )
+}
+
+function MobileNavLink({
+  href,
+  icon: Icon,
+  label,
+  badge = 0,
+}: {
+  href: string
+  icon: React.ElementType
+  label: string
+  badge?: number
+}) {
+  return (
+    <Link
+      href={href}
+      className="relative flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-slate-400 hover:bg-slate-800 hover:text-white"
+    >
+      <Icon size={12} />
       {label}
-      {pending > 0 && (
-        <span className="ml-0.5 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold leading-none text-primary-foreground">
-          {pending}
+      {badge > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 rounded-full bg-primary px-1 text-[9px] font-bold text-white leading-none py-0.5">
+          {badge}
         </span>
       )}
     </Link>
   )
 }
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const pending = user ? await getPendingCounts() : { news: 0, jobs: 0, shops: 0, property: 0 }
   const totalPending = pending.news + pending.jobs + pending.shops + pending.property
 
   return (
-    <div>
-      {user && (
-        <div className="border-b bg-slate-900 text-white">
-          <div className="container flex items-center justify-between py-2.5">
-            {/* Brand + nav */}
-            <div className="flex items-center gap-1">
-              {/* Newsroom brand */}
-              <div className="mr-3 flex items-center gap-1.5">
-                <Radio size={14} className="text-primary" />
-                <span className="text-sm font-bold tracking-tight text-white">Newsroom</span>
-                {totalPending > 0 && (
-                  <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">
-                    {totalPending}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-0.5">
-                <NavLink href="/admin/news"     icon={Newspaper}     label="News"     pending={pending.news} />
-                <NavLink href="/admin/jobs"     icon={Briefcase}     label="Jobs"     pending={pending.jobs} />
-                <NavLink href="/admin/shops"    icon={Store}         label="Shops"    pending={pending.shops} />
-                <NavLink href="/admin/property" icon={Building2}     label="Property" pending={pending.property} />
-                <NavLink href="/admin/comments" icon={MessageSquare} label="Comments" pending={0} />
-              </div>
-            </div>
-
-            {/* User */}
-            <div className="flex items-center gap-3">
-              <span className="hidden text-xs text-white/50 sm:inline">{user.email}</span>
-              <form action={signOutAction}>
-                <button
-                  type="submit"
-                  className="rounded-md border border-white/20 px-2.5 py-1 text-xs text-white/70 transition hover:border-white/40 hover:text-white"
-                >
-                  Sign out
-                </button>
-              </form>
-            </div>
-          </div>
+    <div className="flex min-h-screen flex-col bg-slate-950">
+      {/* ── Top bar ─────────────────────────────────────────────── */}
+      <header className="flex h-11 items-center justify-between border-b border-slate-800 bg-slate-900 px-4">
+        <div className="flex items-center gap-2">
+          <Radio size={14} className="text-primary" />
+          <span className="text-sm font-bold tracking-tight text-white">Newsroom</span>
+          {totalPending > 0 && (
+            <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">
+              {totalPending}
+            </span>
+          )}
         </div>
-      )}
-      {children}
+        {user && (
+          <div className="flex items-center gap-3">
+            <span className="hidden text-xs text-slate-500 sm:inline">{user.email}</span>
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="rounded-md border border-slate-700 px-2.5 py-1 text-xs text-slate-400 transition hover:border-slate-500 hover:text-white"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
+        )}
+      </header>
+
+      <div className="flex flex-1">
+        {/* ── Sidebar (desktop) ───────────────────────────────── */}
+        {user && (
+          <aside className="hidden w-52 shrink-0 border-r border-slate-800 bg-slate-900 p-3 md:block">
+            <SideSection title="Overview">
+              <SideLink href="/admin" icon={LayoutDashboard} label="Dashboard" />
+            </SideSection>
+
+            <SideSection title="Content">
+              <SideLink href="/admin/news"     icon={Newspaper}     label="News"     badge={pending.news} />
+              <SideLink href="/admin/jobs"     icon={Briefcase}     label="Jobs"     badge={pending.jobs} />
+              <SideLink href="/admin/shops"    icon={Store}         label="Shops"    badge={pending.shops} />
+              <SideLink href="/admin/property" icon={Building2}     label="Property" badge={pending.property} />
+              <SideLink href="/admin/comments" icon={MessageSquare} label="Comments" />
+            </SideSection>
+
+            <SideSection title="Advertising">
+              <SideLink href="/admin/ads" icon={Megaphone} label="Ad Manager" />
+            </SideSection>
+
+            <SideSection title="Platform">
+              <SideLink href="/admin/elections" icon={Vote}  label="Elections" />
+              <SideLink href="/admin/users"     icon={Users} label="Users" />
+            </SideSection>
+          </aside>
+        )}
+
+        {/* ── Content wrapper ──────────────────────────────────── */}
+        <div className="flex flex-1 flex-col">
+          {/* Mobile nav strip */}
+          {user && (
+            <nav className="overflow-x-auto border-b border-slate-800 bg-slate-900 px-2 py-1.5 md:hidden">
+              <div className="flex min-w-max gap-0.5">
+                <MobileNavLink href="/admin/news"      icon={Newspaper}     label="News"      badge={pending.news} />
+                <MobileNavLink href="/admin/jobs"      icon={Briefcase}     label="Jobs"      badge={pending.jobs} />
+                <MobileNavLink href="/admin/shops"     icon={Store}         label="Shops"     badge={pending.shops} />
+                <MobileNavLink href="/admin/property"  icon={Building2}     label="Property"  badge={pending.property} />
+                <MobileNavLink href="/admin/comments"  icon={MessageSquare} label="Comments" />
+                <MobileNavLink href="/admin/ads"       icon={Megaphone}     label="Ads" />
+                <MobileNavLink href="/admin/elections" icon={Vote}          label="Elections" />
+                <MobileNavLink href="/admin/users"     icon={Users}         label="Users" />
+              </div>
+            </nav>
+          )}
+
+          {/* Page content */}
+          <main className="flex-1 bg-background">
+            {children}
+          </main>
+        </div>
+      </div>
     </div>
   )
 }
