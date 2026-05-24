@@ -102,7 +102,7 @@ export function ElectionTeaser({ election }: Props) {
         <div className="flex items-center gap-2">
           <Vote size={15} className="text-primary-foreground/80" />
           <h3 className="text-sm font-bold text-primary-foreground">
-            {hi ? "व्यापारी महासंघ चुनाव" : "Vyapari Mahasangh Election"}
+            {hi ? "व्यापारी महासंघ" : "Vyapari Mahasangh"}
           </h3>
         </div>
         <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-amber-900 uppercase tracking-wide">
@@ -113,8 +113,8 @@ export function ElectionTeaser({ election }: Props) {
       <div className="p-4">
         <p className="mb-4 text-[11px] text-muted-foreground">
           {hi
-            ? "न्यू मार्केट व्यापारी महासंघ, भोपाल — वार्षिक पदाधिकारी चुनाव"
-            : "New Market Vyapari Mahasangh, Bhopal — Annual Officer Elections"}
+            ? "न्यू मार्केट व्यापारी महासंघ, भोपाल — वार्षिक पदाधिकारी"
+            : "New Market Vyapari Mahasangh, Bhopal — Annual Officers"}
         </p>
 
         <div className="mb-4 space-y-1.5">

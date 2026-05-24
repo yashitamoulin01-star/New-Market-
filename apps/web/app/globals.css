@@ -78,6 +78,11 @@
     background-color: #fdfcfb;
     color-scheme: light;
     scroll-behavior: smooth;
+    font-size: 16px;
+  }
+  html.dark {
+    background-color: hsl(222, 20%, 8%);
+    color-scheme: dark;
   }
   body {
     @apply bg-background text-foreground antialiased;

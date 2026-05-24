@@ -6,6 +6,8 @@ import { useState } from "react"
 import { Menu, X } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 import { LanguageToggle } from "./language-toggle"
+import { ThemeToggle } from "./theme-toggle"
+import { FontSizeToggle } from "./font-size-toggle"
 import { UserNav } from "./user-nav"
 import { translations as t } from "@/lib/i18n"
 import type { User } from "@supabase/supabase-js"
@@ -48,7 +50,9 @@ export function Header({ initialUser }: HeaderProps) {
             {t.nav.tagline[lang]}
           </span>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <FontSizeToggle />
+            <ThemeToggle />
             <LanguageToggle />
             <UserNav initialUser={initialUser} />
             {/* Mobile hamburger */}

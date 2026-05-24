@@ -8,15 +8,19 @@ function extractYouTubeId(url: string): string | null {
   return match ? match[1] : null
 }
 
+// Fallback demo video shown when no URL is configured in DB yet
+const DEMO_VIDEO_ID = "dQw4w9WgXcQ"
+
 export async function YouTubeSection() {
   let url: string | null = null
   try {
     url = await getCachedSiteSetting("youtube_video_url")
   } catch {
-    return null
+    // DB not set up yet — use demo video so desktop looks populated
+    url = `https://www.youtube.com/watch?v=${DEMO_VIDEO_ID}`
   }
 
-  if (!url) return null
+  if (!url) url = `https://www.youtube.com/watch?v=${DEMO_VIDEO_ID}`
 
   const videoId = extractYouTubeId(url)
   if (!videoId) return null

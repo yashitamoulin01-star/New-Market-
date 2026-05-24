@@ -3,7 +3,7 @@ import Image from "next/image"
 import { Suspense } from "react"
 import {
   ChevronRight, Briefcase, Store, Eye, Building2,
-  Flame, Clock, Newspaper, MapPin, Zap, Pin,
+  Flame, Clock, Newspaper, Zap, Pin,
 } from "lucide-react"
 import {
   getCachedNews, getCachedBreakingNews, getCachedHomepageNews,
@@ -14,6 +14,7 @@ import { NewsTicker } from "@/components/home/news-ticker"
 import { AdBanner } from "@/components/home/ad-banner"
 import { ElectionTeaser } from "@/components/home/election-teaser"
 import { YouTubeSection } from "@/components/home/youtube-section"
+import { MastheadBar } from "@/components/home/masthead-bar"
 import { T } from "@/components/ui/t"
 import type { NewsCardData } from "@/lib/supabase/news"
 import type { JobCardData } from "@/lib/supabase/jobs-defs"
@@ -40,8 +41,8 @@ const CAT_BAR: Record<string, string> = {
   TRAFFIC:   "bg-yellow-500",
 }
 const CAT_HI: Record<string, string> = {
-  GENERAL: "सामान्य", EVENTS: "इवेंट", NOTICES: "सूचनाएँ",
-  BUSINESS: "व्यापार", COMMUNITY: "समुदाय", SAFETY: "सुरक्षा", TRAFFIC: "यातायात",
+  GENERAL: "जनरल", EVENTS: "इवेंट", NOTICES: "नोटिस",
+  BUSINESS: "बिज़नेस", COMMUNITY: "कम्युनिटी", SAFETY: "सेफ्टी", TRAFFIC: "ट्रैफिक",
 }
 const CAT_EN: Record<string, string> = {
   GENERAL: "General", EVENTS: "Events", NOTICES: "Notices",
@@ -82,9 +83,9 @@ async function TickerSection() {
   return <NewsTicker headlines={headlines} />
 }
 
-// ── Masthead strip ────────────────────────────────────────────────
+// ── Masthead strip (client component for language-aware date) ────────────
 
-async function MastheadSection() {
+async function MastheadStatStrip() {
   let stats = { news: 145, jobs: 38, shops: 312 }
   try {
     const [news, jobs, shops] = await Promise.all([
@@ -97,19 +98,10 @@ async function MastheadSection() {
     if (shops.total > 0) stats.shops = shops.total
   } catch {}
 
-  const today = new Date().toLocaleDateString("hi-IN", {
-    weekday: "long", day: "numeric", month: "long", year: "numeric",
-  })
-  
   return (
     <div className="border-b bg-white">
       <div className="container flex flex-wrap items-center justify-between gap-2 py-1.5">
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <MapPin size={10} className="text-primary" />
-          <span className="font-medium text-foreground">न्यू मार्केट, भोपाल</span>
-          <span className="mx-1 text-border">|</span>
-          <span>{today}</span>
-        </div>
+        <MastheadBar />
         <div className="flex items-center gap-3 text-[11px]">
           <Link href="/news" className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors">
             <Newspaper size={10} />
@@ -117,11 +109,11 @@ async function MastheadSection() {
           </Link>
           <Link href="/jobs" className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors">
             <Briefcase size={10} />
-            <span><strong className="text-foreground">{stats.jobs}</strong> <T en="jobs" hi="नौकरियाँ" /></span>
+            <span><strong className="text-foreground">{stats.jobs}</strong> <T en="jobs" hi="जॉब्स" /></span>
           </Link>
           <Link href="/shops" className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors">
             <Store size={10} />
-            <span><strong className="text-foreground">{stats.shops}</strong> <T en="shops" hi="दुकानें" /></span>
+            <span><strong className="text-foreground">{stats.shops}</strong> <T en="shops" hi="शॉप्स" /></span>
           </Link>
         </div>
       </div>
@@ -136,7 +128,6 @@ async function MainNewsSection() {
   try {
     items = await getCachedHomepageNews(12)
   } catch {
-    // Inject stunning demo news if database fails
     items = [
       { id: "n-1", title: "New Market Association Announces Free Wi-Fi for Entire Market Premises", slug: "demo-1", category: "BUSINESS", cover_image_url: "https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: true, published_at: new Date().toISOString(), view_count: 421, excerpt: "The New Market Traders Association has announced the rollout of free public Wi-Fi across the entire market complex to modernize the shopping experience." },
       { id: "n-2", title: "न्यू मार्केट में नया पार्किंग प्लाज़ा बनेगा — 500 गाड़ियों की जगह", slug: "demo-2", category: "GENERAL", cover_image_url: "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, published_at: new Date().toISOString(), view_count: 289 },
@@ -148,25 +139,17 @@ async function MainNewsSection() {
 
   if (items.length === 0) return <EmptyNews />
 
-  // Pick headline: prefer homepage_slot === "headline", else first item
   const headlineIdx = items.findIndex((a) => a.homepage_slot === "headline")
   const featured = headlineIdx >= 0 ? items[headlineIdx] : items[0]
-
-  // Remaining items excluding featured
   const rest = items.filter((a) => a.id !== featured.id)
-
-  // Side stack: prefer ticker-slotted items, else top 4 by order
   const tickerItems = rest.filter((a) => a.homepage_slot === "ticker")
   const nonTicker   = rest.filter((a) => a.homepage_slot !== "ticker")
   const sideStack = [...tickerItems, ...nonTicker].slice(0, 4)
-
-  // Second row
   const usedIds = new Set([featured.id, ...sideStack.map((a) => a.id)])
   const secondRow = rest.filter((a) => !usedIds.has(a.id)).slice(0, 3)
 
   return (
     <>
-      {/* Section header */}
       <div className="border-b bg-white">
         <div className="container flex items-center justify-between py-2">
           <div className="flex items-center gap-2">
@@ -183,7 +166,6 @@ async function MainNewsSection() {
       </div>
 
       <div className="container py-4">
-        {/* ── Main grid ── */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <FeaturedArticle article={featured} />
@@ -205,7 +187,6 @@ async function MainNewsSection() {
           </div>
         </div>
 
-        {/* ── Second row ── */}
         {secondRow.length > 0 && (
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {secondRow.map((a) => <SmallNewsCard key={a.id} article={a} />)}
@@ -388,7 +369,6 @@ async function JobsSection() {
     const res = await getCachedJobs({ page: 1, limit: 4 })
     items = res.items
   } catch {
-    // Hardcoded fallback data if db fails
     items = [
       { id: "demo-j1", title: "Cashier / Billing Executive", shop_name: "Radha Saree House", salary_min: 9000, salary_max: 12000, salary_label: null },
       { id: "demo-j2", title: "Smartphone Repair Technician", shop_name: "City Mobile", salary_min: 12000, salary_max: 20000, salary_label: null },
@@ -538,7 +518,7 @@ async function PropertyTeaserSection() {
       <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-2.5">
         <div className="flex items-center gap-2">
           <Building2 size={14} className="text-primary" />
-          <span className="text-sm font-bold"><T en="Property" hi="संपत्ति" /></span>
+          <span className="text-sm font-bold"><T en="Property" hi="प्रॉपर्टी" /></span>
         </div>
         <Link href="/property" className="flex items-center gap-0.5 text-[11px] font-medium text-primary hover:underline">
           <T en={`${total} listings`} hi={`${total} लिस्टिंग`} /> <ChevronRight size={12} />
@@ -583,16 +563,18 @@ async function PropertyTeaserSection() {
   )
 }
 
-// ── Sidebar with election ─────────────────────────────────────────
+// ── Sidebar with election + YouTube ─────────────────────────────────────
 
 async function SidebarSection() {
   const election = await getCachedActiveElection().catch(() => null)
   return (
     <div className="flex flex-col gap-4">
-      <Suspense fallback={null}>
-        <YouTubeSection />
-      </Suspense>
       <ElectionTeaser election={election} />
+      <div className="hidden lg:block">
+        <Suspense fallback={null}>
+          <YouTubeSection />
+        </Suspense>
+      </div>
       <Suspense fallback={null}>
         <PropertyTeaserSection />
       </Suspense>
@@ -661,7 +643,7 @@ export default function HomePage() {
       </Suspense>
 
       <Suspense fallback={null}>
-        <MastheadSection />
+        <MastheadStatStrip />
       </Suspense>
 
       <div className="bg-white">
