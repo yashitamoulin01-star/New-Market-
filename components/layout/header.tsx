@@ -3,8 +3,9 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { Menu, X } from "lucide-react"
+import { Menu, X, ALargeSmall } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
+import { useFontSize } from "@/contexts/font-size-context"
 import { LanguageToggle } from "./language-toggle"
 import { UserNav } from "./user-nav"
 import { translations as t } from "@/lib/i18n"
@@ -13,6 +14,7 @@ export function Header() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const { lang } = useLanguage()
+  const { increase, decrease, canIncrease, canDecrease } = useFontSize()
 
   const navLinks = [
     { href: "/",         label: t.nav.home[lang] },
@@ -42,7 +44,28 @@ export function Header() {
             {t.nav.tagline[lang]}
           </span>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            {/* Font size controls */}
+            <div className="hidden sm:flex items-center gap-0.5 rounded-full border border-white/20 bg-white/10 px-1 py-0.5">
+              <button
+                onClick={decrease}
+                disabled={!canDecrease}
+                aria-label="Decrease font size"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-primary-foreground/70 text-xs font-bold hover:bg-white/20 disabled:opacity-30 transition"
+              >
+                A–
+              </button>
+              <ALargeSmall size={12} className="text-primary-foreground/50 mx-0.5" />
+              <button
+                onClick={increase}
+                disabled={!canIncrease}
+                aria-label="Increase font size"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-primary-foreground/70 text-sm font-bold hover:bg-white/20 disabled:opacity-30 transition"
+              >
+                A+
+              </button>
+            </div>
+
             <LanguageToggle />
             <UserNav />
             {/* Mobile hamburger */}
@@ -76,7 +99,7 @@ export function Header() {
         </nav>
       </div>
 
-      {/* Mobile dropdown — always in DOM, animated via max-height */}
+      {/* Mobile dropdown */}
       <div
         className={`overflow-hidden border-b bg-background shadow-md sm:hidden transition-all duration-200 ease-out ${
           open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
@@ -100,6 +123,27 @@ export function Header() {
               {link.label}
             </Link>
           ))}
+          {/* Mobile font size controls */}
+          <div className="flex items-center gap-3 border-b border-border py-3">
+            <ALargeSmall size={14} className="text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Font size</span>
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={decrease}
+                disabled={!canDecrease}
+                className="rounded-md border px-2.5 py-0.5 text-xs font-bold disabled:opacity-30"
+              >
+                A–
+              </button>
+              <button
+                onClick={increase}
+                disabled={!canIncrease}
+                className="rounded-md border px-2.5 py-0.5 text-sm font-bold disabled:opacity-30"
+              >
+                A+
+              </button>
+            </div>
+          </div>
         </nav>
       </div>
     </header>

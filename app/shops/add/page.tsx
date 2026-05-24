@@ -7,6 +7,7 @@ import { Store, CheckCircle, ChevronLeft } from "lucide-react"
 import { addShopAction, type AddShopState } from "./actions"
 import { SHOP_CATEGORY_LABELS_BI } from "@/lib/supabase/shops-defs"
 import { useLanguage } from "@/contexts/language-context"
+import { ImageUploadInput } from "@/components/ui/image-upload-input"
 
 const initialState: AddShopState = { success: false }
 
@@ -234,24 +235,19 @@ export default function AddShopPage() {
           <h2 className="mb-4 font-heading text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             {hi ? "छवियाँ (वैकल्पिक)" : "Images (optional)"}
           </h2>
-          <p className="mb-4 text-xs text-muted-foreground">
-            {hi
-              ? "सार्वजनिक इमेज URL पेस्ट करें (Google Drive, Imgur आदि)।"
-              : "Paste publicly accessible image URLs (Google Drive, Imgur, etc.)."}
-          </p>
           <div className="space-y-4">
-            <div>
-              <FieldLabel htmlFor="logo_url">
-                {hi ? "लोगो URL" : "Logo URL"}
-              </FieldLabel>
-              <input id="logo_url" name="logo_url" type="url" placeholder="https://…" className={inputCls} />
-            </div>
-            <div>
-              <FieldLabel htmlFor="cover_image_url">
-                {hi ? "कवर इमेज URL" : "Cover Image URL"}
-              </FieldLabel>
-              <input id="cover_image_url" name="cover_image_url" type="url" placeholder="https://…" className={inputCls} />
-            </div>
+            <ImageUploadInput
+              name="logo_url"
+              label={hi ? "लोगो" : "Logo"}
+              optional
+              lang={lang}
+            />
+            <ImageUploadInput
+              name="cover_image_url"
+              label={hi ? "कवर इमेज" : "Cover Image"}
+              optional
+              lang={lang}
+            />
           </div>
         </section>
 

@@ -4,7 +4,6 @@
 
 @layer base {
   :root {
-    /* Backgrounds — warm off-white base to soften contrast with maroon */
     --background: 30 20% 99%;
     --foreground: 220 15% 10%;
 
@@ -14,7 +13,6 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 15% 10%;
 
-    /* Deep maroon — primary brand color */
     --primary: 350 78% 36%;
     --primary-foreground: 0 0% 100%;
 
@@ -24,7 +22,6 @@
     --muted: 30 12% 95%;
     --muted-foreground: 220 10% 46%;
 
-    /* Gold/orange accent */
     --accent: 38 92% 50%;
     --accent-foreground: 220 15% 10%;
 
@@ -36,36 +33,42 @@
     --ring: 350 80% 38%;
 
     --radius: 0.5rem;
+
+    --section-alt: 30 15% 96%;
+    --section-base: 30 20% 99%;
   }
 
   .dark {
-    --background: 222 20% 8%;
-    --foreground: 210 20% 95%;
+    --background: 224 25% 6%;
+    --foreground: 0 0% 96%;
 
-    --card: 222 18% 11%;
-    --card-foreground: 210 20% 95%;
+    --card: 224 22% 10%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 222 18% 11%;
-    --popover-foreground: 210 20% 95%;
+    --popover: 224 22% 10%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 350 75% 55%;
+    --primary: 350 68% 44%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 15% 18%;
-    --secondary-foreground: 210 20% 95%;
+    --secondary: 224 18% 15%;
+    --secondary-foreground: 0 0% 96%;
 
-    --muted: 222 15% 18%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 224 18% 15%;
+    --muted-foreground: 220 12% 55%;
 
-    --accent: 38 85% 55%;
-    --accent-foreground: 220 15% 10%;
+    --accent: 38 80% 52%;
+    --accent-foreground: 220 15% 8%;
 
-    --destructive: 0 75% 55%;
+    --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 222 15% 18%;
-    --input: 222 15% 18%;
-    --ring: 350 75% 55%;
+    --border: 224 16% 18%;
+    --input: 224 16% 18%;
+    --ring: 350 68% 44%;
+
+    --section-alt: 224 20% 8%;
+    --section-base: 224 25% 6%;
   }
 }
 
@@ -74,32 +77,40 @@
     @apply border-border;
   }
   html {
-    /* Ensures background renders before CSS vars resolve, eliminating white flash */
     background-color: #fdfcfb;
     color-scheme: light;
     scroll-behavior: smooth;
   }
+  html.dark {
+    background-color: hsl(224, 25%, 6%);
+    color-scheme: dark;
+  }
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans), var(--font-devanagari), ui-sans-serif, system-ui, sans-serif;
-    /* Prevent overscroll flash */
     overscroll-behavior: none;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading), var(--font-devanagari), var(--font-sans), ui-sans-serif, sans-serif;
   }
-  /* Prevent tap-highlight flash on mobile */
   a, button {
     -webkit-tap-highlight-color: transparent;
   }
-  /* Smooth transitions on all interactive elements by default */
   a, button, [role="button"] {
     transition-property: color, background-color, border-color, box-shadow, opacity, transform;
     transition-duration: 150ms;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
-  /* Smooth image rendering */
   img {
     transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  /* Font size utility classes controlled by FontSizeContext */
+  .fs-small  { font-size: 87.5%; }
+  .fs-normal { font-size: 100%; }
+  .fs-large  { font-size: 112.5%; }
+
+  /* Section backgrounds — use CSS vars so dark mode works */
+  .section-alt  { background-color: hsl(var(--section-alt)); }
+  .section-base { background-color: hsl(var(--section-base)); }
 }

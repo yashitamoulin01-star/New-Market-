@@ -3,7 +3,7 @@ import { T } from "@/components/ui/t"
 
 export function Footer() {
   return (
-    <footer className="border-t bg-[#f7f3ef]">
+    <footer className="border-t section-alt">
       <div className="container py-10">
         <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
           <div>
@@ -86,6 +86,10 @@ export function Footer() {
         <div className="mt-8 border-t pt-6 text-center text-xs text-muted-foreground">
           © {new Date().getFullYear()} NewMarket.co.in —{" "}
           <T en="All rights reserved." hi="सर्वाधिकार सुरक्षित।" />
+          {" · "}
+          <Link href="/guidelines" className="hover:text-foreground transition-colors underline underline-offset-2">
+            <T en="Community Guidelines" hi="सामुदायिक नियम" />
+          </Link>
         </div>
       </div>
     </footer>

@@ -5,7 +5,7 @@ import { adminListNews } from "@/lib/supabase/news"
 import { adminListJobs } from "@/lib/supabase/jobs"
 import { adminListShops } from "@/lib/supabase/shops"
 import { adminListProperties } from "@/lib/supabase/property"
-import { Newspaper, Briefcase, Store, Building2, Radio, MessageSquare } from "lucide-react"
+import { Newspaper, Briefcase, Store, Building2, Radio, Home, Megaphone, Users, LayoutDashboard } from "lucide-react"
 
 async function getPendingCounts() {
   const [news, jobs, shops, property] = await Promise.allSettled([
@@ -81,16 +81,25 @@ export default async function AdminLayout({
               </div>
 
               <div className="flex items-center gap-0.5">
-                <NavLink href="/admin/news"     icon={Newspaper}     label="News"     pending={pending.news} />
-                <NavLink href="/admin/jobs"     icon={Briefcase}     label="Jobs"     pending={pending.jobs} />
-                <NavLink href="/admin/shops"    icon={Store}         label="Shops"    pending={pending.shops} />
-                <NavLink href="/admin/property" icon={Building2}     label="Property" pending={pending.property} />
-                <NavLink href="/admin/comments" icon={MessageSquare} label="Comments" pending={0} />
+                <NavLink href="/admin"          icon={LayoutDashboard} label="Dashboard" pending={0} />
+                <NavLink href="/admin/news"     icon={Newspaper}  label="News"     pending={pending.news} />
+                <NavLink href="/admin/jobs"     icon={Briefcase}  label="Jobs"     pending={pending.jobs} />
+                <NavLink href="/admin/shops"    icon={Store}      label="Shops"    pending={pending.shops} />
+                <NavLink href="/admin/property" icon={Building2}  label="Property" pending={pending.property} />
+                <NavLink href="/admin/ads"      icon={Megaphone}  label="Ads"      pending={0} />
+                <NavLink href="/admin/users"    icon={Users}      label="Users"    pending={0} />
               </div>
             </div>
 
             {/* User */}
             <div className="flex items-center gap-3">
+              <Link
+                href="/"
+                className="hidden sm:flex items-center gap-1 rounded-md border border-white/20 px-2.5 py-1 text-xs text-white/70 transition hover:border-white/40 hover:text-white"
+              >
+                <Home size={11} />
+                View Site
+              </Link>
               <span className="hidden text-xs text-white/50 sm:inline">{user.email}</span>
               <form action={signOutAction}>
                 <button

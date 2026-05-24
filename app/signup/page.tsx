@@ -1,22 +1,22 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
 import { useFormStatus } from "react-dom"
 import Link from "next/link"
 import { signUpAction, type AuthState } from "@/lib/actions/auth"
-import { Radio } from "lucide-react"
+import { Radio, ShieldCheck } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 
 const initialState: AuthState = {}
 
-function SubmitButton() {
+function SubmitButton({ agreed }: { agreed: boolean }) {
   const { pending } = useFormStatus()
   const { lang } = useLanguage()
   return (
     <button
       type="submit"
-      disabled={pending}
-      className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+      disabled={pending || !agreed}
+      className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed"
     >
       {pending
         ? (lang === "hi" ? "खाता बन रहा है…" : "Creating account…")
@@ -29,6 +29,7 @@ export default function SignUpPage() {
   const [state, action] = useActionState(signUpAction, initialState)
   const { lang } = useLanguage()
   const hi = lang === "hi"
+  const [agreed, setAgreed] = useState(false)
 
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-4 py-12">
@@ -101,13 +102,32 @@ export default function SignUpPage() {
               />
             </div>
 
-            <SubmitButton />
+            {/* Community guidelines agreement */}
+            <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-3">
+              <label className="flex cursor-pointer items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-primary shrink-0"
+                  required
+                />
+                <span className="text-xs leading-relaxed text-foreground/80">
+                  {hi
+                    ? <>मैं <Link href="/guidelines" target="_blank" className="font-semibold text-primary hover:underline">सामुदायिक दिशा-निर्देश और नियम</Link> पढ़ चुका/चुकी हूँ और उनसे सहमत हूँ। मैं भारतीय कानूनों का पालन करने और इस प्लेटफॉर्म का जिम्मेदारी से उपयोग करने का वचन देता/देती हूँ।</>
+                    : <>I have read and agree to the <Link href="/guidelines" target="_blank" className="font-semibold text-primary hover:underline">Community Guidelines &amp; Platform Rules</Link>. I commit to using this platform responsibly and in compliance with the laws of India.</>
+                  }
+                </span>
+              </label>
+              {!agreed && (
+                <div className="mt-2 flex items-center gap-1.5 text-[11px] text-amber-700 dark:text-amber-400">
+                  <ShieldCheck size={11} />
+                  {hi ? "खाता बनाने से पहले सहमत होना आवश्यक है" : "Agreement required to create an account"}
+                </div>
+              )}
+            </div>
 
-            <p className="text-center text-xs text-muted-foreground">
-              {hi
-                ? "साइन अप करके आप नई मार्केट कम्युनिटी में सम्मानपूर्वक योगदान देने के लिए सहमत हैं।"
-                : "By signing up you agree to contribute respectfully to the New Market community."}
-            </p>
+            <SubmitButton agreed={agreed} />
           </form>
         </div>
 

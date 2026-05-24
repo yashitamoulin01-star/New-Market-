@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom"
 import Link from "next/link"
 import { submitNewsAction } from "./actions"
 import { useLanguage } from "@/contexts/language-context"
+import { ImageUploadInput } from "@/components/ui/image-upload-input"
 
 const NEWS_CATEGORIES = [
   { value: "GENERAL",   en: "General",   hi: "सामान्य" },
@@ -209,16 +210,13 @@ export default function SubmitNewsPage() {
           />
         </div>
 
-        <div>
-          <label htmlFor="cover_image_url" className={labelClass}>
-            {t.coverLabel} <span className="text-muted-foreground">{t.excerptOptional}</span>
-          </label>
-          <input
-            id="cover_image_url" name="cover_image_url" type="url"
-            placeholder="https://…" className={inputClass}
-          />
-          <p className="mt-1 text-xs text-muted-foreground">{t.coverHint}</p>
-        </div>
+        <ImageUploadInput
+          name="cover_image_url"
+          label={t.coverLabel}
+          optional
+          hint={t.coverHint}
+          lang={lang}
+        />
 
         <hr className="border-border" />
         <p className="text-sm font-medium">{t.contactSection}</p>

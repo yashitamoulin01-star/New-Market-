@@ -7,6 +7,7 @@ import { Building2, CheckCircle, ChevronLeft } from "lucide-react"
 import { listPropertyAction, type ListPropertyState } from "./actions"
 import { PROPERTY_TYPE_LABELS_BI, LISTING_TYPE_LABELS_BI } from "@/lib/supabase/property-defs"
 import { useLanguage } from "@/contexts/language-context"
+import { ImageUploadInput } from "@/components/ui/image-upload-input"
 
 const initialState: ListPropertyState = { success: false }
 
@@ -300,20 +301,31 @@ export default function ListPropertyPage() {
           <h2 className="mb-4 font-heading text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             {hi ? "छवियाँ (वैकल्पिक)" : "Images (optional)"}
           </h2>
-          <FieldLabel htmlFor="images">
-            {hi ? "इमेज URLs (एक प्रति पंक्ति)" : "Image URLs (one per line)"}
-          </FieldLabel>
-          <textarea
-            id="images" name="images"
-            placeholder={"https://example.com/image1.jpg\nhttps://example.com/image2.jpg"}
-            className={textareaCls}
-            style={{ minHeight: 80 }}
-          />
-          <p className="mt-1 text-xs text-muted-foreground">
-            {hi
-              ? "सार्वजनिक इमेज URLs पेस्ट करें। पहली इमेज कवर फ़ोटो होगी।"
-              : "Paste publicly accessible image URLs. First image will be the cover photo."}
-          </p>
+          <div className="space-y-4">
+            <ImageUploadInput
+              name="cover_image_url"
+              label={hi ? "कवर फ़ोटो" : "Cover Photo"}
+              optional
+              hint={hi ? "यह मुख्य तस्वीर कार्ड पर दिखेगी।" : "This main photo will appear on the listing card."}
+              lang={lang}
+            />
+            <div>
+              <FieldLabel htmlFor="images">
+                {hi ? "अतिरिक्त इमेज URLs (एक प्रति पंक्ति)" : "Additional Image URLs (one per line)"}
+              </FieldLabel>
+              <textarea
+                id="images" name="images"
+                placeholder={"https://example.com/image2.jpg\nhttps://example.com/image3.jpg"}
+                className={textareaCls}
+                style={{ minHeight: 80 }}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {hi
+                  ? "वैकल्पिक — और फ़ोटो जोड़ने के लिए URLs पेस्ट करें।"
+                  : "Optional — paste more photo URLs for additional images."}
+              </p>
+            </div>
+          </div>
         </section>
 
         {/* ── Contact ── */}

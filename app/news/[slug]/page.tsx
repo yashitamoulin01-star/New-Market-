@@ -4,21 +4,10 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { ShieldOff } from "lucide-react"
 import { getArticleBySlug } from "@/lib/supabase/news"
-import { getArticleComments, getArticleReactions } from "@/lib/supabase/comments"
+import { getArticleReactions } from "@/lib/supabase/comments"
 import { createClient } from "@/lib/supabase/server"
 import { ArticleReactions } from "@/components/news/article-reactions"
-import { ArticleComments } from "@/components/news/article-comments"
 import { T } from "@/components/ui/t"
-
-const CATEGORY_LABELS_BI: Record<string, { en: string; hi: string }> = {
-  GENERAL:   { en: "General",   hi: "सामान्य" },
-  EVENTS:    { en: "Events",    hi: "इवेंट" },
-  NOTICES:   { en: "Notices",   hi: "सूचनाएँ" },
-  BUSINESS:  { en: "Business",  hi: "व्यापार" },
-  COMMUNITY: { en: "Community", hi: "समुदाय" },
-  SAFETY:    { en: "Safety",    hi: "सुरक्षा" },
-  TRAFFIC:   { en: "Traffic",   hi: "यातायात" },
-}
 
 export async function generateMetadata({
   params,
@@ -53,20 +42,7 @@ export default async function ArticlePage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [commentsWithUser, reactionsWithUser] = await Promise.all([
-    getArticleComments(article.id, user?.id ?? null),
-    getArticleReactions(article.id, user?.id ?? null),
-  ])
-
-  const isAdmin = (user?.user_metadata?.role as string | undefined) === "admin"
-  const userName =
-    (user?.user_metadata?.full_name as string | undefined) ??
-    user?.email?.split("@")[0] ??
-    null
-
-  const currentUser = user && userName
-    ? { id: user.id, name: userName, isAdmin }
-    : null
+  const reactionsWithUser = await getArticleReactions(article.id, user?.id ?? null)
 
   const publishedDate = article.published_at
     ? new Date(article.published_at).toLocaleDateString("en-IN", {
@@ -76,7 +52,6 @@ export default async function ArticlePage({
       })
     : ""
 
-  const catLabel = CATEGORY_LABELS_BI[article.category]
   const loginHref = `/login?redirect=/news/${slug}`
 
   return (
@@ -88,19 +63,13 @@ export default async function ArticlePage({
         <T en="← Back to News" hi="← समाचार पर वापस" />
       </Link>
 
-      {/* Category + featured badges */}
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-          {catLabel
-            ? <T en={catLabel.en} hi={catLabel.hi} />
-            : article.category.charAt(0) + article.category.slice(1).toLowerCase()}
-        </span>
-        {article.is_featured && (
+      {article.is_featured && (
+        <div className="mb-3">
           <span className="rounded-full bg-accent/20 px-3 py-1 text-sm font-medium text-amber-800">
             <T en="Featured" hi="फ़ीचर्ड" />
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Title */}
       <h1 className="mb-4 text-2xl font-bold leading-tight sm:text-3xl">
@@ -154,7 +123,8 @@ export default async function ArticlePage({
         {article.content.split(/\n\n+/).map((para, i) => (
           <p
             key={i}
-            className="text-sm leading-relaxed text-foreground/90 sm:text-base"
+            className="text-sm leading-relaxed text-foreground/90 sm:text-base break-words overflow-wrap-anywhere"
+            style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}
           >
             {para.trim()}
           </p>
@@ -174,14 +144,6 @@ export default async function ArticlePage({
           ))}
         </div>
       )}
-
-      {/* Comments + per-comment reactions */}
-      <ArticleComments
-        articleId={article.id}
-        articleSlug={slug}
-        initialComments={commentsWithUser}
-        currentUser={currentUser}
-      />
     </article>
   )
 }

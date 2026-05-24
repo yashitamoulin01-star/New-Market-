@@ -37,8 +37,6 @@ function formatDate(iso: string, lang: "en" | "hi") {
 export function NewsCard({ article }: { article: NewsCardData }) {
   const { lang } = useLanguage()
   const style    = CATEGORY_STYLES[article.category] ?? CATEGORY_STYLES.GENERAL
-  const catLabel = CATEGORY_LABELS_BI[article.category]?.[lang]
-    ?? (article.category.charAt(0) + article.category.slice(1).toLowerCase())
 
   return (
     <Link
@@ -52,27 +50,20 @@ export function NewsCard({ article }: { article: NewsCardData }) {
             alt={article.title}
             fill
             className="object-cover group-hover:scale-105"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none" }}
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-          <span className={`absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-xs font-bold shadow-sm ${style.chip}`}>
-            {catLabel}
-          </span>
         </div>
       ) : (
         <div className={`h-1 w-full ${style.bar}`} />
       )}
 
       <div className="flex flex-1 flex-col p-4">
-        {!article.cover_image_url && (
-          <div className="mb-2.5 flex items-center gap-2">
-            <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${style.chip}`}>
-              {catLabel}
+        {!article.cover_image_url && article.is_featured && (
+          <div className="mb-2.5">
+            <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+              {lang === "hi" ? "फ़ीचर्ड" : "Featured"}
             </span>
-            {article.is_featured && (
-              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
-                {lang === "hi" ? "फ़ीचर्ड" : "Featured"}
-              </span>
-            )}
           </div>
         )}
 
