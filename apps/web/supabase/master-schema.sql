@@ -1,5 +1,8 @@
--- Combined Master Schema for Newmarket.co.in
--- Safe to run multiple times
+-- =======================================================
+-- NewMarket.co.in — Master Database Schema
+-- Paste this into: Supabase > SQL Editor > Run
+-- Safe for a FRESH database (first-time setup)
+-- =======================================================
 
 -- =========================================
 -- FROM: schema.sql
@@ -14,20 +17,12 @@
 create extension if not exists "uuid-ossp";
 
 -- ── Enums ─────────────────────────────────────────────────────────
-DO $$ BEGIN
-  CREATE TYPE content_status AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
-EXCEPTION
-  WHEN duplicate_object THEN null;
-END $$;
+create type content_status as enum ('PENDING', 'APPROVED', 'REJECTED');
 
-DO $$ BEGIN
-  CREATE TYPE news_category AS ENUM (
+create type news_category as enum (
   'GENERAL', 'EVENTS', 'NOTICES', 'BUSINESS',
   'COMMUNITY', 'SAFETY', 'TRAFFIC'
 );
-EXCEPTION
-  WHEN duplicate_object THEN null;
-END $$;
 
 -- ── Table ─────────────────────────────────────────────────────────
 create table news_articles (
@@ -123,31 +118,19 @@ create policy "admin_full_access"
 -- ================================================================
 
 -- ── Enums ─────────────────────────────────────────────────────────
-DO $$ BEGIN
-  CREATE TYPE job_type AS ENUM (
+create type job_type as enum (
   'FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'SEASONAL'
 );
-EXCEPTION
-  WHEN duplicate_object THEN null;
-END $$;
 
-DO $$ BEGIN
-  CREATE TYPE job_category AS ENUM (
+create type job_category as enum (
   'RETAIL', 'FOOD_BEVERAGE', 'TAILORING', 'ELECTRONICS',
   'BEAUTY_WELLNESS', 'LOGISTICS_DELIVERY', 'MANAGEMENT',
   'SECURITY', 'HOUSEKEEPING', 'OTHER'
 );
-EXCEPTION
-  WHEN duplicate_object THEN null;
-END $$;
 
-DO $$ BEGIN
-  CREATE TYPE application_mode AS ENUM (
+create type application_mode as enum (
   'WALK_IN', 'PHONE', 'EMAIL', 'ONLINE'
 );
-EXCEPTION
-  WHEN duplicate_object THEN null;
-END $$;
 
 -- ── Table ─────────────────────────────────────────────────────────
 create table job_listings (
@@ -256,8 +239,7 @@ create policy "admin_full_access"
 
 -- ── Enums ─────────────────────────────────────────────────────────
 
-DO $$ BEGIN
-  CREATE TYPE shop_category AS ENUM (
+create type shop_category as enum (
   'CLOTHING',
   'FOOD_BEVERAGE',
   'ELECTRONICS',
@@ -272,9 +254,6 @@ DO $$ BEGIN
   'OPTICALS',
   'OTHER'
 );
-EXCEPTION
-  WHEN duplicate_object THEN null;
-END $$;
 
 -- ── Table ─────────────────────────────────────────────────────────
 
@@ -374,21 +353,13 @@ create policy "admin_full_access"
 
 -- ── Enums ─────────────────────────────────────────────────────────
 
-DO $$ BEGIN
-  CREATE TYPE property_type AS ENUM (
+create type property_type as enum (
   'SHOP', 'OFFICE', 'WAREHOUSE', 'SHOWROOM', 'KIOSK', 'OTHER'
 );
-EXCEPTION
-  WHEN duplicate_object THEN null;
-END $$;
 
-DO $$ BEGIN
-  CREATE TYPE listing_type AS ENUM (
+create type listing_type as enum (
   'RENT', 'SALE', 'LEASE'
 );
-EXCEPTION
-  WHEN duplicate_object THEN null;
-END $$;
 
 -- ── Table ─────────────────────────────────────────────────────────
 
@@ -660,17 +631,13 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON advertisements TO authenticated;
 -- migration-003-elections.sql
 -- Run in Supabase SQL Editor. Full election CMS tables.
 
-DO $ BEGIN
-  CREATE TYPE election_phase AS ENUM (
+CREATE TYPE election_phase AS ENUM (
     'DRAFT',
     'NOMINATIONS_OPEN',
     'VOTING_OPEN',
     'CLOSED',
     'RESULTS_PUBLISHED'
   );
-EXCEPTION
-  WHEN duplicate_object THEN null;
-END $;
 
 CREATE TABLE IF NOT EXISTS elections (
   id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -752,11 +719,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON elections, election_positions, election_
 -- migration-004-user-profiles.sql
 -- Run in Supabase SQL Editor. User profile extension with roles and ban management.
 
-DO $ BEGIN
-  CREATE TYPE user_role AS ENUM ('user', 'moderator', 'admin');
-EXCEPTION
-  WHEN duplicate_object THEN null;
-END $;
+CREATE TYPE user_role AS ENUM ('user', 'moderator', 'admin');
 
 CREATE TABLE IF NOT EXISTS user_profiles (
   id           uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
