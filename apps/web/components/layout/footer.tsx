@@ -3,7 +3,7 @@ import { T } from "@/components/ui/t"
 
 export function Footer() {
   return (
-    <footer className="border-t bg-[#f7f3ef]">
+    <footer className="border-t section-alt">
       <div className="container py-10">
         <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
           <div>
@@ -81,6 +81,11 @@ export function Footer() {
             <ul className="space-y-1 text-xs text-muted-foreground">
               <li>New Market, Bhopal</li>
               <li>Madhya Pradesh, India</li>
+              <li className="pt-2">
+                <Link href="/guidelines" className="transition-colors hover:text-foreground">
+                  <T en="Community Guidelines" hi="सामुदायिक नियम" />
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

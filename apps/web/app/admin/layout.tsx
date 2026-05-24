@@ -6,8 +6,8 @@ import { adminListJobs } from "@/lib/supabase/jobs"
 import { adminListShops } from "@/lib/supabase/shops"
 import { adminListProperties } from "@/lib/supabase/property"
 import {
-  Newspaper, Briefcase, Store, Building2, MessageSquare,
-  Megaphone, Vote, Users, Radio, LayoutDashboard, Settings,
+  Newspaper, Briefcase, Store, Building2,
+  Megaphone, Vote, Users, Radio, LayoutDashboard, Settings, Home,
 } from "lucide-react"
 
 async function getPendingCounts() {
@@ -117,6 +117,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
         {user && (
           <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="hidden sm:flex items-center gap-1 rounded-md border border-slate-700 px-2.5 py-1 text-xs text-slate-400 transition hover:border-slate-500 hover:text-white"
+            >
+              <Home size={11} />
+              View Site
+            </Link>
             <span className="hidden text-xs text-slate-500 sm:inline">{user.email}</span>
             <form action={signOutAction}>
               <button
@@ -139,11 +146,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </SideSection>
 
             <SideSection title="Content">
-              <SideLink href="/admin/news"     icon={Newspaper}     label="News"     badge={pending.news} />
-              <SideLink href="/admin/jobs"     icon={Briefcase}     label="Jobs"     badge={pending.jobs} />
-              <SideLink href="/admin/shops"    icon={Store}         label="Shops"    badge={pending.shops} />
-              <SideLink href="/admin/property" icon={Building2}     label="Property" badge={pending.property} />
-              <SideLink href="/admin/comments" icon={MessageSquare} label="Comments" />
+              <SideLink href="/admin/news"     icon={Newspaper}  label="News"     badge={pending.news} />
+              <SideLink href="/admin/jobs"     icon={Briefcase}  label="Jobs"     badge={pending.jobs} />
+              <SideLink href="/admin/shops"    icon={Store}      label="Shops"    badge={pending.shops} />
+              <SideLink href="/admin/property" icon={Building2}  label="Property" badge={pending.property} />
             </SideSection>
 
             <SideSection title="Advertising">
@@ -169,7 +175,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 <MobileNavLink href="/admin/jobs"      icon={Briefcase}       label="Jobs"      badge={pending.jobs} />
                 <MobileNavLink href="/admin/shops"     icon={Store}           label="Shops"     badge={pending.shops} />
                 <MobileNavLink href="/admin/property"  icon={Building2}       label="Property"  badge={pending.property} />
-                <MobileNavLink href="/admin/comments"  icon={MessageSquare}   label="Comments" />
                 <MobileNavLink href="/admin/ads"       icon={Megaphone}       label="Ads" />
                 <MobileNavLink href="/admin/elections" icon={Vote}            label="Elections" />
                 <MobileNavLink href="/admin/users"     icon={Users}           label="Users" />

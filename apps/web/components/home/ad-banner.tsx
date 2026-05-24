@@ -48,20 +48,5 @@ export async function AdBanner({ slot, size = "leaderboard", className = "" }: P
     )
   }
 
-  // Placeholder when no active ad
-  return (
-    <div
-      className={`flex items-center justify-center border-y bg-gradient-to-r from-amber-50 via-white to-amber-50 ${DIMS[size]} ${className}`}
-      data-ad-slot={slot}
-    >
-      <div className="flex flex-col items-center gap-0.5 text-center">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-600/60">
-          Advertisement
-        </p>
-        <p className="text-xs text-muted-foreground/50">
-          Advertise here — contact@newmarket.co.in
-        </p>
-      </div>
-    </div>
-  )
+  return null
 }

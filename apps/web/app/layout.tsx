@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Inter, Plus_Jakarta_Sans, Noto_Sans_Devanagari, Playfair_Display } from "next/font/google"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { LanguageProvider } from "@/contexts/language-context"
+import { FontSizeProvider } from "@/contexts/font-size-context"
 import { Shell } from "@/components/layout/shell"
 import { createClient } from "@/lib/supabase/server"
 import "./globals.css"
@@ -100,9 +101,11 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <LanguageProvider>
-            <Shell initialUser={initialUser}>
-              {children}
-            </Shell>
+            <FontSizeProvider>
+              <Shell initialUser={initialUser}>
+                {children}
+              </Shell>
+            </FontSizeProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

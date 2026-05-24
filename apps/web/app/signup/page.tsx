@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
 import { useFormStatus } from "react-dom"
 import Link from "next/link"
 import { signUpAction, type AuthState } from "@/lib/actions/auth"
@@ -9,13 +9,13 @@ import { useLanguage } from "@/contexts/language-context"
 
 const initialState: AuthState = {}
 
-function SubmitButton() {
+function SubmitButton({ disabled }: { disabled?: boolean }) {
   const { pending } = useFormStatus()
   const { lang } = useLanguage()
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
     >
       {pending
@@ -29,6 +29,7 @@ export default function SignUpPage() {
   const [state, action] = useActionState(signUpAction, initialState)
   const { lang } = useLanguage()
   const hi = lang === "hi"
+  const [agreed, setAgreed] = useState(false)
 
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-4 py-12">
@@ -103,7 +104,30 @@ export default function SignUpPage() {
               />
             </div>
 
-            <SubmitButton />
+            <div className="rounded-lg border bg-muted/30 p-3">
+              <label className="flex cursor-pointer items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-primary"
+                />
+                <span className="text-xs text-muted-foreground">
+                  {hi ? (
+                    <>मैंने{" "}<Link href="/guidelines" target="_blank" className="font-medium text-primary hover:underline">सामुदायिक नियम</Link>{" "}पढ़े और स्वीकार करता/करती हूँ।</>
+                  ) : (
+                    <>I have read and agree to the{" "}<Link href="/guidelines" target="_blank" className="font-medium text-primary hover:underline">Community Guidelines</Link>.</>
+                  )}
+                </span>
+              </label>
+              {!agreed && (
+                <p className="mt-1.5 text-[11px] text-amber-600">
+                  {hi ? "आगे बढ़ने के लिए नियम स्वीकार करें।" : "You must agree to the guidelines to create an account."}
+                </p>
+              )}
+            </div>
+
+            <SubmitButton disabled={!agreed} />
 
             <p className="text-center text-xs text-muted-foreground">
               {hi

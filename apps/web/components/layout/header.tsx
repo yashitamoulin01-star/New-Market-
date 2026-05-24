@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { Menu, X } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
+import { useFontSize } from "@/contexts/font-size-context"
 import { LanguageToggle } from "./language-toggle"
 import { UserNav } from "./user-nav"
 import { translations as t } from "@/lib/i18n"
@@ -18,6 +19,7 @@ export function Header({ initialUser }: HeaderProps) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const { lang } = useLanguage()
+  const { decrease, increase, canDecrease, canIncrease } = useFontSize()
 
   const navLinks = [
     { href: "/",         label: t.nav.home[lang] },
@@ -49,6 +51,24 @@ export function Header({ initialUser }: HeaderProps) {
           </span>
 
           <div className="flex items-center gap-1.5">
+            <div className="hidden items-center sm:flex">
+              <button
+                onClick={decrease}
+                disabled={!canDecrease}
+                aria-label="Decrease font size"
+                className="rounded px-1.5 py-0.5 text-xs font-bold text-primary-foreground/70 hover:text-primary-foreground disabled:opacity-30 transition"
+              >
+                A-
+              </button>
+              <button
+                onClick={increase}
+                disabled={!canIncrease}
+                aria-label="Increase font size"
+                className="rounded px-1.5 py-0.5 text-sm font-bold text-primary-foreground/70 hover:text-primary-foreground disabled:opacity-30 transition"
+              >
+                A+
+              </button>
+            </div>
             <LanguageToggle />
             <UserNav initialUser={initialUser} />
             {/* Mobile hamburger */}

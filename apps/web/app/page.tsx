@@ -100,7 +100,7 @@ async function MastheadStatStrip() {
   } catch {}
 
   return (
-    <div className="border-b bg-white">
+    <div className="border-b section-base">
       <div className="container flex flex-wrap items-center justify-between gap-2 py-1.5">
         <MastheadBar />
         <div className="flex items-center gap-3 text-[11px]">
@@ -171,15 +171,17 @@ async function MainNewsSection() {
           <div className="lg:col-span-2">
             <FeaturedArticle article={featured} />
           </div>
-          <div className="flex flex-col gap-0 divide-y overflow-hidden rounded-xl border bg-card shadow-sm">
-            <div className="bg-muted/40 px-4 py-2.5">
+          <div className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
+            <div className="shrink-0 bg-muted/40 px-4 py-2.5">
               <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 <Zap size={11} className="text-amber-500" />
                 <T en="Latest" hi="ताज़ा" />
               </span>
             </div>
-            {sideStack.map((a) => <SideHeadline key={a.id} article={a} />)}
-            <div className="px-4 py-3">
+            <div className="flex-1 divide-y overflow-y-auto" style={{ maxHeight: 340 }}>
+              {sideStack.map((a) => <SideHeadline key={a.id} article={a} />)}
+            </div>
+            <div className="shrink-0 border-t px-4 py-3">
               <Link href="/news" className="flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline">
                 <T en="View all stories" hi="सभी खबरें देखें" />
                 <ChevronRight size={12} />
@@ -233,9 +235,6 @@ function FeaturedArticle({ article }: { article: NewsCardData }) {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5">
             <div className="mb-2 flex flex-wrap items-center gap-1.5">
-              <span className={`inline-block rounded-sm px-2 py-0.5 text-[11px] font-bold ${CAT_CHIP[cat] ?? CAT_CHIP.GENERAL}`}>
-                <T en={CAT_EN[cat] ?? cat} hi={CAT_HI[cat] ?? cat} />
-              </span>
               <ArticleBadges article={article} />
             </div>
             <h2 className="editorial-headline text-xl font-bold leading-snug text-white sm:text-2xl line-clamp-3">
@@ -256,9 +255,6 @@ function FeaturedArticle({ article }: { article: NewsCardData }) {
         <div className="p-6">
           <div className={`mb-3 h-1 w-12 rounded-full ${CAT_BAR[cat] ?? CAT_BAR.GENERAL}`} />
           <div className="mb-3 flex flex-wrap items-center gap-1.5">
-            <span className={`inline-block rounded-sm px-2 py-0.5 text-[11px] font-bold ${CAT_CHIP[cat] ?? CAT_CHIP.GENERAL}`}>
-              <T en={CAT_EN[cat] ?? cat} hi={CAT_HI[cat] ?? cat} />
-            </span>
             <ArticleBadges article={article} />
           </div>
           <h2 className="editorial-headline text-2xl font-bold leading-snug transition-colors group-hover:text-primary">
@@ -317,24 +313,16 @@ function SmallNewsCard({ article }: { article: NewsCardData }) {
       {article.cover_image_url ? (
         <div className="relative h-40 w-full overflow-hidden bg-muted">
           <SafeImage src={article.cover_image_url} alt={article.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
-          <div className="absolute left-3 top-3 flex flex-wrap gap-1">
-            <span className={`rounded-sm px-2 py-0.5 text-[10px] font-bold shadow ${CAT_CHIP[cat] ?? CAT_CHIP.GENERAL}`}>
-              <T en={CAT_EN[cat] ?? cat} hi={CAT_HI[cat] ?? cat} />
-            </span>
-            {article.is_breaking && (
+          {article.is_breaking && (
+            <div className="absolute left-3 top-3">
               <span className="breaking-badge rounded-sm bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white">⚡</span>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className={`h-1 w-full ${CAT_BAR[cat] ?? "bg-primary"}`} />
       )}
       <div className="flex flex-1 flex-col p-4">
-        {!article.cover_image_url && (
-          <span className={`mb-2 inline-block rounded-sm px-2 py-0.5 text-[10px] font-bold ${CAT_CHIP[cat] ?? CAT_CHIP.GENERAL}`}>
-            <T en={CAT_EN[cat] ?? cat} hi={CAT_HI[cat] ?? cat} />
-          </span>
-        )}
         <h3 className="line-clamp-2 text-sm font-semibold leading-snug transition-colors group-hover:text-primary">
           {article.title}
         </h3>
@@ -456,7 +444,7 @@ async function ShopsStripSection() {
 
   if (items.length === 0) return null
   return (
-    <div className="border-t bg-white py-6">
+    <div className="border-t section-base py-6">
       <div className="container">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -633,7 +621,7 @@ function NewsGridSkeleton() {
 
 export default function HomePage() {
   return (
-    <div className="bg-[#f7f4f0]">
+    <div className="section-alt">
       <Suspense fallback={null}>
         <TickerSection />
       </Suspense>
@@ -642,7 +630,7 @@ export default function HomePage() {
         <MastheadStatStrip />
       </Suspense>
 
-      <div className="bg-white">
+      <div className="section-base">
         <Suspense fallback={<NewsGridSkeleton />}>
           <MainNewsSection />
         </Suspense>
