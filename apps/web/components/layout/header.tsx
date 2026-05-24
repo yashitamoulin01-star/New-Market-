@@ -6,8 +6,6 @@ import { useState } from "react"
 import { Menu, X } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 import { LanguageToggle } from "./language-toggle"
-import { ThemeToggle } from "./theme-toggle"
-import { FontSizeToggle } from "./font-size-toggle"
 import { UserNav } from "./user-nav"
 import { translations as t } from "@/lib/i18n"
 import type { User } from "@supabase/supabase-js"
@@ -37,7 +35,7 @@ export function Header({ initialUser }: HeaderProps) {
     <header className="sticky top-0 z-50 w-full shadow-sm">
       {/* Brand bar */}
       <div className="bg-primary">
-        <div className="container flex h-11 items-center justify-between gap-4">
+        <div className="container relative flex h-11 items-center justify-between gap-4">
           <Link
             href="/"
             className="shrink-0 text-xl font-bold tracking-tight text-primary-foreground"
@@ -46,13 +44,11 @@ export function Header({ initialUser }: HeaderProps) {
             <span className="font-normal opacity-70">.co.in</span>
           </Link>
 
-          <span className="hidden flex-1 text-center text-sm text-primary-foreground/70 sm:block">
+          <span className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 text-sm text-primary-foreground/90 sm:block editorial-headline">
             {t.nav.tagline[lang]}
           </span>
 
           <div className="flex items-center gap-1.5">
-            <FontSizeToggle />
-            <ThemeToggle />
             <LanguageToggle />
             <UserNav initialUser={initialUser} />
             {/* Mobile hamburger */}

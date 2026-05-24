@@ -1,10 +1,8 @@
 import { Youtube, BellRing, Newspaper, CheckSquare } from "lucide-react"
 import { getAllSiteSettings } from "@/lib/supabase/site-settings"
-import {
-  updateYouTubeUrlAction,
-  updateSiteNoticeAction,
-  updateTickerEnabledAction,
-} from "./actions"
+import { updateYouTubeUrlAction, updateSiteNoticeAction, updateTickerEnabledAction } from "./actions"
+import { ThemeToggle } from "@/components/layout/theme-toggle"
+import { FontSizeToggle } from "@/components/layout/font-size-toggle"
 
 export const metadata = { title: "Admin — Settings" }
 
@@ -16,7 +14,8 @@ export default async function AdminSettingsPage() {
     // Table may not exist yet if migration hasn't run
   }
 
-  const youtubeUrl    = settings["youtube_video_url"] ?? ""
+  const rawYoutubeUrl = settings["youtube_video_url"] ?? ""
+  const youtubeUrls = rawYoutubeUrl.split(",").map(s => s.trim())
   const siteNotice    = settings["site_notice"] ?? ""
   const tickerEnabled = settings["ticker_enabled"] !== "false"
 
@@ -29,6 +28,39 @@ export default async function AdminSettingsPage() {
         </p>
       </div>
 
+      {/* Appearance Settings */}
+      <section className="mb-6 rounded-xl border bg-card p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-2">
+          <div className="rounded-lg bg-indigo-50 p-2">
+            <CheckSquare size={18} className="text-indigo-600" />
+          </div>
+          <div>
+            <h2 className="font-semibold">Appearance Settings</h2>
+            <p className="text-xs text-muted-foreground">
+              Configure your local viewing experience.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 pl-12">
+          <div className="flex items-center justify-between">
+            <p className="font-medium text-sm">Font Size</p>
+            <div className="rounded-full bg-primary/10 p-1">
+              <div className="[&>button]:bg-white [&>button]:text-primary [&>button]:border-primary/20 hover:[&>button]:bg-primary/5">
+                <FontSizeToggle />
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="font-medium text-sm">Dark Theme</p>
+            <div className="rounded-full bg-primary/10 p-1">
+              <div className="[&>button]:bg-white [&>button]:text-primary [&>button]:border-primary/20 hover:[&>button]:bg-primary/5">
+                <ThemeToggle />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* YouTube Video */}
       <section className="mb-6 rounded-xl border bg-card p-6 shadow-sm">
         <div className="mb-4 flex items-center gap-2">
@@ -36,33 +68,45 @@ export default async function AdminSettingsPage() {
             <Youtube size={18} className="text-red-600" />
           </div>
           <div>
-            <h2 className="font-semibold">Featured YouTube Video</h2>
+            <h2 className="font-semibold">Featured YouTube Videos</h2>
             <p className="text-xs text-muted-foreground">
-              Shown on the homepage beside the election section. Leave blank to hide.
+              Provide up to 3 videos to automatically loop on the homepage. Leave blank to skip.
             </p>
           </div>
         </div>
         <form action={updateYouTubeUrlAction} className="space-y-3">
           <input
-            name="youtube_url"
+            name="youtube_url_1"
             type="url"
-            defaultValue={youtubeUrl}
-            placeholder="https://www.youtube.com/watch?v=..."
+            defaultValue={youtubeUrls[0] || ""}
+            placeholder="Video 1 URL (e.g. https://www.youtube.com/watch?v=...)"
             className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           />
-          <p className="text-[11px] text-muted-foreground">
-            Accepts any YouTube URL: youtube.com/watch?v=ID, youtu.be/ID, or youtube.com/embed/ID
-          </p>
+          <input
+            name="youtube_url_2"
+            type="url"
+            defaultValue={youtubeUrls[1] || ""}
+            placeholder="Video 2 URL (Optional)"
+            className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+          <input
+            name="youtube_url_3"
+            type="url"
+            defaultValue={youtubeUrls[2] || ""}
+            placeholder="Video 3 URL (Optional)"
+            className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          />
           <button
             type="submit"
             className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
           >
-            Save Video URL
+            Save Video URLs
           </button>
         </form>
-        {youtubeUrl && (
-          <p className="mt-3 flex items-center gap-1.5 text-[11px] text-emerald-600">
-            <CheckSquare size={12} /> Currently set: {youtubeUrl}
+        {rawYoutubeUrl && (
+          <p className="mt-3 flex flex-col gap-1.5 text-[11px] text-emerald-600">
+            <span className="flex items-center gap-1.5 font-bold"><CheckSquare size={12} /> Currently set:</span>
+            {youtubeUrls.map((u, i) => u ? <span key={i} className="pl-4 text-emerald-600/80">{i+1}. {u}</span> : null)}
           </p>
         )}
       </section>

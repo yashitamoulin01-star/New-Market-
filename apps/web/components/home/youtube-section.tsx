@@ -12,18 +12,25 @@ function extractYouTubeId(url: string): string | null {
 const DEMO_VIDEO_ID = "dQw4w9WgXcQ"
 
 export async function YouTubeSection() {
-  let url: string | null = null
+  let urlString: string | null = null
   try {
-    url = await getCachedSiteSetting("youtube_video_url")
+    urlString = await getCachedSiteSetting("youtube_video_url")
   } catch {
-    // DB not set up yet — use demo video so desktop looks populated
-    url = `https://www.youtube.com/watch?v=${DEMO_VIDEO_ID}`
+    // DB not set up yet
   }
 
-  if (!url) url = `https://www.youtube.com/watch?v=${DEMO_VIDEO_ID}`
+  if (!urlString) {
+    urlString = `https://www.youtube.com/watch?v=${DEMO_VIDEO_ID}`
+  }
 
-  const videoId = extractYouTubeId(url)
-  if (!videoId) return null
+  const urls = urlString.split(",").map(u => u.trim()).filter(Boolean)
+  const videoIds = urls.map(extractYouTubeId).filter(Boolean) as string[]
+  
+  if (videoIds.length === 0) return null
+
+  const mainVideoId = videoIds[0]
+  const playlist = videoIds.join(",")
+  const src = `https://www.youtube.com/embed/${mainVideoId}?rel=0&modestbranding=1&autoplay=1&mute=1&loop=1&playlist=${playlist}`
 
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
@@ -33,8 +40,8 @@ export async function YouTubeSection() {
       </div>
       <div className="relative aspect-video w-full">
         <iframe
-          src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
-          title="Featured Video"
+          src={src}
+          title="Featured Videos"
           className="absolute inset-0 h-full w-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen

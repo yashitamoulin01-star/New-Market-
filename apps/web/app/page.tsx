@@ -1,5 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
+import { SafeImage } from "@/components/ui/safe-image"
 import { Suspense } from "react"
 import {
   ChevronRight, Briefcase, Store, Eye, Building2,
@@ -228,7 +229,7 @@ function FeaturedArticle({ article }: { article: NewsCardData }) {
     >
       {article.cover_image_url ? (
         <div className="relative h-64 w-full overflow-hidden sm:h-80 lg:h-96">
-          <Image src={article.cover_image_url} alt={article.title} fill priority className="object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+          <SafeImage src={article.cover_image_url} alt={article.title} fill priority className="object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5">
             <div className="mb-2 flex flex-wrap items-center gap-1.5">
@@ -298,8 +299,8 @@ function SideHeadline({ article }: { article: NewsCardData }) {
         </p>
       </div>
       {article.cover_image_url && (
-        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md">
-          <Image src={article.cover_image_url} alt={article.title} fill className="object-cover" />
+        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
+          <SafeImage src={article.cover_image_url} alt={article.title} fill className="object-cover" />
         </div>
       )}
     </Link>
@@ -314,8 +315,8 @@ function SmallNewsCard({ article }: { article: NewsCardData }) {
       className="group flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm transition hover:shadow-md hover:-translate-y-0.5"
     >
       {article.cover_image_url ? (
-        <div className="relative h-40 w-full overflow-hidden">
-          <Image src={article.cover_image_url} alt={article.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
+        <div className="relative h-40 w-full overflow-hidden bg-muted">
+          <SafeImage src={article.cover_image_url} alt={article.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
           <div className="absolute left-3 top-3 flex flex-wrap gap-1">
             <span className={`rounded-sm px-2 py-0.5 text-[10px] font-bold shadow ${CAT_CHIP[cat] ?? CAT_CHIP.GENERAL}`}>
               <T en={CAT_EN[cat] ?? cat} hi={CAT_HI[cat] ?? cat} />
@@ -570,11 +571,6 @@ async function SidebarSection() {
   return (
     <div className="flex flex-col gap-4">
       <ElectionTeaser election={election} />
-      <div className="hidden lg:block">
-        <Suspense fallback={null}>
-          <YouTubeSection />
-        </Suspense>
-      </div>
       <Suspense fallback={null}>
         <PropertyTeaserSection />
       </Suspense>
@@ -658,9 +654,12 @@ export default function HomePage() {
 
       <div className="container py-5">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 flex flex-col gap-4">
             <Suspense fallback={null}>
               <JobsSection />
+            </Suspense>
+            <Suspense fallback={null}>
+              <YouTubeSection />
             </Suspense>
           </div>
           <Suspense fallback={null}>

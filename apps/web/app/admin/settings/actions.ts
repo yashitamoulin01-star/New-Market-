@@ -4,8 +4,13 @@ import { revalidateTag } from "next/cache"
 import { setSiteSetting } from "@/lib/supabase/site-settings"
 
 export async function updateYouTubeUrlAction(formData: FormData) {
-  const url = String(formData.get("youtube_url") ?? "").trim() || null
-  await setSiteSetting("youtube_video_url", url)
+  const url1 = String(formData.get("youtube_url_1") ?? "").trim()
+  const url2 = String(formData.get("youtube_url_2") ?? "").trim()
+  const url3 = String(formData.get("youtube_url_3") ?? "").trim()
+  const urls = [url1, url2, url3].filter(Boolean)
+  const finalUrl = urls.length > 0 ? urls.join(",") : null
+  
+  await setSiteSetting("youtube_video_url", finalUrl)
   revalidateTag("site-settings")
 }
 

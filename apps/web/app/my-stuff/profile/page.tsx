@@ -2,6 +2,8 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { T } from "@/components/ui/t"
 import { User2, Mail, Calendar } from "lucide-react"
+import { ThemeToggle } from "@/components/layout/theme-toggle"
+import { FontSizeToggle } from "@/components/layout/font-size-toggle"
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -76,7 +78,38 @@ export default async function ProfilePage() {
         </dl>
       </div>
 
-      <p className="mt-4 text-center text-xs text-muted-foreground">
+      <div className="mt-6 rounded-xl border bg-card p-6 shadow-sm">
+        <h2 className="mb-4 text-lg font-bold">
+          <T en="Appearance Settings" hi="दिखावट सेटिंग्स" />
+        </h2>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-sm"><T en="Font Size" hi="फ़ॉन्ट आकार" /></p>
+              <p className="text-xs text-muted-foreground"><T en="Adjust the text size across the site." hi="पूरी साइट में टेक्स्ट का आकार बदलें।" /></p>
+            </div>
+            <div className="rounded-full bg-primary/10 p-1">
+              <div className="[&>button]:bg-white [&>button]:text-primary [&>button]:border-primary/20 hover:[&>button]:bg-primary/5">
+                <FontSizeToggle />
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-sm"><T en="Dark Theme" hi="डार्क थीम" /></p>
+              <p className="text-xs text-muted-foreground"><T en="Toggle between light and dark mode." hi="लाइट और डार्क मोड के बीच टॉगल करें।" /></p>
+            </div>
+            <div className="rounded-full bg-primary/10 p-1">
+              <div className="[&>button]:bg-white [&>button]:text-primary [&>button]:border-primary/20 hover:[&>button]:bg-primary/5">
+                <ThemeToggle />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-6 text-center text-xs text-muted-foreground">
         <T
           en="To change your name or password, use the forgot password flow."
           hi="नाम या पासवर्ड बदलने के लिए forgot password का उपयोग करें।"
