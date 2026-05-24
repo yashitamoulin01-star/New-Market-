@@ -10,12 +10,12 @@ CREATE TABLE IF NOT EXISTS site_settings (
 -- RLS: public can read, only authenticated admins can write
 ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "site_settings_public_read"
-  ON site_settings FOR SELECT
+drop policy if exists "site_settings_public_read" on site_settings;
+create policy "site_settings_public_read" on site_settings FOR SELECT
   USING (true);
 
-CREATE POLICY "site_settings_admin_write"
-  ON site_settings FOR ALL
+drop policy if exists "site_settings_admin_write" on site_settings;
+create policy "site_settings_admin_write" on site_settings FOR ALL
   USING (auth.jwt() ->> 'role' = 'admin' OR (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
 
 -- Seed default settings (no-op if already exists)

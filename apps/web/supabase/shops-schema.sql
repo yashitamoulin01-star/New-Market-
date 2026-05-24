@@ -7,25 +7,27 @@
 
 -- ── Enums ─────────────────────────────────────────────────────────
 
-create type shop_category as enum (
-  'CLOTHING',
-  'FOOD_BEVERAGE',
-  'ELECTRONICS',
-  'BEAUTY_WELLNESS',
-  'TAILORING',
-  'JEWELRY',
-  'PHARMACY',
-  'BOOKS_STATIONERY',
-  'FOOTWEAR',
-  'HANDICRAFTS',
-  'MOBILE_ACCESSORIES',
-  'OPTICALS',
-  'OTHER'
-);
+DO $$ BEGIN
+  create type shop_category as enum (
+    'CLOTHING',
+    'FOOD_BEVERAGE',
+    'ELECTRONICS',
+    'BEAUTY_WELLNESS',
+    'TAILORING',
+    'JEWELRY',
+    'PHARMACY',
+    'BOOKS_STATIONERY',
+    'FOOTWEAR',
+    'HANDICRAFTS',
+    'MOBILE_ACCESSORIES',
+    'OPTICALS',
+    'OTHER'
+  );
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- ── Table ─────────────────────────────────────────────────────────
 
-create table shops (
+create table if not exists shops (
   id               uuid primary key default uuid_generate_v4(),
 
   -- Core info
@@ -65,14 +67,14 @@ create table shops (
 
 -- ── Indexes ───────────────────────────────────────────────────────
 
-create index idx_shops_status   on shops(status);
-create index idx_shops_category on shops(category);
-create index idx_shops_featured on shops(is_featured);
+create index if not exists idx_shops_status on shops(status);
+create index if not exists idx_shops_category on shops(category);
+create index if not exists idx_shops_featured on shops(is_featured);
 
 -- ── Updated-at trigger ────────────────────────────────────────────
 
-create trigger shops_updated_at
-  before update on shops
+drop trigger if exists shops_updated_at on shops;
+create trigger shops_updated_at before update on shops
   for each row execute function update_updated_at_column();
 
 -- ── View-count RPC ────────────────────────────────────────────────
@@ -95,14 +97,14 @@ grant execute on function increment_shop_view to anon, authenticated;
 
 alter table shops enable row level security;
 
-create policy "anon_select_approved"
-  on shops for select to anon
+drop policy if exists "anon_select_approved" on shops;
+create policy "anon_select_approved" on shops for select to anon
   using (status = 'APPROVED');
 
-create policy "anon_insert_pending"
-  on shops for insert to anon
+drop policy if exists "anon_insert_pending" on shops;
+create policy "anon_insert_pending" on shops for insert to anon
   with check (status = 'PENDING');
 
-create policy "admin_full_access"
-  on shops for all to authenticated
+drop policy if exists "admin_full_access" on shops;
+create policy "admin_full_access" on shops for all to authenticated
   using (true) with check (true);

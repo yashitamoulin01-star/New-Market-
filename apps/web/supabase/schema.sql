@@ -7,15 +7,23 @@
 create extension if not exists "uuid-ossp";
 
 -- ── Enums ─────────────────────────────────────────────────────────
-create type content_status as enum ('PENDING', 'APPROVED', 'REJECTED');
+DO $$ BEGIN
+  create type content_status as enum ('PENDING', 'APPROVED', 'REJECTED');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
-create type news_category as enum (
-  'GENERAL', 'EVENTS', 'NOTICES', 'BUSINESS',
-  'COMMUNITY', 'SAFETY', 'TRAFFIC'
-);
+DO $$ BEGIN
+  create type news_category as enum (
+    'GENERAL', 'EVENTS', 'NOTICES', 'BUSINESS',
+    'COMMUNITY', 'SAFETY', 'TRAFFIC'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
 -- ── Table ─────────────────────────────────────────────────────────
-create table news_articles (
+create table if not exists news_articles (
   id              uuid primary key default uuid_generate_v4(),
 
   title           varchar(200) not null,
@@ -44,10 +52,10 @@ create table news_articles (
 );
 
 -- ── Indexes ───────────────────────────────────────────────────────
-create index idx_news_status        on news_articles(status);
-create index idx_news_category      on news_articles(category);
-create index idx_news_published_at  on news_articles(published_at desc) where status = 'APPROVED';
-create index idx_news_slug          on news_articles(slug);
+create index if not exists idx_news_status on news_articles(status);
+create index if not exists idx_news_category on news_articles(category);
+create index if not exists idx_news_published_at on news_articles(published_at desc) where status = 'APPROVED';
+create index if not exists idx_news_slug on news_articles(slug);
 
 -- ── Updated-at trigger ────────────────────────────────────────────
 create or replace function update_updated_at_column()
@@ -58,8 +66,8 @@ begin
 end;
 $$ language plpgsql;
 
-create trigger news_articles_updated_at
-  before update on news_articles
+drop trigger if exists news_articles_updated_at on news_articles;
+create trigger news_articles_updated_at before update on news_articles
   for each row execute function update_updated_at_column();
 
 -- ── View-count RPC (runs as postgres to bypass RLS) ───────────────
@@ -81,16 +89,16 @@ grant execute on function increment_news_view to anon, authenticated;
 alter table news_articles enable row level security;
 
 -- Public reads only approved articles
-create policy "anon_select_approved"
-  on news_articles for select to anon
+drop policy if exists "anon_select_approved" on news_articles;
+create policy "anon_select_approved" on news_articles for select to anon
   using (status = 'APPROVED');
 
 -- Public can submit — only with PENDING status
-create policy "anon_insert_pending"
-  on news_articles for insert to anon
+drop policy if exists "anon_insert_pending" on news_articles;
+create policy "anon_insert_pending" on news_articles for insert to anon
   with check (status = 'PENDING');
 
 -- Authenticated admins have full access
-create policy "admin_full_access"
-  on news_articles for all to authenticated
+drop policy if exists "admin_full_access" on news_articles;
+create policy "admin_full_access" on news_articles for all to authenticated
   using (true) with check (true);

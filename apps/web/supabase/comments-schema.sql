@@ -38,18 +38,18 @@ create index if not exists idx_reactions_user   on reactions(user_id);
 alter table article_comments enable row level security;
 
 -- Anyone can read comments
-create policy "comments_read"
-  on article_comments for select
+drop policy if exists "comments_read" on article_comments;
+create policy "comments_read" on article_comments for select
   using (true);
 
 -- Authenticated users can insert (must own the row)
-create policy "comments_insert"
-  on article_comments for insert to authenticated
+drop policy if exists "comments_insert" on article_comments;
+create policy "comments_insert" on article_comments for insert to authenticated
   with check (user_id = auth.uid());
 
 -- User can delete own; admin can delete any
-create policy "comments_delete"
-  on article_comments for delete to authenticated
+drop policy if exists "comments_delete" on article_comments;
+create policy "comments_delete" on article_comments for delete to authenticated
   using (
     user_id = auth.uid()
     OR (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
@@ -59,21 +59,21 @@ create policy "comments_delete"
 
 alter table reactions enable row level security;
 
-create policy "reactions_read"
-  on reactions for select
+drop policy if exists "reactions_read" on reactions;
+create policy "reactions_read" on reactions for select
   using (true);
 
-create policy "reactions_insert"
-  on reactions for insert to authenticated
+drop policy if exists "reactions_insert" on reactions;
+create policy "reactions_insert" on reactions for insert to authenticated
   with check (user_id = auth.uid());
 
-create policy "reactions_update"
-  on reactions for update to authenticated
+drop policy if exists "reactions_update" on reactions;
+create policy "reactions_update" on reactions for update to authenticated
   using  (user_id = auth.uid())
   with check (user_id = auth.uid());
 
-create policy "reactions_delete"
-  on reactions for delete to authenticated
+drop policy if exists "reactions_delete" on reactions;
+create policy "reactions_delete" on reactions for delete to authenticated
   using (user_id = auth.uid());
 
 -- ── Grants ────────────────────────────────────────────────────────

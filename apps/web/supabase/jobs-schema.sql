@@ -6,22 +6,28 @@
 -- ================================================================
 
 -- ── Enums ─────────────────────────────────────────────────────────
-create type job_type as enum (
-  'FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'SEASONAL'
-);
+DO $$ BEGIN
+  create type job_type as enum (
+    'FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'SEASONAL'
+  );
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-create type job_category as enum (
-  'RETAIL', 'FOOD_BEVERAGE', 'TAILORING', 'ELECTRONICS',
-  'BEAUTY_WELLNESS', 'LOGISTICS_DELIVERY', 'MANAGEMENT',
-  'SECURITY', 'HOUSEKEEPING', 'OTHER'
-);
+DO $$ BEGIN
+  create type job_category as enum (
+    'RETAIL', 'FOOD_BEVERAGE', 'TAILORING', 'ELECTRONICS',
+    'BEAUTY_WELLNESS', 'LOGISTICS_DELIVERY', 'MANAGEMENT',
+    'SECURITY', 'HOUSEKEEPING', 'OTHER'
+  );
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-create type application_mode as enum (
-  'WALK_IN', 'PHONE', 'EMAIL', 'ONLINE'
-);
+DO $$ BEGIN
+  create type application_mode as enum (
+    'WALK_IN', 'PHONE', 'EMAIL', 'ONLINE'
+  );
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- ── Table ─────────────────────────────────────────────────────────
-create table job_listings (
+create table if not exists job_listings (
   id               uuid primary key default uuid_generate_v4(),
 
   -- Job details
@@ -70,14 +76,14 @@ create table job_listings (
 );
 
 -- ── Indexes ───────────────────────────────────────────────────────
-create index idx_jobs_status     on job_listings(status);
-create index idx_jobs_category   on job_listings(category);
-create index idx_jobs_type       on job_listings(job_type);
-create index idx_jobs_expires_at on job_listings(expires_at);
+create index if not exists idx_jobs_status on job_listings(status);
+create index if not exists idx_jobs_category on job_listings(category);
+create index if not exists idx_jobs_type on job_listings(job_type);
+create index if not exists idx_jobs_expires_at on job_listings(expires_at);
 
 -- ── Updated-at trigger ────────────────────────────────────────────
-create trigger job_listings_updated_at
-  before update on job_listings
+drop trigger if exists job_listings_updated_at on job_listings;
+create trigger job_listings_updated_at before update on job_listings
   for each row execute function update_updated_at_column();
 
 -- ── View-count RPC ────────────────────────────────────────────────
@@ -98,17 +104,17 @@ grant execute on function increment_job_view to anon, authenticated;
 alter table job_listings enable row level security;
 
 -- Public sees only approved, non-expired listings
-create policy "anon_select_approved_active"
-  on job_listings for select to anon
+drop policy if exists "anon_select_approved_active" on job_listings;
+create policy "anon_select_approved_active" on job_listings for select to anon
   using (
     status = 'APPROVED'
     and (expires_at is null or expires_at > now())
   );
 
-create policy "anon_insert_pending"
-  on job_listings for insert to anon
+drop policy if exists "anon_insert_pending" on job_listings;
+create policy "anon_insert_pending" on job_listings for insert to anon
   with check (status = 'PENDING');
 
-create policy "admin_full_access"
-  on job_listings for all to authenticated
+drop policy if exists "admin_full_access" on job_listings;
+create policy "admin_full_access" on job_listings for all to authenticated
   using (true) with check (true);

@@ -302,5 +302,5 @@ Previously used as a travel agency office. Electrical fittings and AC units in p
   22000, 66000,
   true, ARRAY['AC', 'Lift', 'Washroom', 'Power Backup', 'CCTV', 'Parking'],
   'Meena Bajpai', 'meena.property@example.com', '9826200002',
-  'APPROVED', false, 87
+  'APPROVED', false, 87 
 );

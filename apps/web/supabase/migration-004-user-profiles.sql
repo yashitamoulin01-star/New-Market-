@@ -39,17 +39,20 @@ END;
 $$;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
+drop trigger if exists on_auth_user_created on auth;
+create trigger on_auth_user_created AFTER INSERT on auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 
 -- Row Level Security
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "profiles_public_read"  ON user_profiles FOR SELECT TO anon       USING (true);
-CREATE POLICY "profiles_self_update"  ON user_profiles FOR UPDATE TO authenticated
+drop policy if exists "profiles_public_read" on user_profiles;
+create policy "profiles_public_read" on user_profiles FOR SELECT TO anon       USING (true);
+drop policy if exists "profiles_self_update" on user_profiles;
+create policy "profiles_self_update" on user_profiles FOR UPDATE TO authenticated
   USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
-CREATE POLICY "profiles_admin_all"    ON user_profiles FOR ALL    TO authenticated
+drop policy if exists "profiles_admin_all" on user_profiles;
+create policy "profiles_admin_all" on user_profiles FOR ALL    TO authenticated
   USING (true) WITH CHECK (true);
 
 GRANT SELECT ON user_profiles TO anon;

@@ -31,7 +31,8 @@ GRANT EXECUTE ON FUNCTION increment_ad_click(uuid) TO anon, authenticated;
 -- Row Level Security
 ALTER TABLE advertisements ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "ads_public_read" ON advertisements
+drop policy if exists "ads_public_read" on advertisements;
+create policy "ads_public_read" on advertisements
   FOR SELECT TO anon
   USING (
     is_active = true
@@ -39,7 +40,8 @@ CREATE POLICY "ads_public_read" ON advertisements
     AND (ends_at   IS NULL OR ends_at   >= now())
   );
 
-CREATE POLICY "ads_admin_all" ON advertisements
+drop policy if exists "ads_admin_all" on advertisements;
+create policy "ads_admin_all" on advertisements
   FOR ALL TO authenticated
   USING (true) WITH CHECK (true);
 

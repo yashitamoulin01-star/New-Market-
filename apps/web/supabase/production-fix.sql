@@ -42,19 +42,17 @@ CREATE INDEX IF NOT EXISTS idx_reactions_user   ON reactions(user_id);
 ALTER TABLE article_comments ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "comments_read"   ON article_comments;
-DROP POLICY IF EXISTS "comments_insert" ON article_comments;
-DROP POLICY IF EXISTS "comments_delete" ON article_comments;
 
-CREATE POLICY "comments_read"
-  ON article_comments FOR SELECT
+drop policy if exists "comments_read" on article_comments;
+create policy "comments_read" on article_comments FOR SELECT
   USING (true);
 
-CREATE POLICY "comments_insert"
-  ON article_comments FOR INSERT TO authenticated
+drop policy if exists "comments_insert" on article_comments;
+create policy "comments_insert" on article_comments FOR INSERT TO authenticated
   WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "comments_delete"
-  ON article_comments FOR DELETE TO authenticated
+drop policy if exists "comments_delete" on article_comments;
+create policy "comments_delete" on article_comments FOR DELETE TO authenticated
   USING (
     user_id = auth.uid()
     OR (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
@@ -64,24 +62,21 @@ CREATE POLICY "comments_delete"
 ALTER TABLE reactions ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "reactions_read"   ON reactions;
-DROP POLICY IF EXISTS "reactions_insert" ON reactions;
-DROP POLICY IF EXISTS "reactions_update" ON reactions;
-DROP POLICY IF EXISTS "reactions_delete" ON reactions;
 
-CREATE POLICY "reactions_read"
-  ON reactions FOR SELECT USING (true);
+drop policy if exists "reactions_read" on reactions;
+create policy "reactions_read" on reactions FOR SELECT USING (true);
 
-CREATE POLICY "reactions_insert"
-  ON reactions FOR INSERT TO authenticated
+drop policy if exists "reactions_insert" on reactions;
+create policy "reactions_insert" on reactions FOR INSERT TO authenticated
   WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "reactions_update"
-  ON reactions FOR UPDATE TO authenticated
+drop policy if exists "reactions_update" on reactions;
+create policy "reactions_update" on reactions FOR UPDATE TO authenticated
   USING  (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "reactions_delete"
-  ON reactions FOR DELETE TO authenticated
+drop policy if exists "reactions_delete" on reactions;
+create policy "reactions_delete" on reactions FOR DELETE TO authenticated
   USING (user_id = auth.uid());
 
 -- ── 6. Ensure grants are correct for all tables ───────────────────

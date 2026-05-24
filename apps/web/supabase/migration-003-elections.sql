@@ -74,13 +74,20 @@ ALTER TABLE election_positions  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE election_candidates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE election_votes      ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "elections_public_read"    ON elections           FOR SELECT TO anon USING (phase != 'DRAFT');
-CREATE POLICY "positions_public_read"    ON election_positions  FOR SELECT TO anon USING (true);
-CREATE POLICY "candidates_public_read"   ON election_candidates FOR SELECT TO anon USING (true);
-CREATE POLICY "elections_admin_all"      ON elections           FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "positions_admin_all"      ON election_positions  FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "candidates_admin_all"     ON election_candidates FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "votes_admin_all"          ON election_votes      FOR ALL TO authenticated USING (true) WITH CHECK (true);
+drop policy if exists "elections_public_read" on elections;
+create policy "elections_public_read" on elections           FOR SELECT TO anon USING (phase != 'DRAFT');
+drop policy if exists "positions_public_read" on election_positions;
+create policy "positions_public_read" on election_positions  FOR SELECT TO anon USING (true);
+drop policy if exists "candidates_public_read" on election_candidates;
+create policy "candidates_public_read" on election_candidates FOR SELECT TO anon USING (true);
+drop policy if exists "elections_admin_all" on elections;
+create policy "elections_admin_all" on elections           FOR ALL TO authenticated USING (true) WITH CHECK (true);
+drop policy if exists "positions_admin_all" on election_positions;
+create policy "positions_admin_all" on election_positions  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+drop policy if exists "candidates_admin_all" on election_candidates;
+create policy "candidates_admin_all" on election_candidates FOR ALL TO authenticated USING (true) WITH CHECK (true);
+drop policy if exists "votes_admin_all" on election_votes;
+create policy "votes_admin_all" on election_votes      FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 GRANT SELECT ON elections, election_positions, election_candidates TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON elections, election_positions, election_candidates, election_votes TO authenticated;

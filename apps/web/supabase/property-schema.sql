@@ -7,17 +7,21 @@
 
 -- ── Enums ─────────────────────────────────────────────────────────
 
-create type property_type as enum (
-  'SHOP', 'OFFICE', 'WAREHOUSE', 'SHOWROOM', 'KIOSK', 'OTHER'
-);
+DO $$ BEGIN
+  create type property_type as enum (
+    'SHOP', 'OFFICE', 'WAREHOUSE', 'SHOWROOM', 'KIOSK', 'OTHER'
+  );
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-create type listing_type as enum (
-  'RENT', 'SALE', 'LEASE'
-);
+DO $$ BEGIN
+  create type listing_type as enum (
+    'RENT', 'SALE', 'LEASE'
+  );
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- ── Table ─────────────────────────────────────────────────────────
 
-create table property_listings (
+create table if not exists property_listings (
   id               uuid primary key default uuid_generate_v4(),
 
   -- Core
@@ -66,15 +70,15 @@ create table property_listings (
 
 -- ── Indexes ───────────────────────────────────────────────────────
 
-create index idx_property_status       on property_listings(status);
-create index idx_property_type         on property_listings(property_type);
-create index idx_property_listing_type on property_listings(listing_type);
-create index idx_property_expires_at   on property_listings(expires_at);
+create index if not exists idx_property_status on property_listings(status);
+create index if not exists idx_property_type on property_listings(property_type);
+create index if not exists idx_property_listing_type on property_listings(listing_type);
+create index if not exists idx_property_expires_at on property_listings(expires_at);
 
 -- ── Updated-at trigger ────────────────────────────────────────────
 
-create trigger property_listings_updated_at
-  before update on property_listings
+drop trigger if exists property_listings_updated_at on property_listings;
+create trigger property_listings_updated_at before update on property_listings
   for each row execute function update_updated_at_column();
 
 -- ── View-count RPC ────────────────────────────────────────────────
@@ -97,17 +101,17 @@ grant execute on function increment_property_view to anon, authenticated;
 
 alter table property_listings enable row level security;
 
-create policy "anon_select_approved_active"
-  on property_listings for select to anon
+drop policy if exists "anon_select_approved_active" on property_listings;
+create policy "anon_select_approved_active" on property_listings for select to anon
   using (
     status = 'APPROVED'
     and (expires_at is null or expires_at > now())
   );
 
-create policy "anon_insert_pending"
-  on property_listings for insert to anon
+drop policy if exists "anon_insert_pending" on property_listings;
+create policy "anon_insert_pending" on property_listings for insert to anon
   with check (status = 'PENDING');
 
-create policy "admin_full_access"
-  on property_listings for all to authenticated
+drop policy if exists "admin_full_access" on property_listings;
+create policy "admin_full_access" on property_listings for all to authenticated
   using (true) with check (true);
