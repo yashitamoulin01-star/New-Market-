@@ -1,10 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { Eye, Clock } from "lucide-react"
 import type { NewsCardData } from "@/lib/supabase/news"
 import { useLanguage } from "@/contexts/language-context"
+import { SafeImage } from "@/components/ui/safe-image"
 
 const CATEGORY_STYLES: Record<string, { chip: string; bar: string }> = {
   GENERAL:   { chip: "bg-slate-100 text-slate-700",    bar: "bg-slate-400" },
@@ -47,7 +47,7 @@ export function NewsCard({ article }: { article: NewsCardData }) {
     >
       {article.cover_image_url ? (
         <div className="relative h-44 w-full overflow-hidden">
-          <Image
+          <SafeImage
             src={article.cover_image_url}
             alt={article.title}
             fill
