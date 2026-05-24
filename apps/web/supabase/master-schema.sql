@@ -1,7 +1,7 @@
 -- =======================================================
 -- NewMarket.co.in — Master Database Schema
 -- Paste this into: Supabase > SQL Editor > Run
--- Safe for a FRESH database (first-time setup)
+-- Safe to run even if partially run before
 -- =======================================================
 
 -- =========================================
@@ -16,6 +16,20 @@
 -- ── Extensions ────────────────────────────────────────────────────
 create extension if not exists "uuid-ossp";
 
+-- ── Drop existing custom types (safe — uses IF EXISTS) ────────────
+-- This prevents "type already exists" errors when re-running
+drop type if exists content_status cascade;
+drop type if exists news_category cascade;
+drop type if exists election_phase cascade;
+drop type if exists user_role cascade;
+drop type if exists job_type cascade;
+drop type if exists job_category cascade;
+drop type if exists application_mode cascade;
+drop type if exists property_type cascade;
+drop type if exists property_listing_status cascade;
+drop type if exists listing_status cascade;
+drop type if exists shop_category cascade;
+
 -- ── Enums ─────────────────────────────────────────────────────────
 create type content_status as enum ('PENDING', 'APPROVED', 'REJECTED');
 
@@ -24,8 +38,9 @@ create type news_category as enum (
   'COMMUNITY', 'SAFETY', 'TRAFFIC'
 );
 
+
 -- ── Table ─────────────────────────────────────────────────────────
-create table news_articles (
+create table if not exists ews_articles (
   id              uuid primary key default uuid_generate_v4(),
 
   title           varchar(200) not null,
@@ -68,7 +83,7 @@ begin
 end;
 $$ language plpgsql;
 
-create trigger news_articles_updated_at
+create or replace trigger ews_articles_updated_at
   before update on news_articles
   for each row execute function update_updated_at_column();
 
@@ -91,18 +106,18 @@ grant execute on function increment_news_view to anon, authenticated;
 alter table news_articles enable row level security;
 
 -- Public reads only approved articles
-create policy "anon_select_approved"
-  on news_articles for select to anon
+drop policy if exists "anon_select_approved" on news_articles;
+create policy "anon_select_approved" on news_articles for select to anon
   using (status = 'APPROVED');
 
 -- Public can submit — only with PENDING status
-create policy "anon_insert_pending"
-  on news_articles for insert to anon
+drop policy if exists "anon_insert_pending" on news_articles;
+create policy "anon_insert_pending" on news_articles for insert to anon
   with check (status = 'PENDING');
 
 -- Authenticated admins have full access
-create policy "admin_full_access"
-  on news_articles for all to authenticated
+drop policy if exists "admin_full_access" on news_articles;
+create policy "admin_full_access" on news_articles for all to authenticated
   using (true) with check (true);
 
 
@@ -133,7 +148,7 @@ create type application_mode as enum (
 );
 
 -- ── Table ─────────────────────────────────────────────────────────
-create table job_listings (
+create table if not exists ob_listings (
   id               uuid primary key default uuid_generate_v4(),
 
   -- Job details
@@ -188,7 +203,7 @@ create index idx_jobs_type       on job_listings(job_type);
 create index idx_jobs_expires_at on job_listings(expires_at);
 
 -- ── Updated-at trigger ────────────────────────────────────────────
-create trigger job_listings_updated_at
+create or replace trigger ob_listings_updated_at
   before update on job_listings
   for each row execute function update_updated_at_column();
 
@@ -210,19 +225,19 @@ grant execute on function increment_job_view to anon, authenticated;
 alter table job_listings enable row level security;
 
 -- Public sees only approved, non-expired listings
-create policy "anon_select_approved_active"
-  on job_listings for select to anon
+drop policy if exists "anon_select_approved_active" on job_listings;
+create policy "anon_select_approved_active" on job_listings for select to anon
   using (
     status = 'APPROVED'
     and (expires_at is null or expires_at > now())
   );
 
-create policy "anon_insert_pending"
-  on job_listings for insert to anon
+drop policy if exists "anon_insert_pending" on job_listings;
+create policy "anon_insert_pending" on job_listings for insert to anon
   with check (status = 'PENDING');
 
-create policy "admin_full_access"
-  on job_listings for all to authenticated
+drop policy if exists "admin_full_access" on job_listings;
+create policy "admin_full_access" on job_listings for all to authenticated
   using (true) with check (true);
 
 
@@ -257,7 +272,7 @@ create type shop_category as enum (
 
 -- ── Table ─────────────────────────────────────────────────────────
 
-create table shops (
+create table if not exists hops (
   id               uuid primary key default uuid_generate_v4(),
 
   -- Core info
@@ -303,7 +318,7 @@ create index idx_shops_featured on shops(is_featured);
 
 -- ── Updated-at trigger ────────────────────────────────────────────
 
-create trigger shops_updated_at
+create or replace trigger hops_updated_at
   before update on shops
   for each row execute function update_updated_at_column();
 
@@ -327,16 +342,16 @@ grant execute on function increment_shop_view to anon, authenticated;
 
 alter table shops enable row level security;
 
-create policy "anon_select_approved"
-  on shops for select to anon
+drop policy if exists "anon_select_approved" on shops;
+create policy "anon_select_approved" on shops for select to anon
   using (status = 'APPROVED');
 
-create policy "anon_insert_pending"
-  on shops for insert to anon
+drop policy if exists "anon_insert_pending" on shops;
+create policy "anon_insert_pending" on shops for insert to anon
   with check (status = 'PENDING');
 
-create policy "admin_full_access"
-  on shops for all to authenticated
+drop policy if exists "admin_full_access" on shops;
+create policy "admin_full_access" on shops for all to authenticated
   using (true) with check (true);
 
 
@@ -363,7 +378,7 @@ create type listing_type as enum (
 
 -- ── Table ─────────────────────────────────────────────────────────
 
-create table property_listings (
+create table if not exists roperty_listings (
   id               uuid primary key default uuid_generate_v4(),
 
   -- Core
@@ -419,7 +434,7 @@ create index idx_property_expires_at   on property_listings(expires_at);
 
 -- ── Updated-at trigger ────────────────────────────────────────────
 
-create trigger property_listings_updated_at
+create or replace trigger roperty_listings_updated_at
   before update on property_listings
   for each row execute function update_updated_at_column();
 
@@ -443,19 +458,19 @@ grant execute on function increment_property_view to anon, authenticated;
 
 alter table property_listings enable row level security;
 
-create policy "anon_select_approved_active"
-  on property_listings for select to anon
+drop policy if exists "anon_select_approved_active" on property_listings;
+create policy "anon_select_approved_active" on property_listings for select to anon
   using (
     status = 'APPROVED'
     and (expires_at is null or expires_at > now())
   );
 
-create policy "anon_insert_pending"
-  on property_listings for insert to anon
+drop policy if exists "anon_insert_pending" on property_listings;
+create policy "anon_insert_pending" on property_listings for insert to anon
   with check (status = 'PENDING');
 
-create policy "admin_full_access"
-  on property_listings for all to authenticated
+drop policy if exists "admin_full_access" on property_listings;
+create policy "admin_full_access" on property_listings for all to authenticated
   using (true) with check (true);
 
 
@@ -503,18 +518,18 @@ create index if not exists idx_reactions_user   on reactions(user_id);
 alter table article_comments enable row level security;
 
 -- Anyone can read comments
-create policy "comments_read"
-  on article_comments for select
+drop policy if exists "comments_read" on article_comments;
+create policy "comments_read" on article_comments for select
   using (true);
 
 -- Authenticated users can insert (must own the row)
-create policy "comments_insert"
-  on article_comments for insert to authenticated
+drop policy if exists "comments_insert" on article_comments;
+create policy "comments_insert" on article_comments for insert to authenticated
   with check (user_id = auth.uid());
 
 -- User can delete own; admin can delete any
-create policy "comments_delete"
-  on article_comments for delete to authenticated
+drop policy if exists "comments_delete" on article_comments;
+create policy "comments_delete" on article_comments for delete to authenticated
   using (
     user_id = auth.uid()
     OR (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
@@ -524,21 +539,21 @@ create policy "comments_delete"
 
 alter table reactions enable row level security;
 
-create policy "reactions_read"
-  on reactions for select
+drop policy if exists "reactions_read" on reactions;
+create policy "reactions_read" on reactions for select
   using (true);
 
-create policy "reactions_insert"
-  on reactions for insert to authenticated
+drop policy if exists "reactions_insert" on reactions;
+create policy "reactions_insert" on reactions for insert to authenticated
   with check (user_id = auth.uid());
 
-create policy "reactions_update"
-  on reactions for update to authenticated
+drop policy if exists "reactions_update" on reactions;
+create policy "reactions_update" on reactions for update to authenticated
   using  (user_id = auth.uid())
   with check (user_id = auth.uid());
 
-create policy "reactions_delete"
-  on reactions for delete to authenticated
+drop policy if exists "reactions_delete" on reactions;
+create policy "reactions_delete" on reactions for delete to authenticated
   using (user_id = auth.uid());
 
 -- ── Grants ────────────────────────────────────────────────────────
@@ -608,7 +623,8 @@ GRANT EXECUTE ON FUNCTION increment_ad_click(uuid) TO anon, authenticated;
 -- Row Level Security
 ALTER TABLE advertisements ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "ads_public_read" ON advertisements
+drop policy if exists "ads_public_read" on advertisements;
+create policy "ads_public_read" on advertisements
   FOR SELECT TO anon
   USING (
     is_active = true
@@ -616,7 +632,8 @@ CREATE POLICY "ads_public_read" ON advertisements
     AND (ends_at   IS NULL OR ends_at   >= now())
   );
 
-CREATE POLICY "ads_admin_all" ON advertisements
+drop policy if exists "ads_admin_all" on advertisements;
+create policy "ads_admin_all" on advertisements
   FOR ALL TO authenticated
   USING (true) WITH CHECK (true);
 
@@ -700,13 +717,20 @@ ALTER TABLE election_positions  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE election_candidates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE election_votes      ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "elections_public_read"    ON elections           FOR SELECT TO anon USING (phase != 'DRAFT');
-CREATE POLICY "positions_public_read"    ON election_positions  FOR SELECT TO anon USING (true);
-CREATE POLICY "candidates_public_read"   ON election_candidates FOR SELECT TO anon USING (true);
-CREATE POLICY "elections_admin_all"      ON elections           FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "positions_admin_all"      ON election_positions  FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "candidates_admin_all"     ON election_candidates FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "votes_admin_all"          ON election_votes      FOR ALL TO authenticated USING (true) WITH CHECK (true);
+drop policy if exists "elections_public_read" on elections;
+create policy "elections_public_read" on elections           FOR SELECT TO anon USING (phase != 'DRAFT');
+drop policy if exists "positions_public_read" on election_positions;
+create policy "positions_public_read" on election_positions  FOR SELECT TO anon USING (true);
+drop policy if exists "candidates_public_read" on election_candidates;
+create policy "candidates_public_read" on election_candidates FOR SELECT TO anon USING (true);
+drop policy if exists "elections_admin_all" on elections;
+create policy "elections_admin_all" on elections           FOR ALL TO authenticated USING (true) WITH CHECK (true);
+drop policy if exists "positions_admin_all" on election_positions;
+create policy "positions_admin_all" on election_positions  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+drop policy if exists "candidates_admin_all" on election_candidates;
+create policy "candidates_admin_all" on election_candidates FOR ALL TO authenticated USING (true) WITH CHECK (true);
+drop policy if exists "votes_admin_all" on election_votes;
+create policy "votes_admin_all" on election_votes      FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 GRANT SELECT ON elections, election_positions, election_candidates TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON elections, election_positions, election_candidates, election_votes TO authenticated;
@@ -753,17 +777,20 @@ END;
 $$;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
+create or replace trigger n_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 
 -- Row Level Security
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "profiles_public_read"  ON user_profiles FOR SELECT TO anon       USING (true);
-CREATE POLICY "profiles_self_update"  ON user_profiles FOR UPDATE TO authenticated
+drop policy if exists "profiles_public_read" on user_profiles;
+create policy "profiles_public_read" on user_profiles FOR SELECT TO anon       USING (true);
+drop policy if exists "profiles_self_update" on user_profiles;
+create policy "profiles_self_update" on user_profiles FOR UPDATE TO authenticated
   USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
-CREATE POLICY "profiles_admin_all"    ON user_profiles FOR ALL    TO authenticated
+drop policy if exists "profiles_admin_all" on user_profiles;
+create policy "profiles_admin_all" on user_profiles FOR ALL    TO authenticated
   USING (true) WITH CHECK (true);
 
 GRANT SELECT ON user_profiles TO anon;
@@ -800,12 +827,12 @@ CREATE TABLE IF NOT EXISTS site_settings (
 -- RLS: public can read, only authenticated admins can write
 ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "site_settings_public_read"
-  ON site_settings FOR SELECT
+drop policy if exists "site_settings_public_read" on site_settings;
+create policy "site_settings_public_read" on site_settings FOR SELECT
   USING (true);
 
-CREATE POLICY "site_settings_admin_write"
-  ON site_settings FOR ALL
+drop policy if exists "site_settings_admin_write" on site_settings;
+create policy "site_settings_admin_write" on site_settings FOR ALL
   USING (auth.jwt() ->> 'role' = 'admin' OR (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
 
 -- Seed default settings (no-op if already exists)
@@ -867,16 +894,16 @@ DROP POLICY IF EXISTS "comments_read"   ON article_comments;
 DROP POLICY IF EXISTS "comments_insert" ON article_comments;
 DROP POLICY IF EXISTS "comments_delete" ON article_comments;
 
-CREATE POLICY "comments_read"
-  ON article_comments FOR SELECT
+drop policy if exists "comments_read" on article_comments;
+create policy "comments_read" on article_comments FOR SELECT
   USING (true);
 
-CREATE POLICY "comments_insert"
-  ON article_comments FOR INSERT TO authenticated
+drop policy if exists "comments_insert" on article_comments;
+create policy "comments_insert" on article_comments FOR INSERT TO authenticated
   WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "comments_delete"
-  ON article_comments FOR DELETE TO authenticated
+drop policy if exists "comments_delete" on article_comments;
+create policy "comments_delete" on article_comments FOR DELETE TO authenticated
   USING (
     user_id = auth.uid()
     OR (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
@@ -890,20 +917,20 @@ DROP POLICY IF EXISTS "reactions_insert" ON reactions;
 DROP POLICY IF EXISTS "reactions_update" ON reactions;
 DROP POLICY IF EXISTS "reactions_delete" ON reactions;
 
-CREATE POLICY "reactions_read"
-  ON reactions FOR SELECT USING (true);
+drop policy if exists "reactions_read" on reactions;
+create policy "reactions_read" on reactions FOR SELECT USING (true);
 
-CREATE POLICY "reactions_insert"
-  ON reactions FOR INSERT TO authenticated
+drop policy if exists "reactions_insert" on reactions;
+create policy "reactions_insert" on reactions FOR INSERT TO authenticated
   WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "reactions_update"
-  ON reactions FOR UPDATE TO authenticated
+drop policy if exists "reactions_update" on reactions;
+create policy "reactions_update" on reactions FOR UPDATE TO authenticated
   USING  (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "reactions_delete"
-  ON reactions FOR DELETE TO authenticated
+drop policy if exists "reactions_delete" on reactions;
+create policy "reactions_delete" on reactions FOR DELETE TO authenticated
   USING (user_id = auth.uid());
 
 -- ── 6. Ensure grants are correct for all tables ───────────────────
