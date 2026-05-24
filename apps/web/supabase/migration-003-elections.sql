@@ -1,13 +1,17 @@
 -- migration-003-elections.sql
 -- Run in Supabase SQL Editor. Full election CMS tables.
 
-CREATE TYPE election_phase AS ENUM (
-  'DRAFT',
-  'NOMINATIONS_OPEN',
-  'VOTING_OPEN',
-  'CLOSED',
-  'RESULTS_PUBLISHED'
-);
+DO $$ BEGIN
+  CREATE TYPE election_phase AS ENUM (
+    'DRAFT',
+    'NOMINATIONS_OPEN',
+    'VOTING_OPEN',
+    'CLOSED',
+    'RESULTS_PUBLISHED'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
 CREATE TABLE IF NOT EXISTS elections (
   id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),

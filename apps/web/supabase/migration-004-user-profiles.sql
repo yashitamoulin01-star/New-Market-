@@ -1,7 +1,11 @@
 -- migration-004-user-profiles.sql
 -- Run in Supabase SQL Editor. User profile extension with roles and ban management.
 
-CREATE TYPE user_role AS ENUM ('user', 'moderator', 'admin');
+DO $$ BEGIN
+  CREATE TYPE user_role AS ENUM ('user', 'moderator', 'admin');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
 CREATE TABLE IF NOT EXISTS user_profiles (
   id           uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
