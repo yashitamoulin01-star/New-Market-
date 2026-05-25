@@ -4,6 +4,7 @@ import { useFontSize } from "@/contexts/font-size-context"
 
 export function FontSizeToolbar() {
   const { decrease, increase, canDecrease, canIncrease, size } = useFontSize()
+  const label = size === "small" ? "S" : size === "large" ? "L" : size === "xlarge" ? "XL" : "M"
   return (
     <div className="flex items-center gap-1 rounded-lg border bg-muted/40 px-1.5 py-1">
       <button
@@ -14,9 +15,7 @@ export function FontSizeToolbar() {
       >
         A-
       </button>
-      <span className="text-[10px] text-muted-foreground/60 select-none">
-        {size === "small" ? "S" : size === "large" ? "L" : "M"}
-      </span>
+      <span className="select-none text-[10px] text-muted-foreground/60">{label}</span>
       <button
         onClick={increase}
         disabled={!canIncrease}

@@ -2,12 +2,13 @@
 
 import { createContext, useContext, useEffect, useState } from "react"
 
-type FontSize = "small" | "normal" | "large"
-const SIZES: FontSize[] = ["small", "normal", "large"]
+type FontSize = "small" | "normal" | "large" | "xlarge"
+const SIZES: FontSize[] = ["small", "normal", "large", "xlarge"]
 const CLASS: Record<FontSize, string> = {
-  small:  "fs-small",
-  normal: "fs-normal",
-  large:  "fs-large",
+  small:   "fs-small",
+  normal:  "fs-normal",
+  large:   "fs-large",
+  xlarge:  "fs-xlarge",
 }
 
 interface FontSizeCtx {
