@@ -2,18 +2,18 @@
 
 import { useState } from "react"
 import Image, { ImageProps } from "next/image"
-import { ImageOff } from "lucide-react"
 
-export function SafeImage({ alt, src, className, ...props }: ImageProps) {
+interface SafeImageProps extends ImageProps {
+  hideOnError?: boolean
+}
+
+export function SafeImage({ alt, src, className, hideOnError = false, ...props }: SafeImageProps) {
   const [error, setError] = useState(false)
 
   if (error || !src) {
+    if (hideOnError) return null
     return (
-      <div className={`flex items-center justify-center bg-muted text-muted-foreground ${className || ""}`}>
-        <div className="flex flex-col items-center gap-2">
-          <ImageOff size={24} className="opacity-50" />
-        </div>
-      </div>
+      <div className={`flex items-center justify-center bg-muted/50 ${className || ""}`} />
     )
   }
 

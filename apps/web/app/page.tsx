@@ -296,7 +296,7 @@ function SideHeadline({ article }: { article: NewsCardData }) {
       </div>
       {article.cover_image_url && (
         <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
-          <SafeImage src={article.cover_image_url} alt={article.title} fill className="object-cover" />
+          <SafeImage src={article.cover_image_url} alt={article.title} fill className="object-cover" hideOnError />
         </div>
       )}
     </Link>
