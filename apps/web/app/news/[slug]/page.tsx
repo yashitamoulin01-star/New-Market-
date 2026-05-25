@@ -7,6 +7,7 @@ import { getArticleBySlug } from "@/lib/supabase/news"
 import { getArticleReactions } from "@/lib/supabase/comments"
 import { createClient } from "@/lib/supabase/server"
 import { ArticleReactions } from "@/components/news/article-reactions"
+import { FontSizeToolbar } from "@/components/ui/font-size-toolbar"
 import { T } from "@/components/ui/t"
 
 export async function generateMetadata({
@@ -108,6 +109,11 @@ export default async function ArticlePage({
           />
         </div>
       )}
+
+      {/* Reading toolbar */}
+      <div className="mb-4 flex items-center justify-end">
+        <FontSizeToolbar />
+      </div>
 
       {/* Body */}
       <div className="space-y-4">
