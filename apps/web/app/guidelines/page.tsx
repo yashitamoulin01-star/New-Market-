@@ -126,6 +126,28 @@ export default function GuidelinesPage() {
           Bhopal. Platform safety, credibility, legal compliance, and responsible participation take priority over unrestricted
           publishing access. Continued use of this platform constitutes acceptance of all applicable policies and moderation decisions.
         </div>
+
+        <Section title="Content Submission Agreement">
+          <p>When submitting any content on NewMarket.co.in — including news, job listings, shop entries, or property listings — you confirm that:</p>
+          <ul>
+            <li>The information provided is accurate to the best of your knowledge.</li>
+            <li>You own the content being submitted OR have permission to publish it.</li>
+            <li>Your submission does not contain illegal, abusive, hateful, misleading, defamatory, copyrighted, or harmful material.</li>
+            <li>Submission does <strong>NOT</strong> guarantee publication.</li>
+            <li>All submissions are subject to admin approval and editorial review before going live.</li>
+            <li>You remain responsible for the accuracy and legality of the content you submit.</li>
+          </ul>
+          <p>NewMarket.co.in reserves the right to review, edit, reject, remove, unpublish, moderate, feature, reposition, shorten, modify formatting, correct spelling/grammar, add labels/categories, disable visibility, or permanently delete any submitted content — without prior notice.</p>
+          <p>NewMarket.co.in may use submitted content, images, and information across the platform for display, promotional, moderation, editorial, and operational purposes.</p>
+        </Section>
+
+        <div className="rounded-xl border bg-muted/30 p-5 text-center space-y-2">
+          <p className="text-sm text-muted-foreground">More policies</p>
+          <div className="flex justify-center gap-4 text-sm font-medium">
+            <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>
+            <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+          </div>
+        </div>
       </div>
     </div>
   )

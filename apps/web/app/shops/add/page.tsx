@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
 import { useFormStatus } from "react-dom"
 import Link from "next/link"
 import { Store, CheckCircle, ChevronLeft } from "lucide-react"
@@ -8,16 +8,17 @@ import { addShopAction, type AddShopState } from "./actions"
 import { SHOP_CATEGORY_LABELS_BI } from "@/lib/supabase/shops-defs"
 import { useLanguage } from "@/contexts/language-context"
 import { ImageUploadInput } from "@/components/ui/image-upload-input"
+import { SubmissionConsent } from "@/components/ui/submission-consent"
 
 const initialState: AddShopState = { success: false }
 
-function SubmitButton() {
+function SubmitButton({ disabled }: { disabled?: boolean }) {
   const { pending } = useFormStatus()
   const { lang } = useLanguage()
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
     >
       {pending
@@ -42,6 +43,7 @@ const selectCls = `${inputCls} cursor-pointer`
 export default function AddShopPage() {
   const [state, action] = useActionState(addShopAction, initialState)
   const { lang } = useLanguage()
+  const [agreed, setAgreed] = useState(false)
   const hi = lang === "hi"
 
   if (state.success && state.shop) {
@@ -247,13 +249,9 @@ export default function AddShopPage() {
           </p>
         )}
 
-        <SubmitButton />
+        <SubmissionConsent lang={lang} onChecked={setAgreed} />
 
-        <p className="text-center text-xs text-muted-foreground">
-          {hi
-            ? "लिस्टिंग प्रकाशन से पहले समीक्षा होती है। व्यक्तिगत सत्यापन के बाद वेरिफाइड बैज मिलता है।"
-            : "Listings are reviewed before publishing. Verified badge is awarded after in-person verification."}
-        </p>
+        <SubmitButton disabled={!agreed} />
       </form>
     </div>
   )

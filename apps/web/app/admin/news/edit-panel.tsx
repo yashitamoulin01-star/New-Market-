@@ -7,10 +7,11 @@ import type { NewsArticle } from "@/lib/supabase/news"
 interface Props {
   article: Pick<NewsArticle, "id" | "title" | "excerpt" | "content" | "cover_image_url">
   editAction: (id: string, fd: FormData) => Promise<void>
+  defaultOpen?: boolean
 }
 
-export function EditNewsPanel({ article, editAction }: Props) {
-  const [open, setOpen] = useState(false)
+export function EditNewsPanel({ article, editAction, defaultOpen = false }: Props) {
+  const [open, setOpen] = useState(defaultOpen)
   const [pending, setPending] = useState(false)
 
   async function handleSubmit(fd: FormData) {

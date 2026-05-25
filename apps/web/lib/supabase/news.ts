@@ -9,7 +9,7 @@ export type NewsCategory =
   | "SAFETY"
   | "TRAFFIC"
 
-export type ContentStatus = "PENDING" | "APPROVED" | "REJECTED"
+export type ContentStatus = "PENDING" | "EDITORIAL" | "APPROVED" | "REJECTED"
 
 export type HomepageSlot = "headline" | "ticker" | "sidebar" | "featured"
 
@@ -242,7 +242,7 @@ export async function adminListNews(params: {
 
 export async function moderateNews(
   id: string,
-  status: "APPROVED" | "REJECTED",
+  status: "EDITORIAL" | "APPROVED" | "REJECTED",
   rejectionNote?: string
 ) {
   const supabase = await createClient()
@@ -254,6 +254,16 @@ export async function moderateNews(
       rejection_note: rejectionNote ?? null,
       ...(status === "APPROVED" && { published_at: new Date().toISOString() }),
     })
+    .eq("id", id)
+
+  if (error) throw error
+}
+
+export async function adminSaveEditorialNotes(id: string, notes: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("news_articles")
+    .update({ editorial_notes: notes, updated_at: new Date().toISOString() })
     .eq("id", id)
 
   if (error) throw error

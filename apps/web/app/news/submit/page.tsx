@@ -6,6 +6,7 @@ import Link from "next/link"
 import { submitNewsAction } from "./actions"
 import { useLanguage } from "@/contexts/language-context"
 import { ImageUploadInput } from "@/components/ui/image-upload-input"
+import { SubmissionConsent } from "@/components/ui/submission-consent"
 
 const NEWS_CATEGORIES = [
   { value: "GENERAL",   en: "General",   hi: "सामान्य" },
@@ -17,13 +18,13 @@ const NEWS_CATEGORIES = [
   { value: "TRAFFIC",   en: "Traffic",   hi: "यातायात" },
 ]
 
-function SubmitButton() {
+function SubmitButton({ disabled }: { disabled?: boolean }) {
   const { pending } = useFormStatus()
   const { lang } = useLanguage()
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       className="w-full rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60 sm:w-auto sm:px-8"
     >
       {pending
@@ -47,6 +48,7 @@ export default function SubmitNewsPage() {
   const [state, action] = useActionState(submitNewsAction, { success: false })
   const { lang } = useLanguage()
   const [anon, setAnon] = useState(false)
+  const [agreed, setAgreed] = useState(false)
 
   const t = {
     backToNews:       lang === "hi" ? "← समाचार पर वापस" : "← Back to News",
@@ -271,7 +273,9 @@ export default function SubmitNewsPage() {
           />
         </div>
 
-        <SubmitButton />
+        <SubmissionConsent lang={lang} onChecked={setAgreed} />
+
+        <SubmitButton disabled={!agreed} />
       </form>
     </div>
   )

@@ -114,9 +114,23 @@ export default function SignUpPage() {
                 />
                 <span className="text-xs text-muted-foreground">
                   {hi ? (
-                    <>मैंने{" "}<Link href="/guidelines" target="_blank" className="font-medium text-primary hover:underline">सामुदायिक नियम</Link>{" "}पढ़े और स्वीकार करता/करती हूँ।</>
+                    <>मैंने{" "}
+                      <Link href="/guidelines" target="_blank" className="font-medium text-primary hover:underline">सामुदायिक नियम</Link>
+                      {", "}
+                      <Link href="/terms" target="_blank" className="font-medium text-primary hover:underline">सेवा की शर्तें</Link>
+                      {" और "}
+                      <Link href="/privacy" target="_blank" className="font-medium text-primary hover:underline">गोपनीयता नीति</Link>
+                      {" पढ़े और स्वीकार करता/करती हूँ।"}
+                    </>
                   ) : (
-                    <>I have read and agree to the{" "}<Link href="/guidelines" target="_blank" className="font-medium text-primary hover:underline">Community Guidelines</Link>.</>
+                    <>I have read and agree to the{" "}
+                      <Link href="/guidelines" target="_blank" className="font-medium text-primary hover:underline">Community Guidelines</Link>
+                      {", "}
+                      <Link href="/terms" target="_blank" className="font-medium text-primary hover:underline">Terms</Link>
+                      {", and "}
+                      <Link href="/privacy" target="_blank" className="font-medium text-primary hover:underline">Privacy Policy</Link>
+                      .
+                    </>
                   )}
                 </span>
               </label>

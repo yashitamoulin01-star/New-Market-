@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
 import { useFormStatus } from "react-dom"
 import Link from "next/link"
 import { Building2, CheckCircle, ChevronLeft } from "lucide-react"
@@ -8,16 +8,17 @@ import { listPropertyAction, type ListPropertyState } from "./actions"
 import { PROPERTY_TYPE_LABELS_BI, LISTING_TYPE_LABELS_BI } from "@/lib/supabase/property-defs"
 import { useLanguage } from "@/contexts/language-context"
 import { ImageUploadInput } from "@/components/ui/image-upload-input"
+import { SubmissionConsent } from "@/components/ui/submission-consent"
 
 const initialState: ListPropertyState = { success: false }
 
-function SubmitButton() {
+function SubmitButton({ disabled }: { disabled?: boolean }) {
   const { pending } = useFormStatus()
   const { lang } = useLanguage()
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
     >
       {pending
@@ -48,6 +49,7 @@ const AMENITY_PRESETS = [
 export default function ListPropertyPage() {
   const [state, action] = useActionState(listPropertyAction, initialState)
   const { lang } = useLanguage()
+  const [agreed, setAgreed] = useState(false)
   const hi = lang === "hi"
 
   if (state.success && state.property) {
@@ -369,13 +371,9 @@ export default function ListPropertyPage() {
           </p>
         )}
 
-        <SubmitButton />
+        <SubmissionConsent lang={lang} onChecked={setAgreed} />
 
-        <p className="text-center text-xs text-muted-foreground">
-          {hi
-            ? "लिस्टिंग प्रकाशन से पहले समीक्षा होती है। सभी जानकारी सटीक रखें।"
-            : "Listings are reviewed before publishing. Ensure all information is accurate."}
-        </p>
+        <SubmitButton disabled={!agreed} />
       </form>
     </div>
   )

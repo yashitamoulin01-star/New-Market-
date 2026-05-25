@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
 import { useFormStatus } from "react-dom"
 import Link from "next/link"
 import { Briefcase, CheckCircle, ChevronLeft } from "lucide-react"
@@ -11,16 +11,17 @@ import {
   APP_MODE_LABELS_BI,
 } from "@/lib/supabase/jobs-defs"
 import { useLanguage } from "@/contexts/language-context"
+import { SubmissionConsent } from "@/components/ui/submission-consent"
 
 const initialState: PostJobState = { success: false }
 
-function SubmitButton() {
+function SubmitButton({ disabled }: { disabled?: boolean }) {
   const { pending } = useFormStatus()
   const { lang } = useLanguage()
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
     >
       {pending
@@ -45,6 +46,7 @@ const selectCls = `${inputCls} cursor-pointer`
 export default function PostJobPage() {
   const [state, action] = useActionState(postJobAction, initialState)
   const { lang } = useLanguage()
+  const [agreed, setAgreed] = useState(false)
 
   const hi = lang === "hi"
 
@@ -362,13 +364,9 @@ export default function PostJobPage() {
           </p>
         )}
 
-        <SubmitButton />
+        <SubmissionConsent lang={lang} onChecked={setAgreed} />
 
-        <p className="text-center text-xs text-muted-foreground">
-          {hi
-            ? "सबमिट करके आप पुष्टि करते हैं कि जानकारी सही है। लिस्टिंग प्रकाशन से पहले समीक्षा की जाएगी।"
-            : "By submitting you agree that the information is accurate. Listings are reviewed before publishing."}
-        </p>
+        <SubmitButton disabled={!agreed} />
       </form>
     </div>
   )

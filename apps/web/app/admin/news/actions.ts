@@ -4,9 +4,15 @@ import {
   moderateNews, adminDeleteNews,
   adminToggleNewsFlag, adminSetHomepageSlot,
   adminSetPriorityRank, adminSchedulePublish, adminEditNews,
+  adminSaveEditorialNotes,
   type HomepageSlot,
 } from "@/lib/supabase/news"
 import { revalidatePath } from "next/cache"
+
+export async function moveToEditorialAction(id: string) {
+  await moderateNews(id, "EDITORIAL")
+  revalidatePath("/admin/news")
+}
 
 export async function approveNewsAction(id: string) {
   await moderateNews(id, "APPROVED")
@@ -18,6 +24,13 @@ export async function approveNewsAction(id: string) {
 export async function rejectNewsAction(id: string, formData: FormData) {
   const note = (formData.get("note") as string)?.trim()
   await moderateNews(id, "REJECTED", note || undefined)
+  revalidatePath("/admin/news")
+}
+
+export async function restoreToPendingAction(id: string) {
+  const { createClient } = await import("@/lib/supabase/server")
+  const supabase = await createClient()
+  await supabase.from("news_articles").update({ status: "PENDING", rejection_note: null }).eq("id", id)
   revalidatePath("/admin/news")
 }
 
@@ -71,4 +84,10 @@ export async function editNewsAction(id: string, formData: FormData) {
   revalidatePath("/admin/news")
   revalidatePath("/news")
   revalidatePath("/")
+}
+
+export async function saveEditorialNotesAction(id: string, formData: FormData) {
+  const notes = (formData.get("editorial_notes") as string)?.trim() ?? ""
+  await adminSaveEditorialNotes(id, notes)
+  revalidatePath("/admin/news")
 }
