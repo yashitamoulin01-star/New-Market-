@@ -105,13 +105,13 @@ export default function SubmitNewsPage() {
             </span>
           </div>
 
-          <h2 className="mb-2 text-xl font-bold">{title}</h2>
+          <h2 className="mb-2 text-xl font-bold" style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}>{title}</h2>
 
           {excerpt && (
-            <p className="mb-3 text-sm italic text-muted-foreground">{excerpt}</p>
+            <p className="mb-3 text-sm italic text-muted-foreground" style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}>{excerpt}</p>
           )}
 
-          <div className="space-y-3 text-sm leading-relaxed text-foreground/85">
+          <div className="space-y-3 text-sm leading-relaxed text-foreground/85" style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}>
             {content.split(/\n\n+/).map((para, i) => (
               <p key={i}>{para.trim()}</p>
             ))}
