@@ -131,7 +131,7 @@ function HeroFeature({ article }: { article: NewsCardData }) {
     >
       {article.cover_image_url ? (
         <>
-          <div className="relative h-72 w-full lg:h-[400px]">
+          <div className="relative h-60 w-full lg:h-[340px]">
             <SafeImage
               src={article.cover_image_url}
               alt={article.title}
@@ -164,7 +164,7 @@ function HeroFeature({ article }: { article: NewsCardData }) {
           </div>
         </>
       ) : (
-        <div className="flex min-h-[280px] flex-col justify-end bg-gradient-to-br from-slate-800 to-slate-900 p-5">
+        <div className="flex min-h-[240px] flex-col justify-end bg-gradient-to-br from-slate-800 to-slate-900 p-5">
           <div className={`mb-3 h-1 w-10 rounded-full ${CAT_BAR[article.category] ?? "bg-primary"}`} />
           <span className="mb-2 inline-block rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Top Story</span>
           <h2 className="editorial-headline text-xl font-bold leading-snug text-white sm:text-2xl">{article.title}</h2>
@@ -244,6 +244,82 @@ function TextStoryItem({ article }: { article: NewsCardData }) {
         {article.published_at && <p className="mt-0.5 text-[10px] text-muted-foreground">{timeAgo(article.published_at)}</p>}
       </div>
     </Link>
+  )
+}
+
+// ── Mini News Card (2×2 grid in hero zone) ───────────────────────
+
+function MiniNewsCard({ article }: { article: NewsCardData }) {
+  return (
+    <Link
+      href={`/news/${article.slug}`}
+      className="group relative flex min-h-[152px] overflow-hidden rounded-lg bg-slate-900 shadow-sm transition hover:shadow-md hover:-translate-y-0.5"
+    >
+      {article.cover_image_url ? (
+        <>
+          <SafeImage
+            src={article.cover_image_url}
+            alt={article.title}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+            hideOnError
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+        </>
+      ) : (
+        <div className={`absolute inset-0 opacity-20 ${CAT_BAR[article.category] ?? "bg-primary"}`} />
+      )}
+      <div className="relative mt-auto w-full p-2.5">
+        {article.is_breaking && (
+          <span className="mb-1 inline-block rounded bg-red-600 px-1.5 py-0.5 text-[8px] font-bold uppercase text-white">⚡ Breaking</span>
+        )}
+        <p className="line-clamp-2 text-[11px] font-semibold leading-snug text-white">
+          {article.title}
+        </p>
+        {article.published_at && (
+          <p className="mt-0.5 text-[9px] text-white/55">{timeAgo(article.published_at)}</p>
+        )}
+      </div>
+    </Link>
+  )
+}
+
+// ── Local Updates Widget (fills empty space in YouTube column) ────
+
+async function LocalUpdatesWidget() {
+  let items: NewsCardData[] = []
+  try {
+    const { items: news } = await getCachedNews({ page: 1, limit: 6 })
+    items = news
+  } catch {}
+  if (!items.length) return null
+  return (
+    <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+      <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <Zap size={13} className="text-amber-500" />
+          <span className="text-sm font-bold"><T en="Local Updates" hi="स्थानीय अपडेट" /></span>
+        </div>
+        <Link href="/news" className="flex items-center gap-0.5 text-xs font-medium text-primary hover:underline">
+          <T en="All News" hi="सभी खबरें" /> <ChevronRight size={12} />
+        </Link>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2">
+        {items.slice(0, 6).map((a) => (
+          <Link
+            key={a.id}
+            href={`/news/${a.slug}`}
+            className="group flex items-start gap-2.5 border-b px-4 py-3 transition last:border-b-0 hover:bg-muted/20 sm:[&:nth-last-child(-n+2)]:border-b-0"
+          >
+            <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${CAT_DOT[a.category] ?? "bg-primary"}`} />
+            <div className="min-w-0">
+              <p className="line-clamp-2 text-[12px] font-medium leading-snug transition-colors group-hover:text-primary">{a.title}</p>
+              {a.published_at && <p className="mt-0.5 text-[10px] text-muted-foreground">{timeAgo(a.published_at)}</p>}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -444,21 +520,34 @@ async function MainNewsSection() {
           {/* Center content */}
           <div className="min-w-0 flex-1">
 
-            {/* 3-column news grid */}
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_270px_260px]">
-
-              {/* Col 1: Hero feature */}
+            {/* Hero zone: 50/50 split */}
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {/* Left 50%: Featured story */}
               <HeroFeature article={featured} />
 
-              {/* Col 2: Side stories */}
+              {/* Right 50%: 2×2 mini card grid */}
+              <div className="grid grid-cols-2 gap-2">
+                {sideStories.slice(0, 4).map((a) => (
+                  <MiniNewsCard key={a.id} article={a} />
+                ))}
+              </div>
+            </div>
+
+            {/* Below hero: Latest + Jobs side by side */}
+            <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_260px]">
+              {/* Latest scrollable */}
               <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-                <div className="border-b bg-muted/40 px-3 py-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <T en="Latest Stories" hi="ताज़ी खबरें" />
+                <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2">
+                  <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <Zap size={10} className="text-amber-500" />
+                    <T en="Latest" hi="ताज़ा" />
                   </span>
+                  <Link href="/news" className="text-[10px] font-semibold text-primary hover:underline">
+                    <T en="View All" hi="सभी" />
+                  </Link>
                 </div>
-                <div>
-                  {sideStories.map((a) => <SideStoryCard key={a.id} article={a} />)}
+                <div className="overflow-y-auto" style={{ maxHeight: 280 }}>
+                  {latestItems.map((a) => <LatestItem key={a.id} article={a} />)}
                 </div>
                 <div className="border-t px-3 py-2">
                   <Link href="/news" className="flex items-center justify-center gap-1 text-[11px] font-semibold text-primary hover:underline">
@@ -467,31 +556,10 @@ async function MainNewsSection() {
                 </div>
               </div>
 
-              {/* Col 3: Latest panel + Job Openings stacked */}
-              <div className="flex flex-col gap-3">
-                {/* Latest scrollable */}
-                <div className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
-                  <div className="shrink-0 border-b bg-muted/40 px-3 py-2">
-                    <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        <Zap size={10} className="text-amber-500" />
-                        <T en="Latest" hi="ताज़ा" />
-                      </span>
-                      <Link href="/news" className="text-[10px] font-semibold text-primary hover:underline">
-                        <T en="View All" hi="सभी" />
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="overflow-y-auto" style={{ maxHeight: 320 }}>
-                    {latestItems.map((a) => <LatestItem key={a.id} article={a} />)}
-                  </div>
-                </div>
-
-                {/* Job openings compact */}
-                <Suspense fallback={null}>
-                  <JobOpeningsPanel />
-                </Suspense>
-              </div>
+              {/* Job openings */}
+              <Suspense fallback={null}>
+                <JobOpeningsPanel />
+              </Suspense>
             </div>
 
             {/* Section quick-links bar */}
@@ -748,6 +816,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2 flex flex-col gap-4">
             <Suspense fallback={null}><YouTubeSection /></Suspense>
+            <Suspense fallback={null}><LocalUpdatesWidget /></Suspense>
           </div>
           <Suspense fallback={null}><SidebarSection /></Suspense>
         </div>

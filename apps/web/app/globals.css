@@ -114,10 +114,10 @@
     transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .fs-small  { font-size: 87.5%; }
   .fs-normal { font-size: 100%; }
-  .fs-large  { font-size: 112.5%; }
-  .fs-xlarge { font-size: 125%; }
+  .fs-a1     { font-size: 112%; }
+  .fs-a2     { font-size: 125%; }
+  .fs-a3     { font-size: 140%; }
 
   .section-alt  { background-color: hsl(var(--section-alt)); }
   .section-base { background-color: hsl(var(--section-base)); }

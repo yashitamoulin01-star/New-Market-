@@ -2,29 +2,34 @@
 
 import { createContext, useContext, useEffect, useState } from "react"
 
-type FontSize = "small" | "normal" | "large" | "xlarge"
-const SIZES: FontSize[] = ["small", "normal", "large", "xlarge"]
+type FontSize = "normal" | "a1" | "a2" | "a3"
+
+const SIZES: FontSize[] = ["normal", "a1", "a2", "a3"]
+
 const CLASS: Record<FontSize, string> = {
-  small:   "fs-small",
-  normal:  "fs-normal",
-  large:   "fs-large",
-  xlarge:  "fs-xlarge",
+  normal: "fs-normal",
+  a1:     "fs-a1",
+  a2:     "fs-a2",
+  a3:     "fs-a3",
+}
+
+export const FONT_LABEL: Record<FontSize, string> = {
+  normal: "Normal",
+  a1:     "A+",
+  a2:     "A++",
+  a3:     "A+++",
 }
 
 interface FontSizeCtx {
   size: FontSize
-  increase: () => void
-  decrease: () => void
-  canIncrease: boolean
-  canDecrease: boolean
+  setSize: (s: FontSize) => void
+  sizes: FontSize[]
 }
 
 const FontSizeContext = createContext<FontSizeCtx>({
   size: "normal",
-  increase: () => {},
-  decrease: () => {},
-  canIncrease: true,
-  canDecrease: true,
+  setSize: () => {},
+  sizes: SIZES,
 })
 
 export function FontSizeProvider({ children }: { children: React.ReactNode }) {
@@ -42,15 +47,8 @@ export function FontSizeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("nm-font-size", size)
   }, [size])
 
-  const idx = SIZES.indexOf(size)
   return (
-    <FontSizeContext.Provider value={{
-      size,
-      increase: () => setSize(SIZES[Math.min(idx + 1, SIZES.length - 1)]),
-      decrease: () => setSize(SIZES[Math.max(idx - 1, 0)]),
-      canIncrease: idx < SIZES.length - 1,
-      canDecrease: idx > 0,
-    }}>
+    <FontSizeContext.Provider value={{ size, setSize, sizes: SIZES }}>
       {children}
     </FontSizeContext.Provider>
   )
