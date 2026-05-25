@@ -4,7 +4,7 @@ import type { AdSlot } from "@/lib/supabase/ads-defs"
 
 interface Props {
   slot: AdSlot
-  size?: "leaderboard" | "rectangle" | "strip"
+  size?: "leaderboard" | "rectangle" | "strip" | "skyscraper"
   className?: string
 }
 
@@ -12,6 +12,7 @@ const DIMS = {
   leaderboard: "h-20 sm:h-24",
   rectangle:   "h-48 sm:h-60",
   strip:       "h-12",
+  skyscraper:  "w-[120px] min-h-[300px] self-stretch",
 }
 
 export async function AdBanner({ slot, size = "leaderboard", className = "" }: Props) {

@@ -2,6 +2,8 @@
 
 export type AdSlot =
   | "homepage-top"
+  | "homepage-left"
+  | "homepage-right"
   | "homepage-mid-1"
   | "homepage-mid-2"
   | "homepage-bottom"
@@ -26,6 +28,8 @@ export interface Advertisement {
 
 export const AD_SLOTS: AdSlot[] = [
   "homepage-top",
+  "homepage-left",
+  "homepage-right",
   "homepage-mid-1",
   "homepage-mid-2",
   "homepage-bottom",
@@ -37,6 +41,8 @@ export const AD_SLOTS: AdSlot[] = [
 
 export const AD_SLOT_LABELS: Record<AdSlot, string> = {
   "homepage-top":    "Homepage — Top Banner",
+  "homepage-left":   "Homepage — Left Sidebar",
+  "homepage-right":  "Homepage — Right Sidebar",
   "homepage-mid-1":  "Homepage — Mid 1",
   "homepage-mid-2":  "Homepage — Mid 2",
   "homepage-bottom": "Homepage — Bottom Strip",

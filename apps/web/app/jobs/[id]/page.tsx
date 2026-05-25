@@ -38,7 +38,7 @@ function Section({ title, children }: { title: React.ReactNode; children: React.
 
 function Prose({ text }: { text: string }) {
   return (
-    <div className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+    <div className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap" style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}>
       {text}
     </div>
   )
@@ -84,7 +84,7 @@ export default async function JobDetailPage({ params }: PageProps) {
                     {typeLabel ? <T en={typeLabel.en} hi={typeLabel.hi} /> : job.job_type}
                   </span>
                   {job.is_featured && (
-                    <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                    <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
                       <T en="Featured" hi="फ़ीचर्ड" />
                     </span>
                   )}

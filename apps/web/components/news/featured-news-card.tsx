@@ -40,7 +40,7 @@ export function FeaturedNewsCard({ article }: { article: NewsCardData }) {
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
           {article.is_featured && (
-            <span className="absolute right-4 top-4 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-amber-900 shadow-sm">
+            <span className="absolute right-4 top-4 rounded-full bg-amber-500/80 px-3 py-1 text-xs font-bold text-white shadow-sm">
               {lang === "hi" ? "फ़ीचर्ड" : "Featured"}
             </span>
           )}
@@ -52,7 +52,7 @@ export function FeaturedNewsCard({ article }: { article: NewsCardData }) {
       <div className="flex flex-1 flex-col p-5">
         {!article.cover_image_url && article.is_featured && (
           <div className="mb-3">
-            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
+            <span className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-400">
               {lang === "hi" ? "फ़ीचर्ड" : "Featured"}
             </span>
           </div>

@@ -93,7 +93,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                   {propertyLabel ? <T en={propertyLabel.en} hi={propertyLabel.hi} /> : property.property_type}
                 </span>
                 {property.is_featured && (
-                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                  <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
                     <T en="Featured" hi="फ़ीचर्ड" />
                   </span>
                 )}
@@ -144,7 +144,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                 <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                   <T en="Furnished" hi="फर्निश्ड" />
                 </p>
-                <p className={`text-sm font-bold ${property.is_furnished ? "text-emerald-700" : "text-foreground"}`}>
+                <p className={`text-sm font-bold ${property.is_furnished ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
                   {property.is_furnished
                     ? <T en="Yes" hi="हाँ" />
                     : <T en="Unfurnished" hi="बिना फर्नीचर" />}
@@ -156,7 +156,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               <h2 className="mb-2 font-heading text-base font-semibold">
                 <T en="About this Property" hi="संपत्ति के बारे में" />
               </h2>
-              <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+              <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap" style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}>
                 {property.description}
               </p>
             </div>

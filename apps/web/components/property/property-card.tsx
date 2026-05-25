@@ -13,18 +13,18 @@ import { useLanguage } from "@/contexts/language-context"
 import type { Lang } from "@/lib/i18n"
 
 const LISTING_TYPE_COLORS: Record<string, string> = {
-  RENT:  "bg-blue-600 text-white",
-  SALE:  "bg-emerald-600 text-white",
-  LEASE: "bg-violet-600 text-white",
+  RENT:  "bg-blue-600 text-white dark:bg-blue-500",
+  SALE:  "bg-emerald-600 text-white dark:bg-emerald-500",
+  LEASE: "bg-violet-600 text-white dark:bg-violet-500",
 }
 
 const PROPERTY_TYPE_COLORS: Record<string, string> = {
-  SHOP:      "bg-orange-100 text-orange-800",
-  OFFICE:    "bg-sky-100 text-sky-800",
-  WAREHOUSE: "bg-yellow-100 text-yellow-800",
-  SHOWROOM:  "bg-pink-100 text-pink-800",
-  KIOSK:     "bg-teal-100 text-teal-800",
-  OTHER:     "bg-slate-100 text-slate-700",
+  SHOP:      "bg-orange-500/15 text-orange-700 dark:text-orange-400",
+  OFFICE:    "bg-sky-500/15 text-sky-700 dark:text-sky-400",
+  WAREHOUSE: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
+  SHOWROOM:  "bg-pink-500/15 text-pink-700 dark:text-pink-400",
+  KIOSK:     "bg-teal-500/15 text-teal-700 dark:text-teal-400",
+  OTHER:     "bg-slate-500/15 text-slate-700 dark:text-slate-400",
 }
 
 function timeAgo(iso: string, lang: Lang) {
@@ -70,7 +70,7 @@ export function PropertyCard({ property }: { property: PropertyCardData }) {
             {listingLabel}
           </span>
           {property.is_featured && (
-            <span className="absolute right-3 top-3 rounded-full bg-amber-400 px-2.5 py-0.5 text-xs font-bold text-amber-900 shadow">
+            <span className="absolute right-3 top-3 rounded-full bg-amber-500/80 px-2.5 py-0.5 text-xs font-bold text-white shadow">
               {lang === "hi" ? "फ़ीचर्ड" : "Featured"}
             </span>
           )}
@@ -84,7 +84,7 @@ export function PropertyCard({ property }: { property: PropertyCardData }) {
             {listingLabel}
           </span>
           {property.is_featured && (
-            <span className="absolute right-3 top-3 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+            <span className="absolute right-3 top-3 rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400">
               {lang === "hi" ? "फ़ीचर्ड" : "Featured"}
             </span>
           )}
@@ -116,7 +116,7 @@ export function PropertyCard({ property }: { property: PropertyCardData }) {
           )}
           {property.floor && <span>{property.floor}</span>}
           {property.is_furnished && (
-            <span className="flex items-center gap-1 text-emerald-700">
+            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
               <Sofa size={11} />
               {lang === "hi" ? "फर्निश्ड" : "Furnished"}
             </span>

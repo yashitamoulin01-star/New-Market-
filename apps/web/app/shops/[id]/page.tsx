@@ -70,13 +70,13 @@ export default async function ShopDetailPage({ params }: PageProps) {
                     {catLabel ? <T en={catLabel.en} hi={catLabel.hi} /> : shop.category}
                   </span>
                   {shop.is_verified && (
-                    <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                    <span className="flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
                       <BadgeCheck size={11} />
                       <T en="Verified" hi="सत्यापित" />
                     </span>
                   )}
                   {shop.is_featured && (
-                    <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                    <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
                       <T en="Featured" hi="फ़ीचर्ड" />
                     </span>
                   )}
@@ -85,7 +85,7 @@ export default async function ShopDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+            <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap" style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}>
               {shop.description}
             </p>
 

@@ -2,55 +2,6 @@
 
 import { createClient } from "@/lib/supabase/server"
 
-// ── Comments ──────────────────────────────────────────────────────
-
-export async function postCommentAction(
-  articleId: string,
-  content: string
-): Promise<{ error?: string }> {
-  const text = content.replace(/<[^>]*>/g, "").trim()
-
-  if (!text)         return { error: "Comment cannot be empty." }
-  if (text.length > 500) return { error: "Comments must be under 500 characters." }
-
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: "You must be signed in to comment." }
-
-  const userName =
-    (user.user_metadata?.full_name as string | undefined) ??
-    user.email?.split("@")[0] ??
-    "User"
-
-  const { error } = await supabase.from("article_comments").insert({
-    article_id: articleId,
-    user_id:    user.id,
-    user_name:  userName,
-    content:    text,
-  })
-
-  if (error) return { error: "Could not post comment. Please try again." }
-  return {}
-}
-
-export async function deleteCommentAction(
-  commentId: string
-): Promise<{ error?: string }> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: "Not authenticated." }
-
-  const { error } = await supabase
-    .from("article_comments")
-    .delete()
-    .eq("id", commentId)
-
-  if (error) return { error: "Could not delete comment." }
-  return {}
-}
-
-// ── Reactions ─────────────────────────────────────────────────────
-
 export async function toggleReactionAction(
   targetType: "article" | "comment",
   targetId:   string,

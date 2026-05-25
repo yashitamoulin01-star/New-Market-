@@ -12,24 +12,24 @@ import { useLanguage } from "@/contexts/language-context"
 import type { Lang } from "@/lib/i18n"
 
 const CATEGORY_COLORS: Record<string, string> = {
-  RETAIL:             "bg-blue-100 text-blue-800",
-  FOOD_BEVERAGE:      "bg-orange-100 text-orange-800",
-  TAILORING:          "bg-purple-100 text-purple-800",
-  ELECTRONICS:        "bg-sky-100 text-sky-800",
-  BEAUTY_WELLNESS:    "bg-pink-100 text-pink-800",
-  LOGISTICS_DELIVERY: "bg-yellow-100 text-yellow-800",
-  MANAGEMENT:         "bg-indigo-100 text-indigo-800",
-  SECURITY:           "bg-red-100 text-red-800",
-  HOUSEKEEPING:       "bg-green-100 text-green-800",
-  OTHER:              "bg-slate-100 text-slate-700",
+  RETAIL:             "bg-blue-500/15 text-blue-700 dark:text-blue-400",
+  FOOD_BEVERAGE:      "bg-orange-500/15 text-orange-700 dark:text-orange-400",
+  TAILORING:          "bg-purple-500/15 text-purple-700 dark:text-purple-400",
+  ELECTRONICS:        "bg-sky-500/15 text-sky-700 dark:text-sky-400",
+  BEAUTY_WELLNESS:    "bg-pink-500/15 text-pink-700 dark:text-pink-400",
+  LOGISTICS_DELIVERY: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
+  MANAGEMENT:         "bg-indigo-500/15 text-indigo-700 dark:text-indigo-400",
+  SECURITY:           "bg-red-500/15 text-red-700 dark:text-red-400",
+  HOUSEKEEPING:       "bg-green-500/15 text-green-700 dark:text-green-400",
+  OTHER:              "bg-slate-500/15 text-slate-700 dark:text-slate-400",
 }
 
 const JOB_TYPE_COLORS: Record<string, string> = {
-  FULL_TIME:  "bg-emerald-100 text-emerald-800",
-  PART_TIME:  "bg-teal-100 text-teal-800",
-  CONTRACT:   "bg-amber-100 text-amber-800",
-  INTERNSHIP: "bg-violet-100 text-violet-800",
-  SEASONAL:   "bg-cyan-100 text-cyan-800",
+  FULL_TIME:  "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+  PART_TIME:  "bg-teal-500/15 text-teal-700 dark:text-teal-400",
+  CONTRACT:   "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  INTERNSHIP: "bg-violet-500/15 text-violet-700 dark:text-violet-400",
+  SEASONAL:   "bg-cyan-500/15 text-cyan-700 dark:text-cyan-400",
 }
 
 function timeAgo(iso: string, lang: Lang) {
@@ -51,7 +51,7 @@ function timeAgo(iso: string, lang: Lang) {
 export function JobCard({ job }: { job: JobCardData }) {
   const { lang } = useLanguage()
   const catColor  = CATEGORY_COLORS[job.category] ?? CATEGORY_COLORS.OTHER
-  const typeColor = JOB_TYPE_COLORS[job.job_type] ?? "bg-slate-100 text-slate-700"
+  const typeColor = JOB_TYPE_COLORS[job.job_type] ?? "bg-slate-500/15 text-slate-700 dark:text-slate-400"
   const salary    = formatSalary(job.salary_min, job.salary_max, job.salary_label)
   const catLabel  = JOB_CATEGORY_LABELS_BI[job.category]?.[lang] ?? job.category
   const typeLabel = JOB_TYPE_LABELS_BI[job.job_type]?.[lang] ?? job.job_type
@@ -69,7 +69,7 @@ export function JobCard({ job }: { job: JobCardData }) {
           {typeLabel}
         </span>
         {job.is_featured && (
-          <span className="ml-auto rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+          <span className="ml-auto rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
             {lang === "hi" ? "फ़ीचर्ड" : "Featured"}
           </span>
         )}

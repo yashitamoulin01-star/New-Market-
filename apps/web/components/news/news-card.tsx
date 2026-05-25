@@ -50,7 +50,7 @@ export function NewsCard({ article }: { article: NewsCardData }) {
       <div className="flex flex-1 flex-col p-4">
         {!article.cover_image_url && article.is_featured && (
           <div className="mb-2.5">
-            <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+            <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400">
               {lang === "hi" ? "फ़ीचर्ड" : "Featured"}
             </span>
           </div>

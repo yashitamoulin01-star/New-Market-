@@ -68,7 +68,7 @@ export async function submitProperty(input: SubmitPropertyInput) {
 
   const { data, error } = await supabase
     .from("property_listings")
-    .insert({ ...input, status: "APPROVED" })
+    .insert({ ...input, status: "PENDING" })
     .select("id, title")
     .single()
 

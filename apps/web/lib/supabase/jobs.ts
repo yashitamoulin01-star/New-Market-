@@ -68,7 +68,7 @@ export async function submitJob(input: SubmitJobInput) {
 
   const { data, error } = await supabase
     .from("job_listings")
-    .insert({ ...input, status: "APPROVED" })
+    .insert({ ...input, status: "PENDING" })
     .select("id, title")
     .single()
 

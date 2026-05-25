@@ -1,10 +1,9 @@
 import Link from "next/link"
-import Image from "next/image"
 import { SafeImage } from "@/components/ui/safe-image"
 import { Suspense } from "react"
 import {
   ChevronRight, Briefcase, Store, Eye, Building2,
-  Flame, Clock, Newspaper, Zap, Pin,
+  Flame, Clock, Newspaper, Zap, Pin, Vote,
 } from "lucide-react"
 import {
   getCachedNews, getCachedBreakingNews, getCachedHomepageNews,
@@ -23,14 +22,14 @@ import type { ShopCardData } from "@/lib/supabase/shops-defs"
 
 // ── Category config ───────────────────────────────────────────────
 
-const CAT_CHIP: Record<string, string> = {
-  GENERAL:   "bg-slate-100 text-slate-700",
-  EVENTS:    "bg-amber-100 text-amber-800",
-  NOTICES:   "bg-red-100 text-red-700",
-  BUSINESS:  "bg-primary/10 text-primary",
-  COMMUNITY: "bg-green-100 text-green-800",
-  SAFETY:    "bg-orange-100 text-orange-800",
-  TRAFFIC:   "bg-yellow-100 text-yellow-800",
+const CAT_DOT: Record<string, string> = {
+  GENERAL:   "bg-slate-400",
+  EVENTS:    "bg-amber-500",
+  NOTICES:   "bg-red-500",
+  BUSINESS:  "bg-primary",
+  COMMUNITY: "bg-green-500",
+  SAFETY:    "bg-orange-500",
+  TRAFFIC:   "bg-yellow-500",
 }
 const CAT_BAR: Record<string, string> = {
   GENERAL:   "bg-slate-400",
@@ -57,8 +56,8 @@ function timeAgo(iso: string) {
   const h = Math.floor(diff / 3600000)
   const d = Math.floor(diff / 86400000)
   if (h < 1) return "अभी"
-  if (h < 24) return `${h}घ पहले`
-  if (d < 7) return `${d}दि पहले`
+  if (h < 24) return `${h} घंटे पहले`
+  if (d < 7) return `${d} दिन पहले`
   return new Date(iso).toLocaleDateString("hi-IN", { day: "numeric", month: "short" })
 }
 
@@ -84,7 +83,7 @@ async function TickerSection() {
   return <NewsTicker headlines={headlines} />
 }
 
-// ── Masthead strip (client component for language-aware date) ────────────
+// ── Masthead strip ────────────────────────────────────────────────
 
 async function MastheadStatStrip() {
   let stats = { news: 145, jobs: 38, shops: 312 }
@@ -122,19 +121,232 @@ async function MastheadStatStrip() {
   )
 }
 
-// ── Main news grid ────────────────────────────────────────────────
+// ── Hero Feature Article ──────────────────────────────────────────
+
+function HeroFeature({ article }: { article: NewsCardData }) {
+  return (
+    <Link
+      href={`/news/${article.slug}`}
+      className="group relative block overflow-hidden rounded-xl bg-slate-900 shadow-md transition hover:shadow-xl"
+    >
+      {article.cover_image_url ? (
+        <>
+          <div className="relative h-64 w-full sm:h-80 lg:h-[420px]">
+            <SafeImage
+              src={article.cover_image_url}
+              alt={article.title}
+              fill
+              priority
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {article.is_breaking && (
+                <span className="rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                  ⚡ Breaking
+                </span>
+              )}
+              {article.is_pinned && !article.is_breaking && (
+                <span className="rounded bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                  <Pin size={8} className="inline" /> Pinned
+                </span>
+              )}
+              <span className="rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                Top Story
+              </span>
+            </div>
+            <h2 className="text-xl font-bold leading-snug text-white sm:text-2xl lg:text-3xl line-clamp-3 editorial-headline">
+              {article.title}
+            </h2>
+            {article.excerpt && (
+              <p className="mt-2 line-clamp-2 text-sm text-white/75">{article.excerpt}</p>
+            )}
+            <div className="mt-3 flex items-center gap-3 text-xs text-white/60">
+              {article.published_at && (
+                <span className="flex items-center gap-1"><Clock size={10} />{timeAgo(article.published_at)}</span>
+              )}
+              <span className="flex items-center gap-1"><Eye size={10} />{article.view_count.toLocaleString()}</span>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="flex min-h-[280px] flex-col justify-end bg-gradient-to-br from-slate-800 to-slate-900 p-6">
+          <div className={`mb-3 h-1 w-12 rounded-full ${CAT_BAR[article.category] ?? "bg-primary"}`} />
+          <span className="mb-2 inline-block rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+            Top Story
+          </span>
+          <h2 className="text-xl font-bold leading-snug text-white sm:text-2xl editorial-headline">
+            {article.title}
+          </h2>
+          {article.excerpt && (
+            <p className="mt-2 text-sm text-white/70 line-clamp-3">{article.excerpt}</p>
+          )}
+          <div className="mt-3 flex items-center gap-3 text-xs text-white/50">
+            {article.published_at && <span>{timeAgo(article.published_at)}</span>}
+            <span className="flex items-center gap-1"><Eye size={10} />{article.view_count.toLocaleString()}</span>
+          </div>
+        </div>
+      )}
+    </Link>
+  )
+}
+
+// ── Side Stories Column ───────────────────────────────────────────
+
+function SideStoryCard({ article }: { article: NewsCardData }) {
+  return (
+    <Link
+      href={`/news/${article.slug}`}
+      className="group flex items-start gap-3 border-b border-border px-4 py-3 last:border-0 transition hover:bg-muted/30"
+    >
+      <div className="min-w-0 flex-1">
+        {article.is_breaking && (
+          <span className="mb-1 inline-block rounded bg-red-600 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
+            Breaking
+          </span>
+        )}
+        <p className="line-clamp-3 text-[13px] font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
+          {article.title}
+        </p>
+        <div className="mt-1.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+          {article.published_at && <span>{timeAgo(article.published_at)}</span>}
+          <span className="flex items-center gap-0.5"><Eye size={9} />{article.view_count.toLocaleString()}</span>
+        </div>
+      </div>
+      {article.cover_image_url && (
+        <div className="relative h-[68px] w-[88px] shrink-0 overflow-hidden rounded-lg bg-muted">
+          <SafeImage
+            src={article.cover_image_url}
+            alt={article.title}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            hideOnError
+          />
+        </div>
+      )}
+    </Link>
+  )
+}
+
+// ── Latest Panel ──────────────────────────────────────────────────
+
+function LatestItem({ article }: { article: NewsCardData }) {
+  const dot = CAT_DOT[article.category] ?? "bg-primary"
+  return (
+    <Link
+      href={`/news/${article.slug}`}
+      className="group flex items-start gap-2.5 border-b border-border px-4 py-3 last:border-0 transition hover:bg-muted/30"
+    >
+      <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${dot}`} />
+      <div className="min-w-0 flex-1">
+        <p className="line-clamp-2 text-[12px] font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
+          {article.title}
+        </p>
+        {article.published_at && (
+          <p className="mt-0.5 text-[10px] text-muted-foreground">{timeAgo(article.published_at)}</p>
+        )}
+      </div>
+      {article.cover_image_url && (
+        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded bg-muted">
+          <SafeImage src={article.cover_image_url} alt={article.title} fill className="object-cover" hideOnError />
+        </div>
+      )}
+    </Link>
+  )
+}
+
+// ── Trending Card ─────────────────────────────────────────────────
+
+function TrendingCard({ article }: { article: NewsCardData }) {
+  return (
+    <Link
+      href={`/news/${article.slug}`}
+      className="group w-[160px] shrink-0 snap-start overflow-hidden rounded-xl border bg-card shadow-sm transition hover:shadow-md hover:-translate-y-0.5"
+    >
+      <div className="relative h-28 w-full overflow-hidden bg-muted">
+        {article.cover_image_url ? (
+          <SafeImage
+            src={article.cover_image_url}
+            alt={article.title}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            hideOnError
+          />
+        ) : (
+          <div className={`h-full w-full ${CAT_BAR[article.category] ?? "bg-primary"} opacity-20`} />
+        )}
+      </div>
+      <div className="p-2.5">
+        <p className="line-clamp-2 text-[11px] font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
+          {article.title}
+        </p>
+        {article.published_at && (
+          <p className="mt-1 text-[10px] text-muted-foreground">{timeAgo(article.published_at)}</p>
+        )}
+      </div>
+    </Link>
+  )
+}
+
+// ── Section Quick-Links Bar ───────────────────────────────────────
+
+async function SectionLinksBar() {
+  let stats = { news: 0, jobs: 0, shops: 0, property: 0 }
+  try {
+    const [news, jobs, shops, prop] = await Promise.all([
+      getCachedNews({ page: 1, limit: 1 }),
+      getCachedJobs({ page: 1, limit: 1 }),
+      getCachedShops({ page: 1, limit: 1 }),
+      getCachedProperties({ page: 1, limit: 1 }),
+    ])
+    stats = { news: news.total, jobs: jobs.total, shops: shops.total, property: prop.total }
+  } catch {}
+
+  return (
+    <div className="my-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+      {[
+        { href: "/news",     icon: Newspaper, label: "NEWS",      sublabel: `${stats.news}+ खबरें`,          color: "text-primary" },
+        { href: "/jobs",     icon: Briefcase, label: "JOBS",      sublabel: `${stats.jobs} openings`,         color: "text-blue-600 dark:text-blue-400" },
+        { href: "/shops",    icon: Store,     label: "SHOPS",     sublabel: `${stats.shops} listed`,          color: "text-emerald-600 dark:text-emerald-400" },
+        { href: "/property", icon: Building2, label: "PROPERTY",  sublabel: `${stats.property} listings`,     color: "text-amber-600 dark:text-amber-400" },
+        { href: "/election", icon: Vote,      label: "ELECTIONS", sublabel: "Latest Updates",                 color: "text-violet-600 dark:text-violet-400" },
+      ].map(({ href, icon: Icon, label, sublabel, color }) => (
+        <Link
+          key={href}
+          href={href}
+          className="group flex items-center gap-3 rounded-xl border bg-card px-4 py-3 shadow-sm transition hover:shadow-md hover:border-primary/40"
+        >
+          <div className={`shrink-0 ${color}`}>
+            <Icon size={18} />
+          </div>
+          <div className="min-w-0">
+            <p className={`text-xs font-bold tracking-wide ${color}`}>{label}</p>
+            <p className="text-[10px] text-muted-foreground truncate">{sublabel}</p>
+          </div>
+          <ChevronRight size={13} className="ml-auto shrink-0 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+        </Link>
+      ))}
+    </div>
+  )
+}
+
+// ── Main News Section ─────────────────────────────────────────────
 
 async function MainNewsSection() {
-  let items: any[] = []
+  let items: NewsCardData[] = []
   try {
-    items = await getCachedHomepageNews(12)
+    items = await getCachedHomepageNews(14)
   } catch {
     items = [
-      { id: "n-1", title: "New Market Association Announces Free Wi-Fi for Entire Market Premises", slug: "demo-1", category: "BUSINESS", cover_image_url: "https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: true, published_at: new Date().toISOString(), view_count: 421, excerpt: "The New Market Traders Association has announced the rollout of free public Wi-Fi across the entire market complex to modernize the shopping experience." },
-      { id: "n-2", title: "न्यू मार्केट में नया पार्किंग प्लाज़ा बनेगा — 500 गाड़ियों की जगह", slug: "demo-2", category: "GENERAL", cover_image_url: "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, published_at: new Date().toISOString(), view_count: 289 },
-      { id: "n-3", title: "Winter Festival at New Market: 3-Day Cultural Programme Starting Dec 20", slug: "demo-3", category: "EVENTS", cover_image_url: "https://images.unsplash.com/photo-1533174000273-e18fa1f7d235?auto=format&fit=crop&q=80&w=800", is_breaking: true, is_pinned: false, published_at: new Date().toISOString(), view_count: 567 },
-      { id: "n-4", title: "Alert: Fake QR Code Scam Being Reported in New Market", slug: "demo-4", category: "SAFETY", cover_image_url: "https://images.unsplash.com/photo-1595054225515-d72b217dc3e3?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, published_at: new Date().toISOString(), view_count: 892 },
-      { id: "n-5", title: "बड़ी खबर: न्यू मार्केट रोड चौड़ीकरण परियोजना को मिली मंजूरी", slug: "demo-5", category: "GENERAL", cover_image_url: "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, published_at: new Date().toISOString(), view_count: 634 },
+      { id: "n-1", title: "New Market Association Announces Free Wi-Fi for Entire Market Premises", slug: "demo-1", category: "BUSINESS", cover_image_url: "https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: true, is_trending: true, is_featured: false, published_at: new Date().toISOString(), view_count: 421, excerpt: "The New Market Traders Association has announced the rollout of free public Wi-Fi across the entire market complex to modernize the shopping experience.", homepage_slot: "headline" } as any,
+      { id: "n-2", title: "न्यू मार्केट में नया पार्किंग प्लाज़ा बनेगा — 500 गाड़ियों की जगह", slug: "demo-2", category: "GENERAL", cover_image_url: "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, is_trending: false, is_featured: false, published_at: new Date().toISOString(), view_count: 289 } as any,
+      { id: "n-3", title: "Winter Festival at New Market: 3-Day Cultural Programme Starting Dec 20", slug: "demo-3", category: "EVENTS", cover_image_url: "https://images.unsplash.com/photo-1533174000273-e18fa1f7d235?auto=format&fit=crop&q=80&w=800", is_breaking: true, is_pinned: false, is_trending: true, is_featured: false, published_at: new Date().toISOString(), view_count: 567 } as any,
+      { id: "n-4", title: "Alert: Fake QR Code Scam Being Reported in New Market", slug: "demo-4", category: "SAFETY", cover_image_url: "https://images.unsplash.com/photo-1595054225515-d72b217dc3e3?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, is_trending: false, is_featured: false, published_at: new Date().toISOString(), view_count: 892 } as any,
+      { id: "n-5", title: "बड़ी खबर: न्यू मार्केट रोड चौड़ीकरण परियोजना को मिली मंजूरी", slug: "demo-5", category: "GENERAL", cover_image_url: "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, is_trending: true, is_featured: false, published_at: new Date().toISOString(), view_count: 634 } as any,
+      { id: "n-6", title: "Community Cleanliness Drive This Sunday at New Market", slug: "demo-6", category: "COMMUNITY", cover_image_url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, is_trending: false, is_featured: false, published_at: new Date().toISOString(), view_count: 298 } as any,
+      { id: "n-7", title: "Special Food Mela This Weekend at New Market", slug: "demo-7", category: "EVENTS", cover_image_url: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, is_trending: true, is_featured: false, published_at: new Date().toISOString(), view_count: 445 } as any,
     ]
   }
 
@@ -143,15 +355,23 @@ async function MainNewsSection() {
   const headlineIdx = items.findIndex((a) => a.homepage_slot === "headline")
   const featured = headlineIdx >= 0 ? items[headlineIdx] : items[0]
   const rest = items.filter((a) => a.id !== featured.id)
-  const tickerItems = rest.filter((a) => a.homepage_slot === "ticker")
-  const nonTicker   = rest.filter((a) => a.homepage_slot !== "ticker")
-  const sideStack = [...tickerItems, ...nonTicker].slice(0, 4)
-  const usedIds = new Set([featured.id, ...sideStack.map((a) => a.id)])
-  const secondRow = rest.filter((a) => !usedIds.has(a.id)).slice(0, 3)
+
+  const sideStories = rest.slice(0, 4)
+  const latestItems = items.slice(0, 8)
+  const trendingItems = (() => {
+    const t = items.filter((a) => a.is_trending)
+    return t.length >= 3 ? t : items
+  })().slice(0, 6)
 
   return (
-    <>
-      <div className="border-b bg-white">
+    <div className="section-base">
+      {/* Top banner ad */}
+      <Suspense fallback={null}>
+        <AdBanner slot="homepage-top" size="leaderboard" className="border-b" />
+      </Suspense>
+
+      {/* Section header */}
+      <div className="border-b">
         <div className="container flex items-center justify-between py-2">
           <div className="flex items-center gap-2">
             <span className="h-4 w-1 rounded-full bg-primary" />
@@ -166,172 +386,94 @@ async function MainNewsSection() {
         </div>
       </div>
 
+      {/* Main news zone: [left-ad] [news grid] [right-ad] */}
       <div className="container py-4">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <FeaturedArticle article={featured} />
-          </div>
-          <div className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
-            <div className="shrink-0 bg-muted/40 px-4 py-2.5">
-              <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                <Zap size={11} className="text-amber-500" />
-                <T en="Latest" hi="ताज़ा" />
-              </span>
-            </div>
-            <div className="flex-1 divide-y overflow-y-auto" style={{ maxHeight: 340 }}>
-              {sideStack.map((a) => <SideHeadline key={a.id} article={a} />)}
-            </div>
-            <div className="shrink-0 border-t px-4 py-3">
-              <Link href="/news" className="flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline">
-                <T en="View all stories" hi="सभी खबरें देखें" />
-                <ChevronRight size={12} />
-              </Link>
-            </div>
-          </div>
-        </div>
+        <div className="flex items-start gap-3">
+          {/* Left sidebar ad — collapses when no ad */}
+          <Suspense fallback={null}>
+            <AdBanner slot="homepage-left" size="skyscraper" className="hidden lg:block shrink-0 rounded-lg overflow-hidden border" />
+          </Suspense>
 
-        {secondRow.length > 0 && (
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {secondRow.map((a) => <SmallNewsCard key={a.id} article={a} />)}
-          </div>
-        )}
-      </div>
-    </>
-  )
-}
+          {/* Center news grid */}
+          <div className="min-w-0 flex-1">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px_248px]">
+              {/* Col 1: Hero feature */}
+              <HeroFeature article={featured} />
 
-function ArticleBadges({ article }: { article: NewsCardData }) {
-  return (
-    <>
-      {article.is_breaking && (
-        <span className="breaking-badge inline-block rounded-sm bg-red-500 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
-          ⚡ Breaking
-        </span>
-      )}
-      {article.is_pinned && !article.is_breaking && (
-        <span className="inline-block rounded-sm bg-blue-500/90 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
-          <Pin size={8} className="inline" /> Pinned
-        </span>
-      )}
-      {article.is_trending && (
-        <span className="inline-block rounded-sm bg-orange-500/90 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
-          <Flame size={8} className="inline" /> Trending
-        </span>
-      )}
-    </>
-  )
-}
+              {/* Col 2: Side stories */}
+              <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+                <div className="border-b bg-muted/40 px-4 py-2.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <T en="Latest Stories" hi="ताज़ी खबरें" />
+                  </span>
+                </div>
+                <div>
+                  {sideStories.map((a) => <SideStoryCard key={a.id} article={a} />)}
+                </div>
+                <div className="border-t px-4 py-2.5">
+                  <Link href="/news" className="flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline">
+                    <T en="View all stories" hi="सभी खबरें देखें" />
+                    <ChevronRight size={12} />
+                  </Link>
+                </div>
+              </div>
 
-function FeaturedArticle({ article }: { article: NewsCardData }) {
-  const cat = article.category
-  return (
-    <Link
-      href={`/news/${article.slug}`}
-      className="group block overflow-hidden rounded-xl border bg-card shadow-sm transition hover:shadow-md"
-    >
-      {article.cover_image_url ? (
-        <div className="relative h-64 w-full overflow-hidden sm:h-80 lg:h-96">
-          <SafeImage src={article.cover_image_url} alt={article.title} fill priority className="object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-5">
-            <div className="mb-2 flex flex-wrap items-center gap-1.5">
-              <ArticleBadges article={article} />
+              {/* Col 3: Latest scrollable panel */}
+              <div className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
+                <div className="shrink-0 border-b bg-muted/40 px-4 py-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      <Zap size={11} className="text-amber-500" />
+                      <T en="Latest" hi="ताज़ा" />
+                    </span>
+                    <Link href="/news" className="text-[10px] font-semibold text-primary hover:underline">
+                      <T en="View All" hi="सभी" />
+                    </Link>
+                  </div>
+                </div>
+                <div className="flex-1 overflow-y-auto" style={{ maxHeight: 380 }}>
+                  {latestItems.map((a) => <LatestItem key={a.id} article={a} />)}
+                </div>
+                <div className="shrink-0 border-t px-4 py-2.5">
+                  <Link href="/news" className="flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline">
+                    <T en="All news" hi="सभी खबरें" />
+                    <ChevronRight size={12} />
+                  </Link>
+                </div>
+              </div>
             </div>
-            <h2 className="editorial-headline text-xl font-bold leading-snug text-white sm:text-2xl line-clamp-3">
-              {article.title}
-            </h2>
-            {article.excerpt && (
-              <p className="mt-2 line-clamp-2 text-sm text-white/75">{article.excerpt}</p>
+
+            {/* Section quick-links */}
+            <Suspense fallback={null}>
+              <SectionLinksBar />
+            </Suspense>
+
+            {/* Trending section */}
+            {trendingItems.length > 0 && (
+              <div className="mt-2 mb-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-sm font-bold">
+                    <Flame size={15} className="text-orange-500" />
+                    <T en="Trending in New Market" hi="न्यू मार्केट में ट्रेंडिंग" />
+                  </span>
+                  <Link href="/news" className="flex items-center gap-0.5 text-[11px] font-medium text-primary hover:underline">
+                    <T en="View All" hi="सभी" /> <ChevronRight size={12} />
+                  </Link>
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+                  {trendingItems.map((a) => <TrendingCard key={a.id} article={a} />)}
+                </div>
+              </div>
             )}
-            <div className="mt-3 flex items-center gap-3 text-xs text-white/60">
-              {article.published_at && (
-                <span className="flex items-center gap-1"><Clock size={10} />{timeAgo(article.published_at)}</span>
-              )}
-              <span className="flex items-center gap-1"><Eye size={10} />{article.view_count.toLocaleString()}</span>
-            </div>
           </div>
-        </div>
-      ) : (
-        <div className="p-6">
-          <div className={`mb-3 h-1 w-12 rounded-full ${CAT_BAR[cat] ?? CAT_BAR.GENERAL}`} />
-          <div className="mb-3 flex flex-wrap items-center gap-1.5">
-            <ArticleBadges article={article} />
-          </div>
-          <h2 className="editorial-headline text-2xl font-bold leading-snug transition-colors group-hover:text-primary">
-            {article.title}
-          </h2>
-          {article.excerpt && (
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground line-clamp-4">{article.excerpt}</p>
-          )}
-          <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
-            {article.published_at && <span className="flex items-center gap-1"><Clock size={10} />{timeAgo(article.published_at)}</span>}
-            <span className="flex items-center gap-1"><Eye size={10} />{article.view_count.toLocaleString()}</span>
-          </div>
-        </div>
-      )}
-    </Link>
-  )
-}
 
-function SideHeadline({ article }: { article: NewsCardData }) {
-  const cat = article.category
-  return (
-    <Link
-      href={`/news/${article.slug}`}
-      className="group flex items-start gap-3 px-4 py-3 transition hover:bg-muted/30"
-    >
-      <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${CAT_BAR[cat] ?? "bg-primary"}`} />
-      <div className="min-w-0 flex-1">
-        {article.is_breaking && (
-          <span className="breaking-badge mb-0.5 inline-block rounded-sm bg-red-500 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white">
-            Breaking
-          </span>
-        )}
-        <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
-          {article.title}
-        </p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
-          {article.published_at ? timeAgo(article.published_at) : ""}
-        </p>
-      </div>
-      {article.cover_image_url && (
-        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
-          <SafeImage src={article.cover_image_url} alt={article.title} fill className="object-cover" hideOnError />
-        </div>
-      )}
-    </Link>
-  )
-}
-
-function SmallNewsCard({ article }: { article: NewsCardData }) {
-  const cat = article.category
-  return (
-    <Link
-      href={`/news/${article.slug}`}
-      className="group flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm transition hover:shadow-md hover:-translate-y-0.5"
-    >
-      {article.cover_image_url ? (
-        <div className="relative h-40 w-full overflow-hidden bg-muted">
-          <SafeImage src={article.cover_image_url} alt={article.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
-          {article.is_breaking && (
-            <div className="absolute left-3 top-3">
-              <span className="breaking-badge rounded-sm bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white">⚡</span>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className={`h-1 w-full ${CAT_BAR[cat] ?? "bg-primary"}`} />
-      )}
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 text-sm font-semibold leading-snug transition-colors group-hover:text-primary">
-          {article.title}
-        </h3>
-        <div className="mt-auto flex items-center justify-between pt-3 text-[11px] text-muted-foreground">
-          <span>{article.published_at ? timeAgo(article.published_at) : ""}</span>
-          <span className="flex items-center gap-1"><Eye size={10} />{article.view_count.toLocaleString()}</span>
+          {/* Right sidebar ad — collapses when no ad */}
+          <Suspense fallback={null}>
+            <AdBanner slot="homepage-right" size="skyscraper" className="hidden lg:block shrink-0 rounded-lg overflow-hidden border" />
+          </Suspense>
         </div>
       </div>
-    </Link>
+    </div>
   )
 }
 
@@ -355,7 +497,7 @@ function EmptyNews() {
 async function JobsSection() {
   let items: any[] = []
   try {
-    const res = await getCachedJobs({ page: 1, limit: 4 })
+    const res = await getCachedJobs({ page: 1, limit: 5 })
     items = res.items
   } catch {
     items = [
@@ -418,7 +560,7 @@ function JobRow({ job }: { job: JobCardData }) {
         <p className="text-[11px] text-muted-foreground">{job.shop_name}</p>
       </div>
       {salaryLabel && (
-        <span className="shrink-0 rounded bg-green-50 px-1.5 py-0.5 text-[10px] font-bold text-green-700">
+        <span className="shrink-0 rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
           {salaryLabel}
         </span>
       )}
@@ -435,10 +577,10 @@ async function ShopsStripSection() {
     items = res.items
   } catch {
     items = [
-      { id: "demo-s1", name: "Radha Saree House", category: "RETAIL" },
+      { id: "demo-s1", name: "Radha Saree House", category: "CLOTHING" },
       { id: "demo-s2", name: "City Mobile & Accessories", category: "ELECTRONICS" },
-      { id: "demo-s3", name: "Sharma Footwear", category: "RETAIL" },
-      { id: "demo-s4", name: "Geetanjali Jewellers", category: "RETAIL" },
+      { id: "demo-s3", name: "Sharma Footwear", category: "FOOTWEAR" },
+      { id: "demo-s4", name: "Geetanjali Jewellers", category: "JEWELRY" },
     ]
   }
 
@@ -552,7 +694,7 @@ async function PropertyTeaserSection() {
   )
 }
 
-// ── Sidebar with election + YouTube ─────────────────────────────────────
+// ── Sidebar: election + property ─────────────────────────────────
 
 async function SidebarSection() {
   const election = await getCachedActiveElection().catch(() => null)
@@ -607,11 +749,12 @@ function CommunityStrip() {
 function NewsGridSkeleton() {
   return (
     <div className="container py-4" aria-hidden="true">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2 h-80 animate-pulse rounded-xl bg-muted" />
-        <div className="flex flex-col gap-3">
-          {[1,2,3,4].map(i => <div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />)}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px_248px]">
+        <div className="h-[420px] animate-pulse rounded-xl bg-muted" />
+        <div className="flex flex-col gap-0">
+          {[1,2,3,4].map(i => <div key={i} className="h-20 animate-pulse rounded bg-muted mb-2" />)}
         </div>
+        <div className="h-[420px] animate-pulse rounded-xl bg-muted" />
       </div>
     </div>
   )
@@ -630,11 +773,9 @@ export default function HomePage() {
         <MastheadStatStrip />
       </Suspense>
 
-      <div className="section-base">
-        <Suspense fallback={<NewsGridSkeleton />}>
-          <MainNewsSection />
-        </Suspense>
-      </div>
+      <Suspense fallback={<NewsGridSkeleton />}>
+        <MainNewsSection />
+      </Suspense>
 
       <Suspense fallback={null}>
         <AdBanner slot="homepage-mid-1" size="leaderboard" />
