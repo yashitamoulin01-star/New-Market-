@@ -244,7 +244,7 @@ function ETRetailFeatureStory({ article }: { article: NewsCardData }) {
           {article.is_breaking && (
             <span className="mb-2 inline-block rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">⚡ Breaking</span>
           )}
-          <h3 className="editorial-headline text-2xl font-bold leading-tight text-foreground transition-colors group-hover:text-primary line-clamp-4 lg:text-[28px]">
+          <h3 className="editorial-headline text-lg font-bold leading-tight text-foreground transition-colors group-hover:text-primary line-clamp-4 sm:text-2xl lg:text-[28px]">
             {article.title}
           </h3>
           {article.excerpt && (
@@ -257,7 +257,7 @@ function ETRetailFeatureStory({ article }: { article: NewsCardData }) {
           </div>
         </div>
         {article.cover_image_url && (
-          <div className="relative h-[145px] w-[190px] shrink-0 overflow-hidden rounded-sm bg-muted">
+          <div className="relative hidden h-[145px] w-[190px] shrink-0 overflow-hidden rounded-sm bg-muted sm:block">
             <SafeImage src={article.cover_image_url} alt={article.title} fill className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" hideOnError />
           </div>
         )}
@@ -275,7 +275,7 @@ function ETRetailCompactCard({ article }: { article: NewsCardData }) {
         {article.is_breaking && (
           <span className="mb-1 inline-block rounded bg-red-600 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">Breaking</span>
         )}
-        <p className="line-clamp-3 text-[14px] font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
+        <p className="line-clamp-3 text-[13px] font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[14px]">
           {article.title}
         </p>
         <p className="mt-1 text-[11px] text-muted-foreground">
@@ -751,20 +751,6 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
         </Suspense>
       )}
 
-      {/* Section header */}
-      <div className="border-b">
-        <div className="container flex items-center justify-between py-2">
-          <div className="flex items-center gap-2">
-            <span className="h-4 w-1 rounded-full bg-primary" />
-            <span className="editorial-headline text-sm font-bold">
-              <T en="Top Stories" hi="टॉप न्यूज़" />
-            </span>
-          </div>
-          <Link href="/news" className="flex items-center gap-0.5 text-xs font-medium text-primary hover:underline">
-            <T en="All News" hi="सभी खबरें" /> <ChevronRight size={13} />
-          </Link>
-        </div>
-      </div>
 
       {/* ── Main zone: [left-fallback-or-ad] [center] [right-fallback-or-ad] */}
       <div className={`container ${py}`}>
@@ -798,13 +784,13 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
                   {/* Left: featured story + compact grid */}
                   <div>
                     <ETRetailFeatureStory article={latestItems[1] ?? latestItems[0]} />
-                    <div className="mt-4 grid grid-cols-2 gap-x-5 border-t pt-1">
+                    <div className="mt-4 grid grid-cols-1 gap-x-5 border-t pt-1 sm:grid-cols-2">
                       <div>
                         {latestItems.slice(2, 5).map((a) => (
                           <ETRetailCompactCard key={a.id} article={a} />
                         ))}
                       </div>
-                      <div>
+                      <div className="border-t sm:border-t-0">
                         {latestItems.slice(5, 8).map((a) => (
                           <ETRetailCompactCard key={a.id} article={a} />
                         ))}
