@@ -151,7 +151,7 @@ function HeroFeature({ article }: { article: NewsCardData }) {
               )}
               <span className="rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Top Story</span>
             </div>
-            <h2 className="editorial-headline text-xl font-bold leading-snug text-white sm:text-2xl line-clamp-3">
+            <h2 className="editorial-headline text-2xl font-bold leading-snug text-white sm:text-3xl lg:text-[34px] line-clamp-3">
               {article.title}
             </h2>
             {article.excerpt && (
@@ -167,7 +167,7 @@ function HeroFeature({ article }: { article: NewsCardData }) {
         <div className="flex min-h-[240px] flex-col justify-end bg-gradient-to-br from-slate-800 to-slate-900 p-5">
           <div className={`mb-3 h-1 w-10 rounded-full ${CAT_BAR[article.category] ?? "bg-primary"}`} />
           <span className="mb-2 inline-block rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Top Story</span>
-          <h2 className="editorial-headline text-xl font-bold leading-snug text-white sm:text-2xl">{article.title}</h2>
+          <h2 className="editorial-headline text-2xl font-bold leading-snug text-white sm:text-3xl">{article.title}</h2>
           {article.excerpt && <p className="mt-1.5 text-sm text-white/70 line-clamp-3">{article.excerpt}</p>}
           <div className="mt-2 flex items-center gap-3 text-xs text-white/50">
             {article.published_at && <span>{timeAgo(article.published_at)}</span>}
@@ -229,6 +229,64 @@ function HeroFeatureTextSplit({ article }: { article: NewsCardData }) {
           <div className={`hidden lg:block lg:w-[42%] shrink-0 ${CAT_BAR[article.category] ?? "bg-primary"} opacity-10`} />
         )}
       </div>
+    </Link>
+  )
+}
+
+// ── ETRetail Feature Story (below hero, text-left image-right) ────
+
+function ETRetailFeatureStory({ article }: { article: NewsCardData }) {
+  if (!article) return null
+  return (
+    <Link href={`/news/${article.slug}`} className="group block">
+      <div className="flex items-start gap-5">
+        <div className="min-w-0 flex-1">
+          {article.is_breaking && (
+            <span className="mb-2 inline-block rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">⚡ Breaking</span>
+          )}
+          <h3 className="editorial-headline text-2xl font-bold leading-tight text-foreground transition-colors group-hover:text-primary line-clamp-4 lg:text-[28px]">
+            {article.title}
+          </h3>
+          {article.excerpt && (
+            <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed line-clamp-3">{article.excerpt}</p>
+          )}
+          <div className="mt-2.5 flex items-center gap-3 text-xs text-muted-foreground">
+            {article.published_at && <span className="flex items-center gap-1"><Clock size={10} />{timeAgo(article.published_at)}</span>}
+            <span className="flex items-center gap-0.5"><Eye size={9} />{article.view_count.toLocaleString()}</span>
+            <span className="ml-auto text-[10px] font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">Read more →</span>
+          </div>
+        </div>
+        {article.cover_image_url && (
+          <div className="relative h-[145px] w-[190px] shrink-0 overflow-hidden rounded-sm bg-muted">
+            <SafeImage src={article.cover_image_url} alt={article.title} fill className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" hideOnError />
+          </div>
+        )}
+      </div>
+    </Link>
+  )
+}
+
+// ── ETRetail Compact Card (title left, thumbnail right) ───────────
+
+function ETRetailCompactCard({ article }: { article: NewsCardData }) {
+  return (
+    <Link href={`/news/${article.slug}`} className="group flex items-start gap-4 border-b py-3.5 last:border-0 hover:bg-muted/20 px-1 transition-colors">
+      <div className="min-w-0 flex-1">
+        {article.is_breaking && (
+          <span className="mb-1 inline-block rounded bg-red-600 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">Breaking</span>
+        )}
+        <p className="line-clamp-3 text-[14px] font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
+          {article.title}
+        </p>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          {article.published_at && timeAgo(article.published_at)}
+        </p>
+      </div>
+      {article.cover_image_url && (
+        <div className="relative h-[66px] w-[88px] shrink-0 overflow-hidden rounded bg-muted">
+          <SafeImage src={article.cover_image_url} alt={article.title} fill className="object-cover" hideOnError />
+        </div>
+      )}
     </Link>
   )
 }
@@ -327,7 +385,7 @@ function MiniNewsCard({ article }: { article: NewsCardData }) {
         {article.is_breaking && (
           <span className="mb-1 inline-block rounded bg-red-600 px-1.5 py-0.5 text-[8px] font-bold uppercase text-white">⚡ Breaking</span>
         )}
-        <p className="line-clamp-2 text-[11px] font-semibold leading-snug text-white">
+        <p className="line-clamp-2 text-[12px] font-bold leading-snug text-white">
           {article.title}
         </p>
         {article.published_at && (
@@ -753,36 +811,43 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
               )
             )}
 
-            {/* Latest + Jobs */}
-            {(showLatest || showJobs) && (
-              <div className={`grid grid-cols-1 gap-3 ${showLatest && showJobs ? "lg:grid-cols-[1fr_260px]" : ""}`}>
-                {showLatest && (
-                  <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-                    <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2">
-                      <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        <Zap size={10} className="text-amber-500" />
-                        <T en="Latest" hi="ताज़ा" />
-                      </span>
-                      <Link href="/news" className="text-[10px] font-semibold text-primary hover:underline">
-                        <T en="View All" hi="सभी" />
-                      </Link>
-                    </div>
-                    <div className="overflow-y-auto" style={{ maxHeight: 280 }}>
-                      {latestItems.map((a) => <LatestItem key={a.id} article={a} />)}
-                    </div>
-                    <div className="border-t px-3 py-2">
-                      <Link href="/news" className="flex items-center justify-center gap-1 text-[11px] font-semibold text-primary hover:underline">
-                        <T en="View all stories" hi="सभी खबरें" /> <ChevronRight size={11} />
-                      </Link>
-                    </div>
+            {/* ETRetail-style Latest section */}
+            {showLatest && (
+              <div className="rounded-xl border bg-card px-5 py-4 shadow-sm">
+                {/* Section header */}
+                <div className="mb-4 border-b pb-2">
+                  <h2 className="editorial-headline text-base font-bold uppercase tracking-widest text-foreground">
+                    <T en="Top Stories" hi="प्रमुख खबरें" />
+                  </h2>
+                </div>
+                {/* Featured story — big headline + image right */}
+                <ETRetailFeatureStory article={latestItems[1] ?? latestItems[0]} />
+                {/* Compact story cards — 2 columns */}
+                <div className="mt-3 grid grid-cols-1 divide-y border-t sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+                  <div>
+                    {latestItems.slice(2, 4).map((a) => (
+                      <ETRetailCompactCard key={a.id} article={a} />
+                    ))}
                   </div>
-                )}
-                {showJobs && (
-                  <Suspense fallback={null}>
-                    <JobOpeningsPanel />
-                  </Suspense>
-                )}
+                  <div className="sm:pl-4">
+                    {latestItems.slice(4, 6).map((a) => (
+                      <ETRetailCompactCard key={a.id} article={a} />
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-2 border-t pt-2">
+                  <Link href="/news" className="flex items-center gap-0.5 text-[11px] font-semibold text-primary hover:underline">
+                    <T en="View all stories" hi="सभी खबरें" /> <ChevronRight size={11} />
+                  </Link>
+                </div>
               </div>
+            )}
+
+            {/* Jobs panel */}
+            {showJobs && (
+              <Suspense fallback={null}>
+                <JobOpeningsPanel />
+              </Suspense>
             )}
 
             {/* Section quick-links */}
