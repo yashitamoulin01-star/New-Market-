@@ -8,7 +8,7 @@ import {
 import {
   getCachedNews, getCachedBreakingNews, getCachedHomepageNews,
   getCachedJobs, getCachedShops, getCachedProperties,
-  getCachedActiveElection,
+  getCachedActiveElection, getCachedHomepageSettings,
 } from "@/lib/data/cached"
 import { NewsTicker } from "@/components/home/news-ticker"
 import { AdBanner } from "@/components/home/ad-banner"
@@ -18,7 +18,7 @@ import { MastheadBar } from "@/components/home/masthead-bar"
 import { T } from "@/components/ui/t"
 import type { NewsCardData } from "@/lib/supabase/news"
 import type { JobCardData } from "@/lib/supabase/jobs-defs"
-import type { ShopCardData } from "@/lib/supabase/shops-defs"
+import type { HomepageSettings } from "@/lib/supabase/homepage-settings"
 
 // ── Category colors ───────────────────────────────────────────────
 
@@ -121,7 +121,7 @@ async function MastheadStatStrip() {
   )
 }
 
-// ── Hero Feature Article ──────────────────────────────────────────
+// ── Hero Feature Article (photo overlay style) ────────────────────
 
 function HeroFeature({ article }: { article: NewsCardData }) {
   return (
@@ -179,7 +179,61 @@ function HeroFeature({ article }: { article: NewsCardData }) {
   )
 }
 
-// ── Side Story Card (thumbnail right, title left) ─────────────────
+// ── Hero Feature (ET Retail text-split style) ─────────────────────
+
+function HeroFeatureTextSplit({ article }: { article: NewsCardData }) {
+  return (
+    <Link
+      href={`/news/${article.slug}`}
+      className="group block overflow-hidden rounded-xl border bg-card shadow-md transition hover:shadow-xl"
+    >
+      <div className="flex min-h-[240px] flex-col lg:flex-row lg:min-h-[300px]">
+        {/* Text side */}
+        <div className="flex flex-1 flex-col justify-between p-5 lg:p-6">
+          <div>
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {article.is_breaking && (
+                <span className="rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">⚡ Breaking</span>
+              )}
+              {article.is_pinned && !article.is_breaking && (
+                <span className="rounded bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Pinned</span>
+              )}
+              <span className="rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Top Story</span>
+            </div>
+            <h2 className="editorial-headline text-xl font-extrabold leading-tight text-foreground sm:text-2xl lg:text-[26px] line-clamp-4">
+              {article.title}
+            </h2>
+            {article.excerpt && (
+              <p className="mt-2.5 line-clamp-3 text-sm text-muted-foreground leading-relaxed">{article.excerpt}</p>
+            )}
+          </div>
+          <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
+            {article.published_at && <span className="flex items-center gap-1"><Clock size={10} />{timeAgo(article.published_at)}</span>}
+            <span className="flex items-center gap-1"><Eye size={10} />{article.view_count.toLocaleString()}</span>
+            <span className="ml-auto text-[10px] font-semibold text-primary transition-colors group-hover:text-primary/70">Read Full Story →</span>
+          </div>
+        </div>
+        {/* Image side */}
+        {article.cover_image_url ? (
+          <div className="relative h-[180px] overflow-hidden lg:h-auto lg:w-[42%] shrink-0">
+            <SafeImage
+              src={article.cover_image_url}
+              alt={article.title}
+              fill
+              priority
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              hideOnError
+            />
+          </div>
+        ) : (
+          <div className={`hidden lg:block lg:w-[42%] shrink-0 ${CAT_BAR[article.category] ?? "bg-primary"} opacity-10`} />
+        )}
+      </div>
+    </Link>
+  )
+}
+
+// ── Side Story Card ───────────────────────────────────────────────
 
 function SideStoryCard({ article }: { article: NewsCardData }) {
   return (
@@ -230,7 +284,7 @@ function LatestItem({ article }: { article: NewsCardData }) {
   )
 }
 
-// ── Top Stories (no image) panel ──────────────────────────────────
+// ── Text Story Item ───────────────────────────────────────────────
 
 function TextStoryItem({ article }: { article: NewsCardData }) {
   return (
@@ -247,7 +301,7 @@ function TextStoryItem({ article }: { article: NewsCardData }) {
   )
 }
 
-// ── Mini News Card (2×2 grid in hero zone) ───────────────────────
+// ── Mini News Card (2×2 grid) ─────────────────────────────────────
 
 function MiniNewsCard({ article }: { article: NewsCardData }) {
   return (
@@ -284,7 +338,136 @@ function MiniNewsCard({ article }: { article: NewsCardData }) {
   )
 }
 
-// ── Local Updates Widget (fills empty space in YouTube column) ────
+// ── Sidebar Fallback Panel ────────────────────────────────────────
+
+function CommunitySidebarWidget({ wide }: { wide?: boolean }) {
+  const w = wide ? "hidden lg:flex w-[260px]" : "hidden xl:flex w-[200px]"
+  return (
+    <div className={`${w} shrink-0 self-stretch flex-col overflow-hidden rounded-xl border bg-card shadow-sm`}>
+      <div className="flex flex-1 flex-col p-4">
+        <div className="mb-3 flex items-start justify-between gap-2">
+          <p className="text-[13px] font-bold leading-tight text-foreground">
+            <T en="Join the New Market community" hi="न्यू मार्केट कम्युनिटी जॉइन करें" />
+          </p>
+          <Newspaper size={18} className="mt-0.5 shrink-0 text-primary" />
+        </div>
+        <p className="mb-3 text-[11px] text-muted-foreground leading-snug">
+          <T en="Subscribe for daily local updates, deals & news." hi="रोज़ की लोकल खबरें, डील्स और अपडेट पाएं।" />
+        </p>
+        <Link
+          href="/news/submit"
+          className="mb-2 block w-full rounded-lg bg-primary py-2 text-center text-[11px] font-semibold text-primary-foreground transition hover:bg-primary/90"
+        >
+          <T en="Submit a Story" hi="खबर भेजें" />
+        </Link>
+        <Link
+          href="/jobs/post"
+          className="mb-2 block w-full rounded-lg border py-2 text-center text-[11px] font-semibold transition hover:bg-muted"
+        >
+          <T en="Post a Job" hi="नौकरी पोस्ट करें" />
+        </Link>
+        <Link
+          href="/shops/add"
+          className="block w-full rounded-lg border py-2 text-center text-[11px] font-semibold transition hover:bg-muted"
+        >
+          <T en="List Your Shop" hi="दुकान लिस्ट करें" />
+        </Link>
+      </div>
+      <div className="border-t px-4 py-2.5 text-center">
+        <p className="text-[9px] text-muted-foreground">
+          <T en="Free · New Market's local platform" hi="मुफ्त · न्यू मार्केट का लोकल प्लेटफ़ॉर्म" />
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function SidebarFallbackPanel({
+  type,
+  items,
+  wide,
+}: {
+  type: "trending" | "latest" | "jobs" | "community" | "none"
+  items: NewsCardData[]
+  wide?: boolean
+}) {
+  if (type === "none") return null
+
+  if (type === "community") return <CommunitySidebarWidget wide={wide} />
+
+  const visibility = wide ? "hidden lg:flex" : "hidden xl:flex"
+  const width = wide ? "w-[260px]" : "w-[120px]"
+
+  if (type === "jobs") {
+    return (
+      <div className={`${visibility} ${width} shrink-0 self-stretch flex-col overflow-hidden rounded-xl border bg-card shadow-sm`}>
+        <div className="flex flex-1 flex-col items-center justify-center gap-2.5 p-3 text-center">
+          <Briefcase size={20} className="text-primary" />
+          <div>
+            <p className="text-[11px] font-bold">Job Openings</p>
+            <p className="mt-0.5 text-[9px] text-muted-foreground">Find jobs in New Market</p>
+          </div>
+          <Link href="/jobs" className="w-full rounded-lg bg-primary py-1.5 text-[10px] font-semibold text-white transition hover:bg-primary/90">
+            Browse Jobs
+          </Link>
+          <Link href="/jobs/post" className="text-[9px] text-primary hover:underline">
+            Post a Job
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  const newsItems =
+    type === "trending"
+      ? [...items.filter((a) => a.is_trending), ...items.filter((a) => !a.is_trending)].slice(0, 7)
+      : items.slice(0, 7)
+
+  const textSize = wide ? "text-[11px]" : "text-[9px]"
+  const timeSize = wide ? "text-[10px]" : "text-[8px]"
+  const px = wide ? "px-3" : "px-2"
+
+  return (
+    <div className={`${visibility} ${width} shrink-0 self-stretch flex-col overflow-hidden rounded-xl border bg-card shadow-sm`}>
+      <div className={`border-b bg-muted/30 ${px} py-1.5`}>
+        <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+          {type === "trending" ? "🔥 Trending" : "⚡ Latest"}
+        </span>
+      </div>
+      <div className="flex-1 overflow-y-auto divide-y">
+        {newsItems.map((a) => (
+          <Link
+            key={a.id}
+            href={`/news/${a.slug}`}
+            className={`group flex items-start gap-2 ${px} py-2.5 transition hover:bg-muted/20`}
+          >
+            <div className="mt-1 flex flex-col gap-2 min-w-0 flex-1">
+              <div className={`h-1.5 w-1.5 rounded-full shrink-0 ${CAT_DOT[a.category] ?? "bg-primary"}`} />
+              <p className={`line-clamp-3 ${textSize} font-medium leading-snug transition-colors group-hover:text-primary`}>
+                {a.title}
+              </p>
+              {a.published_at && (
+                <p className={`${timeSize} text-muted-foreground`}>{timeAgo(a.published_at)}</p>
+              )}
+            </div>
+            {wide && a.cover_image_url && (
+              <div className="relative h-[52px] w-[68px] shrink-0 overflow-hidden rounded bg-muted">
+                <SafeImage src={a.cover_image_url} alt={a.title} fill className="object-cover" hideOnError />
+              </div>
+            )}
+          </Link>
+        ))}
+      </div>
+      <div className={`border-t ${px} py-1.5`}>
+        <Link href="/news" className="text-[10px] font-semibold text-primary hover:underline">
+          All News →
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+// ── Local Updates Widget ──────────────────────────────────────────
 
 async function LocalUpdatesWidget() {
   let items: NewsCardData[] = []
@@ -361,11 +544,11 @@ async function SectionLinksBar() {
   } catch {}
 
   const sections = [
-    { href: "/news",     icon: Newspaper, labelEn: "NEWS",      labelHi: "समाचार",  subEn: `${stats.news}+ New Updates`,      subHi: `${stats.news}+ अपडेट`,     color: "text-primary",                      border: "border-l-primary" },
-    { href: "/jobs",     icon: Briefcase, labelEn: "JOBS",      labelHi: "नौकरी",   subEn: `${stats.jobs} New Openings`,       subHi: `${stats.jobs} पद`,           color: "text-blue-600 dark:text-blue-400",  border: "border-l-blue-500" },
-    { href: "/shops",    icon: Store,     labelEn: "SHOPS",     labelHi: "दुकानें", subEn: `${stats.shops}+ New Listings`,     subHi: `${stats.shops}+ दुकानें`,   color: "text-emerald-600 dark:text-emerald-400", border: "border-l-emerald-500" },
-    { href: "/property", icon: Building2, labelEn: "PROPERTY",  labelHi: "संपत्ति", subEn: `${stats.property}+ New Properties`,subHi: `${stats.property}+ संपत्ति`, color: "text-amber-600 dark:text-amber-400", border: "border-l-amber-500" },
-    { href: "/election", icon: Vote,      labelEn: "ELECTIONS", labelHi: "चुनाव",   subEn: "Latest Updates",                   subHi: "ताज़े अपडेट",                color: "text-violet-600 dark:text-violet-400", border: "border-l-violet-500" },
+    { href: "/news",     icon: Newspaper, labelEn: "NEWS",      labelHi: "समाचार",  subEn: `${stats.news}+ New Updates`,       subHi: `${stats.news}+ अपडेट`,      color: "text-primary",                                border: "border-l-primary" },
+    { href: "/jobs",     icon: Briefcase, labelEn: "JOBS",      labelHi: "नौकरी",   subEn: `${stats.jobs} New Openings`,        subHi: `${stats.jobs} पद`,            color: "text-blue-600 dark:text-blue-400",             border: "border-l-blue-500" },
+    { href: "/shops",    icon: Store,     labelEn: "SHOPS",     labelHi: "दुकानें", subEn: `${stats.shops}+ New Listings`,      subHi: `${stats.shops}+ दुकानें`,    color: "text-emerald-600 dark:text-emerald-400",      border: "border-l-emerald-500" },
+    { href: "/property", icon: Building2, labelEn: "PROPERTY",  labelHi: "संपत्ति", subEn: `${stats.property}+ New Properties`, subHi: `${stats.property}+ संपत्ति`, color: "text-amber-600 dark:text-amber-400",          border: "border-l-amber-500" },
+    { href: "/election", icon: Vote,      labelEn: "ELECTIONS", labelHi: "चुनाव",   subEn: "Latest Updates",                    subHi: "ताज़े अपडेट",                 color: "text-violet-600 dark:text-violet-400",        border: "border-l-violet-500" },
   ]
 
   return (
@@ -394,7 +577,7 @@ async function SectionLinksBar() {
   )
 }
 
-// ── Job Openings (compact, for right column) ──────────────────────
+// ── Job Openings Panel ────────────────────────────────────────────
 
 async function JobOpeningsPanel() {
   let items: JobCardData[] = []
@@ -452,21 +635,23 @@ async function JobOpeningsPanel() {
 
 // ── Main News Section ─────────────────────────────────────────────
 
-async function MainNewsSection() {
+const DEMO_ITEMS: NewsCardData[] = [
+  { id: "n-1", title: "New Market Association Announces Free Wi-Fi for Entire Market Premises", slug: "demo-1", category: "BUSINESS", cover_image_url: "https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: true, is_trending: true, is_featured: false, published_at: new Date(Date.now()-432000000).toISOString(), view_count: 454, excerpt: "New Market Traders Association launches free Wi-Fi for all shops and customers.", homepage_slot: "headline" } as any,
+  { id: "n-2", title: "Alert: Fake QR Code Scam Being Reported in New Market", slug: "demo-2", category: "SAFETY", cover_image_url: "https://images.unsplash.com/photo-1595054225515-d72b217dc3e3?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, is_trending: false, is_featured: false, published_at: new Date(Date.now()-172800000).toISOString(), view_count: 223 } as any,
+  { id: "n-3", title: "Winter Festival at New Market: 3-Day Cultural Programme Starting Dec 20", slug: "demo-3", category: "EVENTS", cover_image_url: "https://images.unsplash.com/photo-1533174000273-e18fa1f7d235?auto=format&fit=crop&q=80&w=800", is_breaking: true, is_pinned: false, is_trending: true, is_featured: false, published_at: new Date(Date.now()-518400000).toISOString(), view_count: 172 } as any,
+  { id: "n-4", title: "Community Cleanliness Drive This Sunday at New Market", slug: "demo-4", category: "COMMUNITY", cover_image_url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, is_trending: false, is_featured: false, published_at: new Date(Date.now()-1468800000).toISOString(), view_count: 145 } as any,
+  { id: "n-5", title: "Special Food Mela This Weekend at New Market", slug: "demo-5", category: "EVENTS", cover_image_url: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, is_trending: true, is_featured: false, published_at: new Date(Date.now()-1382400000).toISOString(), view_count: 128 } as any,
+  { id: "n-6", title: "बड़ी खबर: न्यू मार्केट रोड चौड़ीकरण परियोजना को मिली मंजूरी", slug: "demo-6", category: "GENERAL", cover_image_url: null, is_breaking: false, is_pinned: false, is_trending: false, is_featured: false, published_at: new Date(Date.now()-345600000).toISOString(), view_count: 634 } as any,
+  { id: "n-7", title: "Traffic Diversion Near New Market Due to Road Repair Work", slug: "demo-7", category: "TRAFFIC", cover_image_url: null, is_breaking: false, is_pinned: false, is_trending: false, is_featured: false, published_at: new Date(Date.now()-432000000).toISOString(), view_count: 312 } as any,
+  { id: "n-8", title: "Water Supply Disruption on May 26 Due to Pipeline Work", slug: "demo-8", category: "NOTICES", cover_image_url: null, is_breaking: false, is_pinned: false, is_trending: false, is_featured: false, published_at: new Date(Date.now()-518400000).toISOString(), view_count: 189 } as any,
+]
+
+async function MainNewsSection({ settings, density }: { settings: HomepageSettings; density: string }) {
   let items: NewsCardData[] = []
   try {
     items = await getCachedHomepageNews(16)
   } catch {
-    items = [
-      { id: "n-1", title: "New Market Association Announces Free Wi-Fi for Entire Market Premises", slug: "demo-1", category: "BUSINESS", cover_image_url: "https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: true, is_trending: true, is_featured: false, published_at: new Date(Date.now()-432000000).toISOString(), view_count: 454, excerpt: "New Market Traders Association launches free Wi-Fi for all shops and customers. 100 Mbps, 45+ access points installed across the market.", homepage_slot: "headline" } as any,
-      { id: "n-2", title: "Alert: Fake QR Code Scam Being Reported in New Market", slug: "demo-2", category: "SAFETY", cover_image_url: "https://images.unsplash.com/photo-1595054225515-d72b217dc3e3?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, is_trending: false, is_featured: false, published_at: new Date(Date.now()-172800000).toISOString(), view_count: 223 } as any,
-      { id: "n-3", title: "Winter Festival at New Market: 3-Day Cultural Programme Starting Dec 20", slug: "demo-3", category: "EVENTS", cover_image_url: "https://images.unsplash.com/photo-1533174000273-e18fa1f7d235?auto=format&fit=crop&q=80&w=800", is_breaking: true, is_pinned: false, is_trending: true, is_featured: false, published_at: new Date(Date.now()-518400000).toISOString(), view_count: 172 } as any,
-      { id: "n-4", title: "Community Cleanliness Drive This Sunday at New Market", slug: "demo-4", category: "COMMUNITY", cover_image_url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, is_trending: false, is_featured: false, published_at: new Date(Date.now()-1468800000).toISOString(), view_count: 145 } as any,
-      { id: "n-5", title: "Special Food Mela This Weekend at New Market", slug: "demo-5", category: "EVENTS", cover_image_url: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&q=80&w=800", is_breaking: false, is_pinned: false, is_trending: true, is_featured: false, published_at: new Date(Date.now()-1382400000).toISOString(), view_count: 128 } as any,
-      { id: "n-6", title: "बड़ी खबर: न्यू मार्केट रोड चौड़ीकरण परियोजना को मिली मंजूरी", slug: "demo-6", category: "GENERAL", cover_image_url: null, is_breaking: false, is_pinned: false, is_trending: false, is_featured: false, published_at: new Date(Date.now()-345600000).toISOString(), view_count: 634 } as any,
-      { id: "n-7", title: "Traffic Diversion Near New Market Due to Road Repair Work", slug: "demo-7", category: "TRAFFIC", cover_image_url: null, is_breaking: false, is_pinned: false, is_trending: false, is_featured: false, published_at: new Date(Date.now()-432000000).toISOString(), view_count: 312 } as any,
-      { id: "n-8", title: "Water Supply Disruption on May 26 Due to Pipeline Work", slug: "demo-8", category: "NOTICES", cover_image_url: null, is_breaking: false, is_pinned: false, is_trending: false, is_featured: false, published_at: new Date(Date.now()-518400000).toISOString(), view_count: 189 } as any,
-    ]
+    items = DEMO_ITEMS
   }
 
   if (items.length === 0) return <EmptyNews />
@@ -475,7 +660,6 @@ async function MainNewsSection() {
   const featured = headlineIdx >= 0 ? items[headlineIdx] : items[0]
   const rest = items.filter((a) => a.id !== featured.id)
 
-  // Side stories: prefer items with images for the thumbnail column
   const withImages = rest.filter((a) => a.cover_image_url)
   const noImages   = rest.filter((a) => !a.cover_image_url)
   const sideStories  = [...withImages, ...noImages].slice(0, 4)
@@ -486,12 +670,28 @@ async function MainNewsSection() {
     return t.length >= 3 ? t : withImages
   })().slice(0, 5)
 
+  // Compute what's actually shown
+  const showHero    = settings.show_hero_news
+  const showMini    = settings.show_mini_grid && sideStories.length > 0
+  const showLatest  = settings.show_latest_panel
+  const showJobs    = settings.show_jobs_panel
+  const showTrend   = settings.show_trending && trendingItems.length > 0
+  const showTexts   = settings.show_text_stories && textStories.length > 0
+
+  // Auto-adapt hero style: switch to text-split if hero image is missing
+  const effectiveHeroStyle =
+    settings.hero_style === "photo" && !featured.cover_image_url ? "text-split" : settings.hero_style
+
+  const py = density === "compact" ? "py-3" : "py-4"
+
   return (
     <div className="section-base">
-      {/* Top banner ad — full width, conditional */}
-      <Suspense fallback={null}>
-        <AdBanner slot="homepage-top" size="leaderboard" className="border-b" />
-      </Suspense>
+      {/* Top banner ad */}
+      {settings.show_top_ad && (
+        <Suspense fallback={null}>
+          <AdBanner slot="homepage-top" size="leaderboard" className="border-b" />
+        </Suspense>
+      )}
 
       {/* Section header */}
       <div className="border-b">
@@ -508,112 +708,141 @@ async function MainNewsSection() {
         </div>
       </div>
 
-      {/* ── MAIN ZONE: [left-ad] [center-grid] [right-ad] ── */}
-      <div className="container py-4">
+      {/* ── Main zone: [left-fallback-or-ad] [center] [right-fallback-or-ad] */}
+      <div className={`container ${py}`}>
         <div className="flex items-start gap-3">
 
-          {/* Left sidebar ad — disappears when no active ad */}
-          <Suspense fallback={null}>
-            <AdBanner slot="homepage-left" size="skyscraper" className="hidden xl:block shrink-0 rounded-lg overflow-hidden border" />
-          </Suspense>
+          {/* Left sidebar */}
+          {settings.show_left_ad ? (
+            <Suspense fallback={null}>
+              <AdBanner slot="homepage-left" size="skyscraper" className="hidden xl:block shrink-0 rounded-lg overflow-hidden border" />
+            </Suspense>
+          ) : (
+            <SidebarFallbackPanel type={settings.left_sidebar_fallback} items={items} />
+          )}
 
           {/* Center content */}
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 space-y-3">
 
-            {/* Hero zone: 50/50 split */}
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-              {/* Left 50%: Featured story */}
-              <HeroFeature article={featured} />
+            {/* Hero zone */}
+            {(showHero || showMini) && (
+              effectiveHeroStyle === "text-split" ? (
+                // ET Retail style: hero spans full width, side stories stacked below as cards
+                <div className="space-y-3">
+                  {showHero && <HeroFeatureTextSplit article={featured} />}
+                  {showMini && (
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {sideStories.slice(0, 4).map((a) => (
+                        <SideStoryCard key={a.id} article={a} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // Photo style: hero left half + dark photo grid right half
+                <div className={`grid grid-cols-1 gap-3 ${showHero && showMini ? "lg:grid-cols-2" : ""}`}>
+                  {showHero && <HeroFeature article={featured} />}
+                  {showMini && (
+                    <div className={`grid gap-2 ${showHero ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"}`}>
+                      {sideStories.slice(0, showHero ? 4 : 8).map((a) => (
+                        <MiniNewsCard key={a.id} article={a} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            )}
 
-              {/* Right 50%: 2×2 mini card grid */}
-              <div className="grid grid-cols-2 gap-2">
-                {sideStories.slice(0, 4).map((a) => (
-                  <MiniNewsCard key={a.id} article={a} />
-                ))}
+            {/* Latest + Jobs */}
+            {(showLatest || showJobs) && (
+              <div className={`grid grid-cols-1 gap-3 ${showLatest && showJobs ? "lg:grid-cols-[1fr_260px]" : ""}`}>
+                {showLatest && (
+                  <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+                    <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2">
+                      <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        <Zap size={10} className="text-amber-500" />
+                        <T en="Latest" hi="ताज़ा" />
+                      </span>
+                      <Link href="/news" className="text-[10px] font-semibold text-primary hover:underline">
+                        <T en="View All" hi="सभी" />
+                      </Link>
+                    </div>
+                    <div className="overflow-y-auto" style={{ maxHeight: 280 }}>
+                      {latestItems.map((a) => <LatestItem key={a.id} article={a} />)}
+                    </div>
+                    <div className="border-t px-3 py-2">
+                      <Link href="/news" className="flex items-center justify-center gap-1 text-[11px] font-semibold text-primary hover:underline">
+                        <T en="View all stories" hi="सभी खबरें" /> <ChevronRight size={11} />
+                      </Link>
+                    </div>
+                  </div>
+                )}
+                {showJobs && (
+                  <Suspense fallback={null}>
+                    <JobOpeningsPanel />
+                  </Suspense>
+                )}
               </div>
-            </div>
+            )}
 
-            {/* Below hero: Latest + Jobs side by side */}
-            <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_260px]">
-              {/* Latest scrollable */}
-              <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-                <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2">
-                  <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <Zap size={10} className="text-amber-500" />
-                    <T en="Latest" hi="ताज़ा" />
-                  </span>
-                  <Link href="/news" className="text-[10px] font-semibold text-primary hover:underline">
-                    <T en="View All" hi="सभी" />
-                  </Link>
-                </div>
-                <div className="overflow-y-auto" style={{ maxHeight: 280 }}>
-                  {latestItems.map((a) => <LatestItem key={a.id} article={a} />)}
-                </div>
-                <div className="border-t px-3 py-2">
-                  <Link href="/news" className="flex items-center justify-center gap-1 text-[11px] font-semibold text-primary hover:underline">
-                    <T en="View all stories" hi="सभी खबरें" /> <ChevronRight size={11} />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Job openings */}
+            {/* Section quick-links */}
+            {settings.show_section_links && (
               <Suspense fallback={null}>
-                <JobOpeningsPanel />
+                <SectionLinksBar />
               </Suspense>
-            </div>
+            )}
 
-            {/* Section quick-links bar */}
-            <Suspense fallback={null}>
-              <SectionLinksBar />
-            </Suspense>
-
-            {/* Trending + Text stories row */}
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_280px]">
-              {/* Trending */}
-              {trendingItems.length > 0 && (
-                <div>
-                  <div className="mb-2.5 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-sm font-bold">
-                      <Flame size={14} className="text-orange-500" />
-                      <T en="Trending in New Market" hi="न्यू मार्केट में ट्रेंडिंग" />
-                    </span>
-                    <Link href="/news" className="flex items-center gap-0.5 text-[11px] font-medium text-primary hover:underline">
-                      <T en="View All" hi="सभी" /> <ChevronRight size={11} />
-                    </Link>
-                  </div>
-                  <div className="flex gap-2.5 overflow-x-auto pb-1 snap-x snap-mandatory" style={{ scrollbarWidth: "none" }}>
-                    {trendingItems.map((a) => <TrendingCard key={a.id} article={a} />)}
-                  </div>
-                </div>
-              )}
-
-              {/* Top stories no image */}
-              {textStories.length > 0 && (
-                <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-                  <div className="border-b bg-muted/40 px-3 py-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      <T en="Top Stories (No Image)" hi="प्रमुख खबरें" />
-                    </span>
-                  </div>
+            {/* Trending + Text stories */}
+            {(showTrend || showTexts) && (
+              <div className={`grid grid-cols-1 gap-3 ${showTrend && showTexts ? "lg:grid-cols-[1fr_280px]" : ""}`}>
+                {showTrend && (
                   <div>
-                    {textStories.map((a) => <TextStoryItem key={a.id} article={a} />)}
+                    <div className="mb-2.5 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-sm font-bold">
+                        <Flame size={14} className="text-orange-500" />
+                        <T en="Trending in New Market" hi="न्यू मार्केट में ट्रेंडिंग" />
+                      </span>
+                      <Link href="/news" className="flex items-center gap-0.5 text-[11px] font-medium text-primary hover:underline">
+                        <T en="View All" hi="सभी" /> <ChevronRight size={11} />
+                      </Link>
+                    </div>
+                    <div className="flex gap-2.5 overflow-x-auto pb-1 snap-x snap-mandatory" style={{ scrollbarWidth: "none" }}>
+                      {trendingItems.map((a) => <TrendingCard key={a.id} article={a} />)}
+                    </div>
                   </div>
-                  <div className="border-t px-3 py-2">
-                    <Link href="/news" className="flex items-center justify-center gap-1 text-[11px] font-semibold text-primary hover:underline">
-                      <T en="View All" hi="सभी खबरें" /> <ChevronRight size={11} />
-                    </Link>
+                )}
+
+                {showTexts && (
+                  <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+                    <div className="border-b bg-muted/40 px-3 py-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        <T en="Top Stories" hi="प्रमुख खबरें" />
+                      </span>
+                    </div>
+                    <div>
+                      {textStories.map((a) => <TextStoryItem key={a.id} article={a} />)}
+                    </div>
+                    <div className="border-t px-3 py-2">
+                      <Link href="/news" className="flex items-center justify-center gap-1 text-[11px] font-semibold text-primary hover:underline">
+                        <T en="View All" hi="सभी खबरें" /> <ChevronRight size={11} />
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
           </div>
-          {/* end center content */}
+          {/* end center */}
 
-          {/* Right sidebar ad — disappears when no active ad */}
-          <Suspense fallback={null}>
-            <AdBanner slot="homepage-right" size="skyscraper" className="hidden xl:block shrink-0 rounded-lg overflow-hidden border" />
-          </Suspense>
+          {/* Right sidebar — visible from lg, matches ETRetail right column */}
+          {settings.show_right_ad ? (
+            <Suspense fallback={null}>
+              <AdBanner slot="homepage-right" size="skyscraper" className="hidden xl:block shrink-0 rounded-lg overflow-hidden border" />
+            </Suspense>
+          ) : (
+            <SidebarFallbackPanel type={settings.right_sidebar_fallback} items={items} wide />
+          )}
 
         </div>
       </div>
@@ -636,7 +865,7 @@ function EmptyNews() {
   )
 }
 
-// ── Shops strip ───────────────────────────────────────────────────
+// ── Shops Strip ───────────────────────────────────────────────────
 
 async function ShopsStripSection() {
   let items: any[] = []
@@ -689,7 +918,7 @@ async function ShopsStripSection() {
   )
 }
 
-// ── Property teaser ───────────────────────────────────────────────
+// ── Property Teaser ───────────────────────────────────────────────
 
 async function PropertyTeaserSection() {
   let items: any[] = []
@@ -743,21 +972,25 @@ async function PropertyTeaserSection() {
   )
 }
 
-// ── Sidebar: election + property ─────────────────────────────────
+// ── Sidebar Section (elections + property) ────────────────────────
 
-async function SidebarSection() {
-  const election = await getCachedActiveElection().catch(() => null)
+async function SidebarSection({ settings }: { settings: HomepageSettings }) {
+  const election = settings.show_elections
+    ? await getCachedActiveElection().catch(() => null)
+    : null
   return (
     <div className="flex flex-col gap-4">
-      <ElectionTeaser election={election} />
-      <Suspense fallback={null}>
-        <PropertyTeaserSection />
-      </Suspense>
+      {settings.show_elections && <ElectionTeaser election={election} />}
+      {settings.show_property_panel && (
+        <Suspense fallback={null}>
+          <PropertyTeaserSection />
+        </Suspense>
+      )}
     </div>
   )
 }
 
-// ── Community strip ───────────────────────────────────────────────
+// ── Community Strip ───────────────────────────────────────────────
 
 function CommunityStrip() {
   return (
@@ -787,10 +1020,11 @@ function CommunityStrip() {
 function NewsGridSkeleton() {
   return (
     <div className="container py-4" aria-hidden="true">
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_270px_260px]">
-        <div className="h-[400px] animate-pulse rounded-xl bg-muted" />
-        <div className="space-y-2">{[1,2,3,4].map(i=><div key={i} className="h-20 animate-pulse rounded-lg bg-muted"/>)}</div>
-        <div className="h-[400px] animate-pulse rounded-xl bg-muted" />
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <div className="h-[300px] animate-pulse rounded-xl bg-muted" />
+        <div className="grid grid-cols-2 gap-2">
+          {[1,2,3,4].map(i=><div key={i} className="h-[145px] animate-pulse rounded-lg bg-muted"/>)}
+        </div>
       </div>
     </div>
   )
@@ -798,37 +1032,74 @@ function NewsGridSkeleton() {
 
 // ── Page ──────────────────────────────────────────────────────────
 
-export default function HomePage() {
+export default async function HomePage() {
+  let settings = await getCachedHomepageSettings().catch(() => null)
+  // Graceful fallback if table doesn't exist yet
+  if (!settings) {
+    const { DEFAULT_SETTINGS } = await import("@/lib/supabase/homepage-settings")
+    settings = DEFAULT_SETTINGS
+  }
+
+  const density = settings.layout_density
+  const showMidSection = settings.show_youtube || settings.show_local_updates
+    || settings.show_elections || settings.show_property_panel
+
   return (
     <div className="section-alt">
-      <Suspense fallback={null}><TickerSection /></Suspense>
+      {settings.show_ticker && (
+        <Suspense fallback={null}><TickerSection /></Suspense>
+      )}
       <Suspense fallback={null}><MastheadStatStrip /></Suspense>
 
       <Suspense fallback={<NewsGridSkeleton />}>
-        <MainNewsSection />
+        <MainNewsSection settings={settings} density={density} />
       </Suspense>
 
-      <Suspense fallback={null}>
-        <AdBanner slot="homepage-mid-1" size="leaderboard" />
-      </Suspense>
+      {settings.show_mid_ad && (
+        <Suspense fallback={null}>
+          <AdBanner slot="homepage-mid-1" size="leaderboard" />
+        </Suspense>
+      )}
 
-      <div className="container py-5">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2 flex flex-col gap-4">
-            <Suspense fallback={null}><YouTubeSection /></Suspense>
-            <Suspense fallback={null}><LocalUpdatesWidget /></Suspense>
+      {showMidSection && (
+        <div className={`container ${density === "compact" ? "py-4" : "py-5"}`}>
+          <div className={`grid grid-cols-1 gap-4 ${
+            showMidSection && (settings.show_youtube || settings.show_local_updates) && (settings.show_elections || settings.show_property_panel)
+              ? "lg:grid-cols-3"
+              : ""
+          }`}>
+            {(settings.show_youtube || settings.show_local_updates) && (
+              <div className={`flex flex-col gap-4 ${
+                (settings.show_elections || settings.show_property_panel) ? "lg:col-span-2" : ""
+              }`}>
+                {settings.show_youtube && (
+                  <Suspense fallback={null}><YouTubeSection /></Suspense>
+                )}
+                {settings.show_local_updates && (
+                  <Suspense fallback={null}><LocalUpdatesWidget /></Suspense>
+                )}
+              </div>
+            )}
+            {(settings.show_elections || settings.show_property_panel) && (
+              <Suspense fallback={null}>
+                <SidebarSection settings={settings} />
+              </Suspense>
+            )}
           </div>
-          <Suspense fallback={null}><SidebarSection /></Suspense>
         </div>
-      </div>
+      )}
 
-      <Suspense fallback={null}><ShopsStripSection /></Suspense>
+      {settings.show_shops_strip && (
+        <Suspense fallback={null}><ShopsStripSection /></Suspense>
+      )}
 
-      <Suspense fallback={null}>
-        <AdBanner slot="homepage-bottom" size="strip" />
-      </Suspense>
+      {settings.show_bottom_ad && (
+        <Suspense fallback={null}>
+          <AdBanner slot="homepage-bottom" size="strip" />
+        </Suspense>
+      )}
 
-      <CommunityStrip />
+      {settings.show_community_strip && <CommunityStrip />}
     </div>
   )
 }

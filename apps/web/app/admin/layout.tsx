@@ -7,7 +7,7 @@ import { adminListShops } from "@/lib/supabase/shops"
 import { adminListProperties } from "@/lib/supabase/property"
 import {
   Newspaper, Briefcase, Store, Building2,
-  Megaphone, Vote, Users, Radio, LayoutDashboard, Settings, Home,
+  Megaphone, Vote, Users, Radio, LayoutDashboard, Settings, Home, Layers,
 } from "lucide-react"
 
 async function getPendingCounts() {
@@ -156,6 +156,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <SideLink href="/admin/ads" icon={Megaphone} label="Ad Manager" />
             </SideSection>
 
+            <SideSection title="Customize">
+              <SideLink href="/admin/homepage" icon={Layers} label="Homepage" />
+            </SideSection>
+
             <SideSection title="Platform">
               <SideLink href="/admin/elections" icon={Vote}     label="Elections" />
               <SideLink href="/admin/users"     icon={Users}    label="Users" />
@@ -176,6 +180,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 <MobileNavLink href="/admin/shops"     icon={Store}           label="Shops"     badge={pending.shops} />
                 <MobileNavLink href="/admin/property"  icon={Building2}       label="Property"  badge={pending.property} />
                 <MobileNavLink href="/admin/ads"       icon={Megaphone}       label="Ads" />
+                <MobileNavLink href="/admin/homepage"  icon={Layers}          label="Layout" />
                 <MobileNavLink href="/admin/elections" icon={Vote}            label="Elections" />
                 <MobileNavLink href="/admin/users"     icon={Users}           label="Users" />
                 <MobileNavLink href="/admin/settings"  icon={Settings}        label="Settings" />

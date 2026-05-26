@@ -6,6 +6,7 @@ import type { ShopCardData, ShopCategory } from "@/lib/supabase/shops-defs"
 import type { PropertyCardData, ListingType } from "@/lib/supabase/property-defs"
 import type { Advertisement, AdSlot } from "@/lib/supabase/ads-defs"
 import type { ElectionWithDetails } from "@/lib/supabase/elections-defs"
+import { type HomepageSettings, DEFAULT_SETTINGS } from "@/lib/supabase/homepage-settings"
 
 const TTL = 60
 
@@ -206,6 +207,22 @@ export const getCachedSiteSetting = unstable_cache(
   },
   ["site-settings"],
   { revalidate: TTL, tags: ["site-settings"] }
+)
+
+// ── Homepage Settings ─────────────────────────────────────────────
+
+export const getCachedHomepageSettings = unstable_cache(
+  async (): Promise<HomepageSettings> => {
+    const { data } = await supabasePublic
+      .from("homepage_settings")
+      .select("*")
+      .eq("id", 1)
+      .maybeSingle()
+    if (!data) return DEFAULT_SETTINGS
+    return { ...DEFAULT_SETTINGS, ...data } as HomepageSettings
+  },
+  ["homepage-settings"],
+  { revalidate: 30, tags: ["homepage-settings"] }
 )
 
 // ── Active election ───────────────────────────────────────────────
