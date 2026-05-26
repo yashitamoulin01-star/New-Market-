@@ -239,12 +239,19 @@ function ETRetailFeatureStory({ article }: { article: NewsCardData }) {
   if (!article) return null
   return (
     <Link href={`/news/${article.slug}`} className="group block">
+      {/* Mobile: full-width image on top */}
+      {article.cover_image_url && (
+        <div className="relative mb-3 h-[200px] w-full overflow-hidden rounded-lg bg-muted sm:hidden">
+          <SafeImage src={article.cover_image_url} alt={article.title} fill className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" hideOnError />
+        </div>
+      )}
+      {/* Desktop: text left, image right */}
       <div className="flex items-start gap-5">
         <div className="min-w-0 flex-1">
           {article.is_breaking && (
             <span className="mb-2 inline-block rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">⚡ Breaking</span>
           )}
-          <h3 className="editorial-headline text-lg font-bold leading-tight text-foreground transition-colors group-hover:text-primary line-clamp-4 sm:text-2xl lg:text-[28px]">
+          <h3 className="editorial-headline text-xl font-bold leading-tight text-foreground transition-colors group-hover:text-primary line-clamp-4 sm:text-2xl lg:text-[28px]">
             {article.title}
           </h3>
           {article.excerpt && (
@@ -253,7 +260,6 @@ function ETRetailFeatureStory({ article }: { article: NewsCardData }) {
           <div className="mt-2.5 flex items-center gap-3 text-xs text-muted-foreground">
             {article.published_at && <span className="flex items-center gap-1"><Clock size={10} />{timeAgo(article.published_at)}</span>}
             <span className="flex items-center gap-0.5"><Eye size={9} />{article.view_count.toLocaleString()}</span>
-            <span className="ml-auto text-[10px] font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">Read more →</span>
           </div>
         </div>
         {article.cover_image_url && (
@@ -812,7 +818,7 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
                   </div>
 
                   {/* Right: scrollable latest news */}
-                  <div className="hidden lg:flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
+                  <div className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
                     <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2 shrink-0">
                       <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                         <Zap size={10} className="text-amber-500" />
