@@ -757,7 +757,7 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
           <div className="flex items-center gap-2">
             <span className="h-4 w-1 rounded-full bg-primary" />
             <span className="editorial-headline text-sm font-bold">
-              <T en="Top Stories" hi="प्रमुख समाचार" />
+              <T en="Top Stories" hi="टॉप न्यूज़" />
             </span>
           </div>
           <Link href="/news" className="flex items-center gap-0.5 text-xs font-medium text-primary hover:underline">
@@ -817,7 +817,7 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
                 {/* Section header */}
                 <div className="mb-4 border-b pb-2">
                   <h2 className="editorial-headline text-base font-bold uppercase tracking-widest text-foreground">
-                    <T en="Top Stories" hi="प्रमुख खबरें" />
+                    <T en="Top Stories" hi="टॉप न्यूज़" />
                   </h2>
                 </div>
                 {/* Featured story — big headline + image right */}
@@ -881,7 +881,7 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
                   <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
                     <div className="border-b bg-muted/40 px-3 py-2">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        <T en="Top Stories" hi="प्रमुख खबरें" />
+                        <T en="Top Stories" hi="टॉप न्यूज़" />
                       </span>
                     </div>
                     <div>
