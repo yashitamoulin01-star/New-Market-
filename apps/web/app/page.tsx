@@ -752,6 +752,21 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
       )}
 
 
+      {/* Section header bar */}
+      <div className="border-b">
+        <div className="container flex items-center justify-between py-2">
+          <div className="flex items-center gap-2">
+            <span className="h-4 w-1 rounded-full bg-primary" />
+            <span className="editorial-headline text-sm font-bold">
+              <T en="Top Stories" hi="टॉप न्यूज़" />
+            </span>
+          </div>
+          <Link href="/news" className="flex items-center gap-0.5 text-xs font-medium text-primary hover:underline">
+            <T en="All News" hi="सभी खबरें" /> <ChevronRight size={13} />
+          </Link>
+        </div>
+      </div>
+
       {/* ── Main zone: [left-fallback-or-ad] [center] [right-fallback-or-ad] */}
       <div className={`container ${py}`}>
         <div className="flex items-start gap-3">
@@ -771,13 +786,6 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
             {/* TOP STORIES — ETRetail layout: featured + 3×2 compact cards + scrollable sidebar */}
             {showLatest && (
               <div>
-                {/* Section header */}
-                <div className="mb-5 border-b pb-2">
-                  <h2 className="editorial-headline text-base font-bold uppercase tracking-widest text-foreground">
-                    <T en="Top Stories" hi="टॉप न्यूज़" />
-                  </h2>
-                </div>
-
                 {/* 2-column: [featured + 3×2 cards] | [scrollable news] */}
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_260px]">
 
