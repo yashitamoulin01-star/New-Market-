@@ -782,63 +782,62 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
           {/* Center content */}
           <div className="min-w-0 flex-1 space-y-3">
 
-            {/* Hero zone */}
-            {(showHero || showMini) && (
-              effectiveHeroStyle === "text-split" ? (
-                // ET Retail style: hero spans full width, side stories stacked below as cards
-                <div className="space-y-3">
-                  {showHero && <HeroFeatureTextSplit article={featured} />}
-                  {showMini && (
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {sideStories.slice(0, 4).map((a) => (
-                        <SideStoryCard key={a.id} article={a} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // Photo style: hero left half + dark photo grid right half
-                <div className={`grid grid-cols-1 gap-3 ${showHero && showMini ? "lg:grid-cols-2" : ""}`}>
-                  {showHero && <HeroFeature article={featured} />}
-                  {showMini && (
-                    <div className={`grid gap-2 ${showHero ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"}`}>
-                      {sideStories.slice(0, showHero ? 4 : 8).map((a) => (
-                        <MiniNewsCard key={a.id} article={a} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )
-            )}
-
-            {/* ETRetail-style Latest section */}
+            {/* TOP STORIES — ETRetail layout: featured + 3×2 compact cards + scrollable sidebar */}
             {showLatest && (
-              <div className="rounded-xl border bg-card px-5 py-4 shadow-sm">
+              <div>
                 {/* Section header */}
-                <div className="mb-4 border-b pb-2">
+                <div className="mb-5 border-b pb-2">
                   <h2 className="editorial-headline text-base font-bold uppercase tracking-widest text-foreground">
                     <T en="Top Stories" hi="टॉप न्यूज़" />
                   </h2>
                 </div>
-                {/* Featured story — big headline + image right */}
-                <ETRetailFeatureStory article={latestItems[1] ?? latestItems[0]} />
-                {/* Compact story cards — 2 columns */}
-                <div className="mt-3 grid grid-cols-1 divide-y border-t sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+
+                {/* 2-column: [featured + 3×2 cards] | [scrollable news] */}
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_260px]">
+
+                  {/* Left: featured story + compact grid */}
                   <div>
-                    {latestItems.slice(2, 4).map((a) => (
-                      <ETRetailCompactCard key={a.id} article={a} />
-                    ))}
+                    <ETRetailFeatureStory article={latestItems[1] ?? latestItems[0]} />
+                    <div className="mt-4 grid grid-cols-2 gap-x-5 border-t pt-1">
+                      <div>
+                        {latestItems.slice(2, 5).map((a) => (
+                          <ETRetailCompactCard key={a.id} article={a} />
+                        ))}
+                      </div>
+                      <div>
+                        {latestItems.slice(5, 8).map((a) => (
+                          <ETRetailCompactCard key={a.id} article={a} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="mt-2 border-t pt-2">
+                      <Link href="/news" className="flex items-center gap-0.5 text-[11px] font-semibold text-primary hover:underline">
+                        <T en="View all stories" hi="सभी खबरें" /> <ChevronRight size={11} />
+                      </Link>
+                    </div>
                   </div>
-                  <div className="sm:pl-4">
-                    {latestItems.slice(4, 6).map((a) => (
-                      <ETRetailCompactCard key={a.id} article={a} />
-                    ))}
+
+                  {/* Right: scrollable latest news */}
+                  <div className="hidden lg:flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
+                    <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2 shrink-0">
+                      <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        <Zap size={10} className="text-amber-500" />
+                        <T en="Latest" hi="ताज़ा" />
+                      </span>
+                      <Link href="/news" className="text-[10px] font-semibold text-primary hover:underline">
+                        <T en="View All" hi="सभी" />
+                      </Link>
+                    </div>
+                    <div className="flex-1 overflow-y-auto divide-y" style={{ maxHeight: 460 }}>
+                      {latestItems.map((a) => <LatestItem key={a.id} article={a} />)}
+                    </div>
+                    <div className="border-t px-3 py-2 shrink-0">
+                      <Link href="/news" className="flex items-center justify-center gap-1 text-[11px] font-semibold text-primary hover:underline">
+                        <T en="View all stories" hi="सभी खबरें" /> <ChevronRight size={11} />
+                      </Link>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-2 border-t pt-2">
-                  <Link href="/news" className="flex items-center gap-0.5 text-[11px] font-semibold text-primary hover:underline">
-                    <T en="View all stories" hi="सभी खबरें" /> <ChevronRight size={11} />
-                  </Link>
+
                 </div>
               </div>
             )}
