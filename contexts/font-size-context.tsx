@@ -2,9 +2,9 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 
-type FontSize = "small" | "normal" | "large"
+type FontSize = "normal" | "a1" | "a2" | "a3" | "a4"
 
-const SIZES: FontSize[] = ["small", "normal", "large"]
+const SIZES: FontSize[] = ["normal", "a1", "a2", "a3", "a4"]
 const STORAGE_KEY = "nm-font-size"
 
 interface FontSizeContextValue {
@@ -33,7 +33,7 @@ export function FontSizeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const html = document.documentElement
-    html.classList.remove("fs-small", "fs-normal", "fs-large")
+    html.classList.remove("fs-normal", "fs-a1", "fs-a2", "fs-a3", "fs-a4")
     html.classList.add(`fs-${size}`)
     localStorage.setItem(STORAGE_KEY, size)
   }, [size])

@@ -118,6 +118,7 @@
   .fs-a1     { font-size: 112%; }
   .fs-a2     { font-size: 125%; }
   .fs-a3     { font-size: 140%; }
+  .fs-a4     { font-size: 160%; }
 
   .section-alt  { background-color: hsl(var(--section-alt)); }
   .section-base { background-color: hsl(var(--section-base)); }
