@@ -1,5 +1,6 @@
 // Client-safe types for homepage settings. Server write function is below.
 // Public read goes through lib/data/cached.ts getCachedHomepageSettings.
+import type { LayoutConfig } from "./layout-config"
 
 export interface HomepageSettings {
   show_ticker: boolean
@@ -25,6 +26,7 @@ export interface HomepageSettings {
   right_sidebar_fallback: "trending" | "latest" | "jobs" | "community" | "none"
   hero_style: "photo" | "text-split"
   layout_density: "compact" | "spacious"
+  layout_config?: LayoutConfig | null
 }
 
 export const DEFAULT_SETTINGS: HomepageSettings = {

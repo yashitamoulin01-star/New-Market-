@@ -3,7 +3,8 @@ import { redirect } from "next/navigation"
 import { DEFAULT_SETTINGS, type HomepageSettings } from "@/lib/supabase/homepage-settings"
 import { saveHomepageSettingsAction } from "./actions"
 import { PresetBar } from "./preset-bar"
-import { LayoutDashboard } from "lucide-react"
+import Link from "next/link"
+import { LayoutDashboard, CheckCircle2, AlertCircle, Wand2 } from "lucide-react"
 
 async function getSettings(): Promise<HomepageSettings> {
   try {
@@ -60,12 +61,19 @@ function ToggleGroup({ title, children }: { title: string; children: React.React
   )
 }
 
-export default async function AdminHomepagePage() {
+export default async function AdminHomepagePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string; error?: string }>
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/admin/login")
 
   const s = await getSettings()
+  const params = await searchParams
+  const saved = params.saved === "1"
+  const errorMsg = params.error ?? null
 
   return (
     <div className="p-6 max-w-5xl">
@@ -78,6 +86,43 @@ export default async function AdminHomepagePage() {
           </p>
         </div>
       </div>
+
+      {saved && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+          <CheckCircle2 size={16} className="shrink-0" />
+          Homepage layout saved. Changes are live on the homepage.
+        </div>
+      )}
+
+      {errorMsg && (
+        <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+          <AlertCircle size={16} className="mt-0.5 shrink-0" />
+          <div>
+            <p className="font-semibold">Save failed</p>
+            <p className="mt-0.5 text-xs opacity-80">{errorMsg}</p>
+            {errorMsg.toLowerCase().includes("does not exist") || errorMsg.toLowerCase().includes("relation") ? (
+              <p className="mt-1.5 text-xs font-medium">
+                Run <code className="rounded bg-red-100 px-1 dark:bg-red-900/30">supabase/migration-007-homepage-settings.sql</code> in your Supabase SQL editor first.
+              </p>
+            ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* Visual Builder CTA */}
+      <Link
+        href="/admin/homepage/builder"
+        className="mb-5 flex items-center gap-4 rounded-xl border border-blue-500/30 bg-blue-500/5 p-4 transition hover:border-blue-500/50 hover:bg-blue-500/10"
+      >
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-600">
+          <Wand2 size={18} className="text-white" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-foreground">Visual Layout Builder</p>
+          <p className="text-xs text-muted-foreground">Drag sections, resize columns, reorder rows — see the layout visually with live preview and undo/redo.</p>
+        </div>
+        <span className="shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white">Open Builder →</span>
+      </Link>
 
       <PresetBar />
 

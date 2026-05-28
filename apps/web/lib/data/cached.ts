@@ -215,7 +215,7 @@ export const getCachedHomepageSettings = unstable_cache(
   async (): Promise<HomepageSettings> => {
     const { data } = await supabasePublic
       .from("homepage_settings")
-      .select("*")
+      .select("*, layout_config")
       .eq("id", 1)
       .maybeSingle()
     if (!data) return DEFAULT_SETTINGS

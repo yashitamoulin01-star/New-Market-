@@ -19,6 +19,7 @@ import { T } from "@/components/ui/t"
 import type { NewsCardData } from "@/lib/supabase/news"
 import type { JobCardData } from "@/lib/supabase/jobs-defs"
 import type { HomepageSettings } from "@/lib/supabase/homepage-settings"
+import type { LayoutConfig, LayoutRow, SectionBlock } from "@/lib/supabase/layout-config"
 
 // ── Category colors ───────────────────────────────────────────────
 
@@ -789,54 +790,67 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
           {/* Center content */}
           <div className="min-w-0 flex-1 space-y-3">
 
-            {/* TOP STORIES — ETRetail layout: featured + 3×2 compact cards + scrollable sidebar */}
-            {showLatest && (
+            {/* TOP STORIES — hero + compact grid + scrollable sidebar */}
+            {(showHero || showMini || showLatest) && (
               <div>
-                {/* 2-column: [featured + 3×2 cards] | [scrollable news] */}
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_260px]">
+                <div className={`grid grid-cols-1 gap-6 ${showLatest ? "lg:grid-cols-[1fr_260px]" : ""}`}>
 
-                  {/* Left: featured story + compact grid */}
+                  {/* Left: hero story + compact grid */}
                   <div>
-                    <ETRetailFeatureStory article={latestItems[1] ?? latestItems[0]} />
-                    <div className="mt-4 grid grid-cols-1 gap-x-5 border-t pt-1 sm:grid-cols-2">
-                      <div>
-                        {latestItems.slice(2, 5).map((a) => (
-                          <ETRetailCompactCard key={a.id} article={a} />
-                        ))}
+                    {/* Hero story — photo or text-split */}
+                    {showHero && (
+                      effectiveHeroStyle === "photo"
+                        ? <HeroFeature article={featured} />
+                        : <ETRetailFeatureStory article={latestItems[1] ?? latestItems[0]} />
+                    )}
+
+                    {/* 3×2 compact card grid */}
+                    {showMini && (
+                      <div className={`${showHero ? "mt-4 border-t pt-1" : ""} grid grid-cols-1 gap-x-5 sm:grid-cols-2`}>
+                        <div>
+                          {latestItems.slice(showHero ? 2 : 0, showHero ? 5 : 3).map((a) => (
+                            <ETRetailCompactCard key={a.id} article={a} />
+                          ))}
+                        </div>
+                        <div className="border-t sm:border-t-0">
+                          {latestItems.slice(showHero ? 5 : 3, showHero ? 8 : 6).map((a) => (
+                            <ETRetailCompactCard key={a.id} article={a} />
+                          ))}
+                        </div>
                       </div>
-                      <div className="border-t sm:border-t-0">
-                        {latestItems.slice(5, 8).map((a) => (
-                          <ETRetailCompactCard key={a.id} article={a} />
-                        ))}
+                    )}
+
+                    {(showHero || showMini) && (
+                      <div className="mt-2 border-t pt-2">
+                        <Link href="/news" className="flex items-center gap-0.5 text-[11px] font-semibold text-primary hover:underline">
+                          <T en="View all stories" hi="सभी खबरें" /> <ChevronRight size={11} />
+                        </Link>
                       </div>
-                    </div>
-                    <div className="mt-2 border-t pt-2">
-                      <Link href="/news" className="flex items-center gap-0.5 text-[11px] font-semibold text-primary hover:underline">
-                        <T en="View all stories" hi="सभी खबरें" /> <ChevronRight size={11} />
-                      </Link>
-                    </div>
+                    )}
                   </div>
 
-                  {/* Right: scrollable latest news */}
-                  <div className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
-                    <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2 shrink-0">
-                      <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        <Zap size={10} className="text-amber-500" />
-                        <T en="Latest" hi="ताज़ा" />
-                      </span>
-                      <Link href="/news" className="text-[10px] font-semibold text-primary hover:underline">
-                        <T en="View All" hi="सभी" />
-                      </Link>
+                  {/* Right: scrollable latest news panel */}
+                  {showLatest && (
+                    <div className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
+                      <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2 shrink-0">
+                        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          <Zap size={10} className="text-amber-500" />
+                          <T en="Latest" hi="ताज़ा" />
+                        </span>
+                        <Link href="/news" className="text-[10px] font-semibold text-primary hover:underline">
+                          <T en="View All" hi="सभी" />
+                        </Link>
+                      </div>
+                      <div className="flex-1 overflow-y-auto divide-y" style={{ maxHeight: 460 }}>
+                        {latestItems.map((a) => <LatestItem key={a.id} article={a} />)}
+                      </div>
+                      <div className="border-t px-3 py-2 shrink-0">
+                        <Link href="/news" className="flex items-center justify-center gap-1 text-[11px] font-semibold text-primary hover:underline">
+                          <T en="View all stories" hi="सभी खबरें" /> <ChevronRight size={11} />
+                        </Link>
+                      </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto divide-y" style={{ maxHeight: 460 }}>
-                      {latestItems.map((a) => <LatestItem key={a.id} article={a} />)}
-                    </div>
-                    <div className="border-t px-3 py-2 shrink-0">
-                      <Link href="/news" className="flex items-center justify-center gap-1 text-[11px] font-semibold text-primary hover:underline">
-                        <T en="View all stories" hi="सभी खबरें" /> <ChevronRight size={11} />
-                      </Link>
-                    </div>
-                  </div>
+                  )}
 
                 </div>
               </div>
@@ -1094,16 +1108,171 @@ function NewsGridSkeleton() {
   )
 }
 
+// ── Layout config section renderer ───────────────────────────────
+
+async function SectionBlockRenderer({ block, settings }: { block: SectionBlock; settings: HomepageSettings }) {
+  if (!block.enabled) return null
+  switch (block.id) {
+    case "ticker":
+      return <Suspense fallback={null}><TickerSection /></Suspense>
+    case "top_ad":
+      return (
+        <Suspense fallback={null}>
+          <AdBanner slot="homepage-top" size="leaderboard" className="border-b" />
+        </Suspense>
+      )
+    case "hero":
+    case "mini_grid":
+    case "latest_panel":
+    case "trending":
+    case "text_stories":
+      // News zone sections — rendered via the MainNewsSection (handles hero+grid+panel together)
+      return null
+    case "jobs_panel":
+      return (
+        <Suspense fallback={null}>
+          <JobOpeningsPanel />
+        </Suspense>
+      )
+    case "section_links":
+      return (
+        <Suspense fallback={null}>
+          <SectionLinksBar />
+        </Suspense>
+      )
+    case "mid_ad":
+      return (
+        <Suspense fallback={null}>
+          <AdBanner slot="homepage-mid-1" size="leaderboard" />
+        </Suspense>
+      )
+    case "youtube":
+      return (
+        <Suspense fallback={null}>
+          <YouTubeSection />
+        </Suspense>
+      )
+    case "local_updates":
+      return (
+        <Suspense fallback={null}>
+          <LocalUpdatesWidget />
+        </Suspense>
+      )
+    case "elections": {
+      const election = await getCachedActiveElection().catch(() => null)
+      return <ElectionTeaser election={election} />
+    }
+    case "property_panel":
+      return (
+        <Suspense fallback={null}>
+          <PropertyTeaserSection />
+        </Suspense>
+      )
+    case "shops_strip":
+      return (
+        <Suspense fallback={null}>
+          <ShopsStripSection />
+        </Suspense>
+      )
+    case "bottom_ad":
+      return (
+        <Suspense fallback={null}>
+          <AdBanner slot="homepage-bottom" size="strip" />
+        </Suspense>
+      )
+    case "community_strip":
+      return <CommunityStrip />
+    default:
+      return null
+  }
+}
+
+// colSpan → Tailwind class (must be explicit for Tailwind purge)
+const SPAN_CLASS: Record<number, string> = {
+  3: "col-span-12 lg:col-span-3",
+  4: "col-span-12 lg:col-span-4",
+  6: "col-span-12 lg:col-span-6",
+  8: "col-span-12 lg:col-span-8",
+  9: "col-span-12 lg:col-span-9",
+  12: "col-span-12",
+}
+
+async function LayoutRowRenderer({ row, settings }: { row: LayoutRow; settings: HomepageSettings }) {
+  if (!row.enabled) return null
+
+  // Check if this row contains news-zone sections — handled by MainNewsSection
+  const newsIds = new Set(["hero", "mini_grid", "latest_panel", "trending", "text_stories"])
+  const hasNewsSection = row.sections.some((s) => s.enabled && newsIds.has(s.id))
+  if (hasNewsSection) {
+    return (
+      <Suspense fallback={<NewsGridSkeleton />}>
+        <MainNewsSection settings={settings} density={settings.layout_density} />
+      </Suspense>
+    )
+  }
+
+  const enabled = row.sections.filter((s) => s.enabled)
+  if (enabled.length === 0) return null
+
+  // Full-width single section — no wrapper needed
+  if (enabled.length === 1 && enabled[0].colSpan === 12) {
+    return <SectionBlockRenderer block={enabled[0]} settings={settings} />
+  }
+
+  // Multi-column row
+  return (
+    <div className="container py-3">
+      <div className="grid grid-cols-12 gap-4">
+        {enabled.map((block) => (
+          <div key={block.id} className={SPAN_CLASS[block.colSpan] ?? "col-span-12"}>
+            <SectionBlockRenderer block={block} settings={settings} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+async function LayoutConfigPage({ config, settings }: { config: LayoutConfig; settings: HomepageSettings }) {
+  // Deduplicate news zone — only render MainNewsSection once even if multiple news rows exist
+  const newsIds = new Set(["hero", "mini_grid", "latest_panel", "trending", "text_stories"])
+  let newsRendered = false
+
+  const rows = config.rows.map((row) => {
+    const hasNews = row.sections.some((s) => s.enabled && newsIds.has(s.id))
+    if (hasNews) {
+      if (newsRendered) return { ...row, enabled: false }
+      newsRendered = true
+    }
+    return row
+  })
+
+  return (
+    <div className="section-alt">
+      <Suspense fallback={null}><MastheadStatStrip /></Suspense>
+      {rows.map((row) => (
+        <LayoutRowRenderer key={row.id} row={row} settings={settings} />
+      ))}
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────
 
 export default async function HomePage() {
   let settings = await getCachedHomepageSettings().catch(() => null)
-  // Graceful fallback if table doesn't exist yet
   if (!settings) {
     const { DEFAULT_SETTINGS } = await import("@/lib/supabase/homepage-settings")
     settings = DEFAULT_SETTINGS
   }
 
+  // Use visual builder layout if saved, otherwise use legacy boolean-flag rendering
+  const layoutConfig = settings.layout_config as LayoutConfig | null | undefined
+  if (layoutConfig?.rows?.length) {
+    return <LayoutConfigPage config={layoutConfig} settings={settings} />
+  }
+
+  // ── Legacy rendering (no layout_config saved yet) ─────────────
   const density = settings.layout_density
   const showMidSection = settings.show_youtube || settings.show_local_updates
     || settings.show_elections || settings.show_property_panel
