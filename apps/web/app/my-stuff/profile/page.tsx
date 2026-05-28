@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { T } from "@/components/ui/t"
 import { User2, Mail, Calendar } from "lucide-react"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
-import { FontSizeToggle } from "@/components/layout/font-size-toggle"
+import { FontSizeToolbar } from "@/components/ui/font-size-toolbar"
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -83,16 +83,12 @@ export default async function ProfilePage() {
           <T en="Appearance Settings" hi="दिखावट सेटिंग्स" />
         </h2>
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div>
+          <div>
+            <div className="mb-2">
               <p className="font-medium text-sm"><T en="Font Size" hi="फ़ॉन्ट आकार" /></p>
               <p className="text-xs text-muted-foreground"><T en="Adjust the text size across the site." hi="पूरी साइट में टेक्स्ट का आकार बदलें।" /></p>
             </div>
-            <div className="rounded-full bg-primary/10 p-1">
-              <div className="[&>button]:bg-white [&>button]:text-primary [&>button]:border-primary/20 hover:[&>button]:bg-primary/5">
-                <FontSizeToggle />
-              </div>
-            </div>
+            <FontSizeToolbar />
           </div>
           
           <div className="flex items-center justify-between">

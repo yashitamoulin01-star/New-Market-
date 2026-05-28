@@ -157,7 +157,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </SideSection>
 
             <SideSection title="Customize">
-              <SideLink href="/admin/homepage" icon={Layers} label="Homepage" />
+              <SideLink href="/admin/homepage"         icon={Layers}         label="Homepage Layout" />
+              <SideLink href="/admin/homepage/builder" icon={LayoutDashboard} label="Visual Builder" />
             </SideSection>
 
             <SideSection title="Platform">
@@ -180,7 +181,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 <MobileNavLink href="/admin/shops"     icon={Store}           label="Shops"     badge={pending.shops} />
                 <MobileNavLink href="/admin/property"  icon={Building2}       label="Property"  badge={pending.property} />
                 <MobileNavLink href="/admin/ads"       icon={Megaphone}       label="Ads" />
-                <MobileNavLink href="/admin/homepage"  icon={Layers}          label="Layout" />
+                <MobileNavLink href="/admin/homepage"         icon={Layers}          label="Layout" />
+                <MobileNavLink href="/admin/homepage/builder" icon={LayoutDashboard} label="Builder" />
                 <MobileNavLink href="/admin/elections" icon={Vote}            label="Elections" />
                 <MobileNavLink href="/admin/users"     icon={Users}           label="Users" />
                 <MobileNavLink href="/admin/settings"  icon={Settings}        label="Settings" />
