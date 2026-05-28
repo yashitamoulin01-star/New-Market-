@@ -20,6 +20,7 @@ import type { NewsCardData } from "@/lib/supabase/news"
 import type { JobCardData } from "@/lib/supabase/jobs-defs"
 import type { HomepageSettings } from "@/lib/supabase/homepage-settings"
 import type { LayoutConfig, LayoutRow, SectionBlock } from "@/lib/supabase/layout-config"
+import { DEFAULT_LAYOUT_CONFIG } from "@/lib/supabase/layout-config"
 
 // ── Category colors ───────────────────────────────────────────────
 
@@ -1234,14 +1235,20 @@ async function LayoutRowRenderer({ row, settings }: { row: LayoutRow; settings: 
 }
 
 async function LayoutConfigPage({ config, settings }: { config: LayoutConfig; settings: HomepageSettings }) {
-  // Deduplicate news zone — only render MainNewsSection once even if multiple news rows exist
+  // Deduplicate news zone — only render MainNewsSection once.
+  // For rows that mix news + non-news sections (e.g. mini_grid + jobs_panel),
+  // strip only the news sections so non-news sections still render.
   const newsIds = new Set(["hero", "mini_grid", "latest_panel", "trending", "text_stories"])
   let newsRendered = false
 
   const rows = config.rows.map((row) => {
     const hasNews = row.sections.some((s) => s.enabled && newsIds.has(s.id))
     if (hasNews) {
-      if (newsRendered) return { ...row, enabled: false }
+      if (newsRendered) {
+        // Keep non-news sections; drop news-zone sections that would double-render
+        const nonNews = row.sections.filter((s) => !newsIds.has(s.id))
+        return { ...row, sections: nonNews, enabled: nonNews.some((s) => s.enabled) }
+      }
       newsRendered = true
     }
     return row
@@ -1266,73 +1273,10 @@ export default async function HomePage() {
     settings = DEFAULT_SETTINGS
   }
 
-  // Use visual builder layout if saved, otherwise use legacy boolean-flag rendering
-  const layoutConfig = settings.layout_config as LayoutConfig | null | undefined
-  if (layoutConfig?.rows?.length) {
-    return <LayoutConfigPage config={layoutConfig} settings={settings} />
-  }
+  // Always use the grid-based layout renderer.
+  // Fall back to DEFAULT_LAYOUT_CONFIG if no saved layout exists in the DB yet.
+  const layoutConfig = (settings.layout_config as LayoutConfig | null | undefined)
+    ?? DEFAULT_LAYOUT_CONFIG
 
-  // ── Legacy rendering (no layout_config saved yet) ─────────────
-  const density = settings.layout_density
-  const showMidSection = settings.show_youtube || settings.show_local_updates
-    || settings.show_elections || settings.show_property_panel
-
-  return (
-    <div className="section-alt">
-      {settings.show_ticker && (
-        <Suspense fallback={null}><TickerSection /></Suspense>
-      )}
-      <Suspense fallback={null}><MastheadStatStrip /></Suspense>
-
-      <Suspense fallback={<NewsGridSkeleton />}>
-        <MainNewsSection settings={settings} density={density} />
-      </Suspense>
-
-      {settings.show_mid_ad && (
-        <Suspense fallback={null}>
-          <AdBanner slot="homepage-mid-1" size="leaderboard" />
-        </Suspense>
-      )}
-
-      {showMidSection && (
-        <div className={`container ${density === "compact" ? "py-4" : "py-5"}`}>
-          <div className={`grid grid-cols-1 gap-4 ${
-            showMidSection && (settings.show_youtube || settings.show_local_updates) && (settings.show_elections || settings.show_property_panel)
-              ? "lg:grid-cols-3"
-              : ""
-          }`}>
-            {(settings.show_youtube || settings.show_local_updates) && (
-              <div className={`flex flex-col gap-4 ${
-                (settings.show_elections || settings.show_property_panel) ? "lg:col-span-2" : ""
-              }`}>
-                {settings.show_youtube && (
-                  <Suspense fallback={null}><YouTubeSection /></Suspense>
-                )}
-                {settings.show_local_updates && (
-                  <Suspense fallback={null}><LocalUpdatesWidget /></Suspense>
-                )}
-              </div>
-            )}
-            {(settings.show_elections || settings.show_property_panel) && (
-              <Suspense fallback={null}>
-                <SidebarSection settings={settings} />
-              </Suspense>
-            )}
-          </div>
-        </div>
-      )}
-
-      {settings.show_shops_strip && (
-        <Suspense fallback={null}><ShopsStripSection /></Suspense>
-      )}
-
-      {settings.show_bottom_ad && (
-        <Suspense fallback={null}>
-          <AdBanner slot="homepage-bottom" size="strip" />
-        </Suspense>
-      )}
-
-      {settings.show_community_strip && <CommunityStrip />}
-    </div>
-  )
+  return <LayoutConfigPage config={layoutConfig} settings={settings} />
 }
