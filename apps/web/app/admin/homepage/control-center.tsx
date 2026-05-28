@@ -3,9 +3,8 @@
 import { useState, useRef, useEffect } from "react"
 import {
   Home, RefreshCw, ExternalLink, Layers, Monitor, Wand2,
-  CheckCircle2, AlertCircle, Loader2, Zap, Shield, Settings2,
-  Megaphone, Radio, BarChart3, Image, AlignLeft, TrendingUp,
-  ToggleLeft, ToggleRight, ChevronRight, X,
+  CheckCircle2, AlertCircle, Loader2, Zap, Settings2,
+  Megaphone, Radio, BarChart3, Image, AlignLeft, TrendingUp, X,
 } from "lucide-react"
 import type { HomepageSettings } from "@/lib/supabase/homepage-settings"
 import type { LayoutConfig, LayoutMeta } from "@/lib/supabase/layout-config"
