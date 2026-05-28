@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import {
   Home, RefreshCw, ExternalLink, Layers, Monitor, Wand2,
   CheckCircle2, AlertCircle, Loader2, Zap, Shield, Settings2,
   Megaphone, Radio, BarChart3, Image, AlignLeft, TrendingUp,
-  ToggleLeft, ToggleRight, ChevronRight,
+  ToggleLeft, ToggleRight, ChevronRight, X,
 } from "lucide-react"
 import type { HomepageSettings } from "@/lib/supabase/homepage-settings"
 import type { LayoutConfig, LayoutMeta } from "@/lib/supabase/layout-config"
@@ -71,6 +71,63 @@ const SPATIAL_CONTROLS: { key: keyof LayoutMeta; label: string; desc: string }[]
   { key: "collision_prevention", label: "Collision Prevention",  desc: "Blocks never overlap or exceed 12 columns" },
   { key: "fallback_replacement", label: "Fallback Replacement",  desc: "Empty slots get smart auto-fill content" },
 ]
+
+// ─── Toast notification ───────────────────────────────────────────────────────
+
+function Toast({ status, errorMsg, onDismiss }: {
+  status: SaveStatus
+  errorMsg: string | null
+  onDismiss: () => void
+}) {
+  const visible = status === "saved" || status === "error" || status === "saving"
+
+  useEffect(() => {
+    if (status === "saved" || status === "error") {
+      const t = setTimeout(onDismiss, status === "saved" ? 4000 : 7000)
+      return () => clearTimeout(t)
+    }
+  }, [status, onDismiss])
+
+  if (!visible) return null
+
+  return (
+    <div
+      className={`fixed bottom-6 right-6 z-50 flex items-start gap-3 rounded-xl border px-4 py-3 shadow-xl transition-all duration-300 max-w-sm
+        ${status === "saving" ? "border-border bg-card text-foreground" : ""}
+        ${status === "saved"  ? "border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300" : ""}
+        ${status === "error"  ? "border-red-500/40 bg-red-50 dark:bg-red-950/60 text-red-800 dark:text-red-300" : ""}
+      `}
+    >
+      <span className="mt-0.5 shrink-0">
+        {status === "saving" && <Loader2 size={15} className="animate-spin text-muted-foreground" />}
+        {status === "saved"  && <CheckCircle2 size={15} className="text-emerald-600 dark:text-emerald-400" />}
+        {status === "error"  && <AlertCircle size={15} className="text-red-600 dark:text-red-400" />}
+      </span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold leading-tight">
+          {status === "saving" && "Saving changes…"}
+          {status === "saved"  && "Saved & published!"}
+          {status === "error"  && "Save failed"}
+        </p>
+        {status === "saved" && (
+          <p className="mt-0.5 text-xs opacity-75">Homepage updated. Changes are now live.</p>
+        )}
+        {status === "error" && errorMsg && (
+          <p className="mt-0.5 text-xs opacity-75 break-words">{errorMsg}</p>
+        )}
+      </div>
+      {(status === "saved" || status === "error") && (
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="shrink-0 rounded p-0.5 opacity-60 hover:opacity-100 transition"
+        >
+          <X size={13} />
+        </button>
+      )}
+    </div>
+  )
+}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -481,8 +538,12 @@ export function ControlCenter({
     } else {
       setStatus("saved")
       setPreviewKey(k => k + 1)
-      setTimeout(() => setStatus("idle"), 4000)
     }
+  }
+
+  function dismissToast() {
+    setStatus("idle")
+    setErrorMsg(null)
   }
 
   const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
@@ -558,6 +619,9 @@ export function ControlCenter({
           <PreviewTab previewKey={previewKey} onRefresh={() => setPreviewKey(k => k + 1)} />
         )}
       </div>
+
+      {/* ── Toast notification ─────────────────────────────────── */}
+      <Toast status={status} errorMsg={errorMsg} onDismiss={dismissToast} />
     </div>
   )
 }
