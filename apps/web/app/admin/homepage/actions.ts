@@ -4,10 +4,9 @@ import { createClient } from "@/lib/supabase/server"
 import { revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
 import { HOMEPAGE_BOOL_KEYS } from "@/lib/supabase/homepage-settings"
+import { DEFAULT_LAYOUT_CONFIG, type LayoutMeta } from "@/lib/supabase/layout-config"
 
-export async function saveHomepageSettingsAction(formData: FormData) {
-  const supabase = await createClient()
-
+function buildSettingsFromForm(formData: FormData): Record<string, unknown> {
   const settings: Record<string, unknown> = {
     id: 1,
     hero_style: formData.get("hero_style") ?? "photo",
@@ -16,16 +15,42 @@ export async function saveHomepageSettingsAction(formData: FormData) {
     right_sidebar_fallback: formData.get("right_sidebar_fallback") ?? "community",
     updated_at: new Date().toISOString(),
   }
-
   for (const key of HOMEPAGE_BOOL_KEYS) {
     settings[key] = formData.has(key as string)
   }
+  return settings
+}
 
+export async function saveHomepageSettingsAction(formData: FormData) {
+  const supabase = await createClient()
+  const settings = buildSettingsFromForm(formData)
   const { error } = await supabase.from("homepage_settings").upsert(settings)
-  if (error) {
-    redirect(`/admin/homepage?error=${encodeURIComponent(error.message)}`)
-  }
-
+  if (error) redirect(`/admin/homepage?error=${encodeURIComponent(error.message)}`)
   revalidateTag("homepage-settings")
   redirect("/admin/homepage?saved=1")
+}
+
+// Used by the Control Center client component — returns result instead of redirecting
+export async function saveControlCenterAction(
+  formData: FormData,
+  meta: Partial<LayoutMeta>
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const settings = buildSettingsFromForm(formData)
+
+  // Merge meta into existing layout_config (keep rows intact)
+  const { data: current } = await supabase
+    .from("homepage_settings")
+    .select("layout_config")
+    .eq("id", 1)
+    .maybeSingle()
+
+  const existingRows = (current?.layout_config as { rows?: unknown })?.rows ?? DEFAULT_LAYOUT_CONFIG.rows
+  const existingVersion = (current?.layout_config as { version?: number })?.version ?? 1
+  settings.layout_config = { version: existingVersion, rows: existingRows, meta }
+
+  const { error } = await supabase.from("homepage_settings").upsert(settings)
+  if (error) return { error: error.message }
+  revalidateTag("homepage-settings")
+  return {}
 }

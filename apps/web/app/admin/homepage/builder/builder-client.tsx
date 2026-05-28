@@ -297,7 +297,7 @@ type Action =
   | { type: "SET_SIZE"; rowId: string; sectionId: SectionId; size: SectionSize }
   | { type: "SET_VARIANT"; rowId: string; sectionId: SectionId; variant: string }
   | { type: "HEAL_ROW"; rowId: string }
-  | { type: "APPLY_MODE"; mode: LayoutMode; config: LayoutConfig }
+  | { type: "APPLY_MODE"; mode: LayoutMode; config?: LayoutConfig }
   | { type: "SELECT"; sel: Selection }
   | { type: "UNDO" }
   | { type: "REDO" }
@@ -353,7 +353,7 @@ function reducer(s: State, a: Action): State {
     }
 
     case "APPLY_MODE":
-      return { ...s, config: a.config, mode: a.mode, past: push(s.past, s.config), future: [], dirty: true }
+      return { ...s, config: a.config ?? s.config, mode: a.mode, past: push(s.past, s.config), future: [], dirty: true }
 
     case "SELECT":
       return { ...s, selected: a.sel }
@@ -621,7 +621,7 @@ function ModeSelector({ current, dispatch }: { current: LayoutMode; dispatch: Re
           type="button"
           onClick={() => {
             if (m.id === current) return
-            dispatch({ type: "APPLY_MODE", mode: m.id, config: m.apply })
+            dispatch({ type: "APPLY_MODE", mode: m.id })
           }}
           title={m.description}
           className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold transition

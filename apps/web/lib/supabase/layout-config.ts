@@ -38,9 +38,32 @@ export type LayoutRow = {
   sections: SectionBlock[]
 }
 
+export type LayoutMeta = {
+  auto_balance: boolean
+  smart_healing: boolean
+  auto_expand: boolean
+  collision_prevention: boolean
+  fallback_replacement: boolean
+  ad_priority: "high" | "normal" | "low"
+  content_priority: "image_first" | "text_first"
+  trending_preference: "latest" | "trending"
+}
+
+export const DEFAULT_LAYOUT_META: LayoutMeta = {
+  auto_balance: true,
+  smart_healing: true,
+  auto_expand: true,
+  collision_prevention: true,
+  fallback_replacement: true,
+  ad_priority: "normal",
+  content_priority: "image_first",
+  trending_preference: "trending",
+}
+
 export type LayoutConfig = {
   rows: LayoutRow[]
   version: number
+  meta?: Partial<LayoutMeta>
 }
 
 export const DEFAULT_LAYOUT_CONFIG: LayoutConfig = {
