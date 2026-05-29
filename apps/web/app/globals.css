@@ -119,6 +119,7 @@
   .fs-a2     { font-size: 23px; }
   .fs-a3     { font-size: 26px; }
   .fs-a4     { font-size: 30px; }
+  .fs-a5     { font-size: 34px; }
 
   .section-alt  { background-color: hsl(var(--section-alt)); }
   .section-base { background-color: hsl(var(--section-base)); }

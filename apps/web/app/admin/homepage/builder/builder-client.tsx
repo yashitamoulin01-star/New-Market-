@@ -4,7 +4,7 @@ import { useReducer, useState, useCallback, useRef, useEffect } from "react"
 import {
   GripVertical, Eye, EyeOff, RotateCcw, RotateCw, Save,
   CheckCircle2, AlertCircle, X, Zap, ChevronLeft, Wand2,
-  TriangleAlert, Wrench, ExternalLink, Monitor,
+  TriangleAlert, Wrench,
 } from "lucide-react"
 import type {
   LayoutConfig, LayoutRow, SectionBlock, SectionId, ColSpan, SectionSize,
@@ -870,18 +870,35 @@ export function BuilderClient({ initialConfig }: { initialConfig: LayoutConfig }
     dirty: false,
   } satisfies State)
 
-  const [draggedId, setDraggedId]   = useState<string | null>(null)
-  const [dragOverId, setDragOverId] = useState<string | null>(null)
-  const [saving, setSaving]         = useState(false)
-  const [saveError, setSaveError]   = useState<string | null>(null)
-  const [justSaved, setJustSaved]   = useState(false)
+  const [draggedId, setDraggedId]     = useState<string | null>(null)
+  const [dragOverId, setDragOverId]   = useState<string | null>(null)
+  const [saving, setSaving]           = useState(false)
+  const [saveError, setSaveError]     = useState<string | null>(null)
+  const [justSaved, setJustSaved]     = useState(false)
+  const [resizePreview, setResizePreview] = useState<{ rowId: string; sectionId: SectionId; colSpan: ColSpan } | null>(null)
 
-  // Per-row resize preview (local — no undo history until mouseup)
-  const [resizePreview, setResizePreview] = useState<{
-    rowId: string; sectionId: SectionId; colSpan: ColSpan
-  } | null>(null)
+  // Preview state
+  const [zoom, setZoom]               = useState(0.65)
+  const [viewport, setViewport]       = useState<"desktop" | "tablet" | "mobile">("desktop")
+  const [iframeHeight, setIframeHeight] = useState(5000)
+  const [sectionRects, setSectionRects] = useState<{ id: string; rect: { x: number; y: number; width: number; height: number } }[]>([])
+  const [showOutlines, setShowOutlines] = useState(true)
+  const [draftStatus, setDraftStatus] = useState<"saved" | "saving" | "pending">("saved")
+  const [iframeKey, setIframeKey]     = useState(0)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const previewContainerRef = useRef<HTMLDivElement>(null)
 
-  // Intercept APPLY_MODE to pass the transformed config correctly
+  const VIEWPORT_WIDTHS = { desktop: 1280, tablet: 768, mobile: 390 } as const
+  const ZOOM_LEVELS = [0.5, 0.65, 0.75, 1.0] as const
+  const ZOOM_LABELS: Record<number, string> = { 0.5: "50%", 0.65: "65%", 0.75: "75%", 1.0: "100%" }
+
+  const viewportW = VIEWPORT_WIDTHS[viewport]
+  const scaledW   = Math.round(viewportW * zoom)
+  const scaledH   = Math.round(iframeHeight * zoom)
+
+  // ── Dispatch wrappers ─────────────────────────────────────────
+
   const dispatchMode = useCallback((action: Action) => {
     if (action.type === "APPLY_MODE") {
       const modeDef = MODES.find(m => m.id === action.mode)
@@ -891,6 +908,66 @@ export function BuilderClient({ initialConfig }: { initialConfig: LayoutConfig }
       dispatch(action)
     }
   }, [state.config])
+
+  // ── Draft save (debounced) ────────────────────────────────────
+
+  const saveDraft = useCallback((config: LayoutConfig) => {
+    clearTimeout(draftTimer.current)
+    setDraftStatus("pending")
+    draftTimer.current = setTimeout(async () => {
+      setDraftStatus("saving")
+      try {
+        await fetch("/api/preview-layout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ config }),
+        })
+        setDraftStatus("saved")
+        // Reload iframe to reflect new draft
+        setIframeKey(k => k + 1)
+      } catch {
+        setDraftStatus("pending")
+      }
+    }, 900)
+  }, [])
+
+  useEffect(() => {
+    if (state.dirty) saveDraft(state.config)
+  }, [state.config, state.dirty, saveDraft])
+
+  // Clear preview cookie on unmount
+  useEffect(() => {
+    return () => {
+      fetch("/api/preview-layout", { method: "DELETE" }).catch(() => {})
+    }
+  }, [])
+
+  // ── PostMessage handler ───────────────────────────────────────
+
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === "NM_SECTION_RECTS") setSectionRects(e.data.rects)
+      if (e.data?.type === "NM_DOC_HEIGHT") setIframeHeight(h => Math.max(h, e.data.height))
+    }
+    window.addEventListener("message", handler)
+    return () => window.removeEventListener("message", handler)
+  }, [])
+
+  const postToIframe = useCallback((msg: object) => {
+    iframeRef.current?.contentWindow?.postMessage(msg, "*")
+  }, [])
+
+  // Sync outline visibility
+  useEffect(() => {
+    postToIframe({ type: "NM_SHOW_OUTLINES", show: showOutlines })
+  }, [showOutlines, iframeKey, postToIframe])
+
+  // Highlight selected section
+  useEffect(() => {
+    postToIframe({ type: "NM_HIGHLIGHT", id: state.selected?.rowId ?? null })
+  }, [state.selected, postToIframe])
+
+  // ── Drag/drop ────────────────────────────────────────────────
 
   const handleDragStart = useCallback((id: string) => setDraggedId(id), [])
   const handleDragOver  = useCallback((e: React.DragEvent, id: string) => { e.preventDefault(); if (id !== draggedId) setDragOverId(id) }, [draggedId])
@@ -906,169 +983,250 @@ export function BuilderClient({ initialConfig }: { initialConfig: LayoutConfig }
     setDraggedId(null); setDragOverId(null)
   }, [draggedId, state.config.rows])
 
-  const handlePreview = useCallback((sectionId: SectionId, colSpan: ColSpan) => {
-    setResizePreview(prev => prev ? { ...prev, sectionId, colSpan } : null)
-  }, [])
-
-  const handleResizeStart = useCallback((rowId: string, sectionId: SectionId, colSpan: ColSpan) => {
-    setResizePreview({ rowId, sectionId, colSpan })
-  }, [])
-
-  const handleCommit = useCallback((rowId: string, sectionId: SectionId, colSpan: ColSpan) => {
+  const handleCommit    = useCallback((rowId: string, sectionId: SectionId, colSpan: ColSpan) => {
     setResizePreview(null)
     dispatch({ type: "RESIZE_AND_BALANCE", rowId, sectionId, colSpan })
   }, [])
 
-  const handleSave = async () => {
+  // ── Publish ──────────────────────────────────────────────────
+
+  const handlePublish = async () => {
     setSaving(true); setSaveError(null)
     const res = await saveLayoutConfigAction(state.config)
     setSaving(false)
     if (res?.error) { setSaveError(res.error) }
-    else { dispatch({ type: "MARK_SAVED" }); setJustSaved(true); setTimeout(() => setJustSaved(false), 3500) }
+    else {
+      dispatch({ type: "MARK_SAVED" })
+      setJustSaved(true)
+      setTimeout(() => setJustSaved(false), 3000)
+      setIframeKey(k => k + 1) // reload after publish
+    }
   }
 
   const activeRows   = state.config.rows.filter(r => r.enabled).length
   const unbalanced   = state.config.rows.filter(r => { const t = rowEnabledSpan(r); return r.enabled && t > 0 && t !== 12 }).length
   const currentMode  = MODES.find(m => m.id === state.mode)
 
+  // ── RENDER ────────────────────────────────────────────────────
+
   return (
-    <div
-      className="flex h-screen flex-col overflow-hidden bg-zinc-950 text-zinc-100"
-      onDragEnd={() => { setDraggedId(null); setDragOverId(null) }}
-    >
-      {/* ── TOP BAR ─────────────────────────────────────── */}
-      <header className="flex shrink-0 items-center justify-between border-b border-zinc-800 bg-zinc-900 px-4 py-2">
-        <div className="flex items-center gap-3">
-          <a href="/admin/homepage" className="flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 transition">
-            <ChevronLeft size={13} /> Controls
-          </a>
-          <span className="text-zinc-700">|</span>
-          <div className="flex items-center gap-2">
-            <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-600"><Zap size={11} className="text-white" /></div>
-            <span className="text-sm font-bold">Visual Layout Builder</span>
-            {currentMode && (
-              <span className="rounded-full border border-zinc-600 bg-zinc-800 px-2 py-0.5 text-[9px] font-bold text-zinc-300">
-                {currentMode.icon} {currentMode.label}
-              </span>
-            )}
-          </div>
-        </div>
+    <div className="flex h-screen flex-col overflow-hidden bg-zinc-950 text-zinc-100" onDragEnd={() => { setDraggedId(null); setDragOverId(null) }}>
 
+      {/* ── TOP BAR */}
+      <header className="flex shrink-0 items-center gap-2 border-b border-zinc-800 bg-zinc-900 px-3 py-1.5">
+        <a href="/admin/homepage" className="flex items-center gap-1 rounded px-2 py-1 text-[11px] text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 transition">
+          <ChevronLeft size={12} /> Controls
+        </a>
+        <span className="text-zinc-700">|</span>
         <div className="flex items-center gap-1.5">
-          <button type="button" onClick={() => dispatchMode({ type: "UNDO" })} disabled={!state.past.length}
-            title={`Undo (${state.past.length})`}
-            className="rounded p-1.5 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-25 transition">
-            <RotateCcw size={14} />
-          </button>
-          <button type="button" onClick={() => dispatchMode({ type: "REDO" })} disabled={!state.future.length}
-            title={`Redo (${state.future.length})`}
-            className="rounded p-1.5 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-25 transition">
-            <RotateCw size={14} />
-          </button>
-
-          {/* Live preview in new tab */}
-          <a href="/" target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded p-1.5 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 transition"
-            title="Open live homepage in new tab">
-            <Monitor size={14} />
-          </a>
-
-          <div className="mx-2 h-4 w-px bg-zinc-700" />
-
-          {justSaved && (
-            <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-400">
-              <CheckCircle2 size={12} /> Published
-            </div>
-          )}
-          {saveError && (
-            <div className="flex max-w-[180px] items-center gap-1 rounded-full bg-red-500/15 px-3 py-1 text-xs text-red-400">
-              <AlertCircle size={12} className="shrink-0" /><span className="truncate">{saveError}</span>
-            </div>
-          )}
-
-          <button type="button" onClick={handleSave} disabled={saving || !state.dirty}
-            className={`flex items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-semibold transition
-              ${state.dirty && !saving ? "bg-blue-600 text-white hover:bg-blue-500" : "cursor-not-allowed bg-zinc-800 text-zinc-600"}`}>
-            <Save size={13} />{saving ? "Publishing…" : "Publish Changes"}
-          </button>
+          <div className="flex h-5 w-5 items-center justify-center rounded bg-blue-600"><Zap size={10} className="text-white" /></div>
+          <span className="text-[13px] font-bold">Visual Builder</span>
+          {currentMode && <span className="rounded-full border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[9px] font-bold text-zinc-400">{currentMode.icon} {currentMode.label}</span>}
         </div>
+
+        {/* Viewport */}
+        <div className="ml-2 flex items-center gap-0.5 rounded-lg border border-zinc-700 bg-zinc-800/60 p-0.5">
+          {(["desktop", "tablet", "mobile"] as const).map(vp => (
+            <button key={vp} type="button" onClick={() => setViewport(vp)}
+              className={`rounded px-2 py-0.5 text-[10px] font-semibold transition ${viewport === vp ? "bg-zinc-600 text-white" : "text-zinc-500 hover:text-zinc-300"}`}>
+              {vp === "desktop" ? `🖥 ${VIEWPORT_WIDTHS.desktop}` : vp === "tablet" ? `📱 ${VIEWPORT_WIDTHS.tablet}` : `📲 ${VIEWPORT_WIDTHS.mobile}`}
+            </button>
+          ))}
+        </div>
+
+        {/* Zoom */}
+        <div className="flex items-center gap-0.5 rounded-lg border border-zinc-700 bg-zinc-800/60 p-0.5">
+          {ZOOM_LEVELS.map(z => (
+            <button key={z} type="button" onClick={() => setZoom(z)}
+              className={`rounded px-2 py-0.5 text-[10px] font-semibold transition ${zoom === z ? "bg-zinc-600 text-white" : "text-zinc-500 hover:text-zinc-300"}`}>
+              {ZOOM_LABELS[z]}
+            </button>
+          ))}
+        </div>
+
+        {/* Outline toggle */}
+        <button type="button" onClick={() => setShowOutlines(o => !o)}
+          title="Toggle section outlines"
+          className={`rounded px-2 py-0.5 text-[10px] font-semibold transition ${showOutlines ? "bg-blue-600/20 text-blue-400" : "text-zinc-600 hover:text-zinc-300"}`}>
+          {showOutlines ? "⬡ Outlines" : "⬡ Off"}
+        </button>
+
+        <div className="flex-1" />
+
+        {/* Undo/Redo */}
+        <button type="button" onClick={() => dispatchMode({ type: "UNDO" })} disabled={!state.past.length} title="Undo" className="rounded p-1.5 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-20 transition"><RotateCcw size={13} /></button>
+        <button type="button" onClick={() => dispatchMode({ type: "REDO" })} disabled={!state.future.length} title="Redo" className="rounded p-1.5 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-20 transition"><RotateCw size={13} /></button>
+
+        <div className="mx-1 h-4 w-px bg-zinc-700" />
+
+        {/* Draft status */}
+        {draftStatus === "pending" && <span className="text-[10px] text-amber-500">● Drafting…</span>}
+        {draftStatus === "saving"  && <span className="text-[10px] text-blue-400">↑ Saving…</span>}
+        {draftStatus === "saved"   && state.dirty && <span className="text-[10px] text-zinc-500">Draft saved</span>}
+
+        {justSaved && (
+          <div className="flex items-center gap-1 rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] font-semibold text-emerald-400">
+            <CheckCircle2 size={11} /> Published
+          </div>
+        )}
+        {saveError && (
+          <div className="flex max-w-[160px] items-center gap-1 rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] text-red-400">
+            <AlertCircle size={10} className="shrink-0" /><span className="truncate">{saveError}</span>
+          </div>
+        )}
+
+        <button type="button" onClick={handlePublish} disabled={saving}
+          className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-[12px] font-bold transition ${!saving ? "bg-blue-600 text-white hover:bg-blue-500" : "cursor-not-allowed bg-zinc-800 text-zinc-600"}`}>
+          <Save size={12} />{saving ? "Publishing…" : "Publish"}
+        </button>
       </header>
 
-      {/* ── MODE SELECTOR ───────────────────────────────── */}
+      {/* ── MODE BAR */}
       <ModeSelector current={state.mode} dispatch={dispatchMode} />
 
-      {/* ── MAIN AREA ───────────────────────────────────── */}
+      {/* ── MAIN SPLIT */}
       <div className="flex min-h-0 flex-1 overflow-hidden">
 
-        {/* Canvas */}
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden border-r border-zinc-800">
-          <div className="shrink-0 border-b border-zinc-800 bg-zinc-900/80 px-4 py-1.5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-              Layout Canvas · 12-col grid ·
-              <span className="text-zinc-400"> {activeRows} visible rows</span>
-              {unbalanced > 0 && <span className="ml-1 text-amber-500"> · {unbalanced} unbalanced</span>}
-              <span className="text-zinc-600"> · Drag ≡ to reorder · Drag right edge to resize</span>
+        {/* ── LEFT: SCALED PREVIEW ─────────────────────────── */}
+        <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden border-r border-zinc-800 bg-zinc-900">
+          {/* Preview header */}
+          <div className="flex shrink-0 items-center justify-between border-b border-zinc-800 bg-zinc-900/80 px-4 py-1">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-600">
+              Preview · {viewport} {viewportW}px · {ZOOM_LABELS[zoom]} · {draftStatus === "saved" ? "✓ Live draft" : "Updating…"}
             </p>
+            <div className="flex items-center gap-2">
+              {draftStatus !== "saved" && (
+                <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+              )}
+              <a href="/" target="_blank" rel="noopener noreferrer"
+                className="text-[9px] text-zinc-600 hover:text-zinc-400 transition underline">
+                Open full size ↗
+              </a>
+            </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4" onDragOver={e => e.preventDefault()}>
-            <div className="space-y-2">
-              {state.config.rows.map(row => (
-                <RowItem
-                  key={row.id}
-                  row={row}
-                  selected={state.selected}
-                  isDragOver={dragOverId === row.id && draggedId !== row.id}
-                  resizePreview={resizePreview?.rowId === row.id ? { sectionId: resizePreview.sectionId, colSpan: resizePreview.colSpan } : null}
-                  dispatch={dispatch}
-                  onDragStart={handleDragStart}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                  onPreview={(sectionId, colSpan) => setResizePreview({ rowId: row.id, sectionId, colSpan })}
-                  onCommit={handleCommit}
-                />
-              ))}
-            </div>
-
-            {/* Column guide */}
-            <div className="mt-4 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900">
-              <div className="px-3 py-2">
-                <p className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-600">12-Column Grid Reference</p>
-                <div className="flex gap-0.5">
-                  {Array.from({ length: 12 }).map((_, i) => (
-                    <div key={i} className="flex-1 rounded-[2px] bg-zinc-700/40 py-1.5 text-center text-[7px] text-zinc-600">{i + 1}</div>
-                  ))}
-                </div>
-                <div className="mt-1 flex justify-between text-[9px] text-zinc-700">
-                  <span>¼ = 3</span><span>⅓ = 4</span><span>½ = 6</span><span>⅔ = 8</span><span>¾ = 9</span><span>Full = 12</span>
-                </div>
+          {/* Scrollable canvas */}
+          <div className="flex-1 overflow-auto bg-zinc-800/50 p-4">
+            <div
+              ref={previewContainerRef}
+              className="relative mx-auto origin-top"
+              style={{ width: scaledW, height: scaledH }}
+            >
+              {/* Section overlay — clickable handles */}
+              <div className="absolute inset-0 z-10 pointer-events-none" aria-hidden>
+                {sectionRects.map(({ id, rect }) => {
+                  const isSelected = state.selected?.rowId === id
+                  return (
+                    <div
+                      key={id}
+                      style={{
+                        position: "absolute",
+                        left:   Math.round(rect.x     * zoom),
+                        top:    Math.round(rect.y     * zoom),
+                        width:  Math.round(rect.width * zoom),
+                        height: Math.round(rect.height * zoom),
+                        border: isSelected
+                          ? "2px solid rgba(239,68,68,0.8)"
+                          : "1px dashed rgba(59,130,246,0.3)",
+                        background: isSelected ? "rgba(239,68,68,0.04)" : "transparent",
+                        cursor: "pointer",
+                        pointerEvents: "auto",
+                        borderRadius: 2,
+                      }}
+                      onClick={() => {
+                        const row = state.config.rows.find(r => r.id === id)
+                        const firstSection = row?.sections.find(s => s.enabled)
+                        if (row && firstSection) {
+                          dispatch({ type: "SELECT", sel: { rowId: row.id, sectionId: firstSection.id } })
+                          postToIframe({ type: "NM_SCROLL_TO", id })
+                        }
+                      }}
+                      title={id}
+                    />
+                  )
+                })}
               </div>
+
+              {/* Actual iframe */}
+              <iframe
+                ref={iframeRef}
+                key={iframeKey}
+                src="/"
+                onLoad={() => {
+                  try {
+                    const h = iframeRef.current?.contentDocument?.documentElement?.scrollHeight
+                    if (h && h > 0) setIframeHeight(h + 200)
+                  } catch {}
+                  // Re-send outline state after reload
+                  setTimeout(() => {
+                    postToIframe({ type: "NM_SHOW_OUTLINES", show: showOutlines })
+                    postToIframe({ type: "NM_HIGHLIGHT", id: state.selected?.rowId ?? null })
+                  }, 400)
+                }}
+                style={{
+                  width: viewportW,
+                  height: iframeHeight,
+                  border: "none",
+                  display: "block",
+                  transform: `scale(${zoom})`,
+                  transformOrigin: "top left",
+                }}
+                title="Homepage preview"
+                sandbox="allow-same-origin allow-scripts allow-forms"
+              />
             </div>
           </div>
         </div>
 
-        {/* Config panel */}
-        <aside className="flex w-[272px] shrink-0 flex-col overflow-hidden">
-          <div className="shrink-0 border-b border-zinc-800 bg-zinc-900 px-4 py-1.5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-              {state.selected ? `Configure — ${DEFS[state.selected.sectionId].label}` : "Overview"}
+        {/* ── RIGHT: CONTROLS ──────────────────────────────── */}
+        <div className="flex w-[300px] shrink-0 flex-col overflow-hidden">
+          {/* Section canvas */}
+          <div className="shrink-0 border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">
+              Layout Canvas · {activeRows} rows
+              {unbalanced > 0 && <span className="ml-1 text-amber-500">· {unbalanced} unbalanced</span>}
             </p>
           </div>
-          <div className="flex-1 overflow-y-auto bg-zinc-900 p-3">
-            <ConfigPanel state={state} dispatch={dispatchMode} />
+          <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+            {state.config.rows.map(row => (
+              <RowItem
+                key={row.id}
+                row={row}
+                selected={state.selected}
+                isDragOver={dragOverId === row.id && draggedId !== row.id}
+                resizePreview={resizePreview?.rowId === row.id ? { sectionId: resizePreview.sectionId, colSpan: resizePreview.colSpan } : null}
+                dispatch={dispatch}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onPreview={(sectionId, colSpan) => setResizePreview({ rowId: row.id, sectionId, colSpan })}
+                onCommit={handleCommit}
+              />
+            ))}
           </div>
-        </aside>
-      </div>
 
-      {/* ── STATUS BAR ──────────────────────────────────── */}
-      <footer className="flex shrink-0 items-center justify-between border-t border-zinc-800 bg-zinc-900 px-4 py-1">
-        <p className="text-[10px]">
-          {state.dirty ? <span className="text-amber-500">● Unsaved changes</span> : <span className="text-emerald-600">✓ Saved</span>}
-          <span className="ml-2 text-zinc-700">· {state.past.length} undo / {state.future.length} redo</span>
-          {unbalanced > 0 && <span className="ml-2 text-amber-500">· {unbalanced} rows need fixing</span>}
-        </p>
-        <p className="text-[10px] text-zinc-700">Spatial Auto-Balance · Drag Resize · Layout Healing · 7 Modes</p>
-      </footer>
+          {/* Config panel */}
+          <div className="border-t border-zinc-800">
+            <div className="border-b border-zinc-800 bg-zinc-900 px-3 py-1">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">
+                {state.selected ? `Configure — ${DEFS[state.selected.sectionId].label}` : "Overview"}
+              </p>
+            </div>
+            <div className="max-h-[320px] overflow-y-auto bg-zinc-900 p-2">
+              <ConfigPanel state={state} dispatch={dispatchMode} />
+            </div>
+          </div>
+
+          {/* Status bar */}
+          <div className="flex shrink-0 items-center justify-between border-t border-zinc-800 bg-zinc-900 px-3 py-1">
+            <p className="text-[9px]">
+              {state.dirty ? <span className="text-amber-500">● Unsaved</span> : <span className="text-emerald-600">✓ Saved</span>}
+              <span className="ml-1 text-zinc-700">· {state.past.length} undo</span>
+            </p>
+            <p className="text-[9px] text-zinc-700">Drag ≡ to reorder</p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

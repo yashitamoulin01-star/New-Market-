@@ -42,7 +42,7 @@ export function ImageUploadInput({ name, label, optional, hint, lang = "en" }: P
     }
   }
 
-  function clearFile() {
+  function clearImage() {
     setUrl("")
     if (fileRef.current) fileRef.current.value = ""
     setUploadError(null)
@@ -96,7 +96,7 @@ export function ImageUploadInput({ name, label, optional, hint, lang = "en" }: P
             <div className="flex items-center gap-3 rounded-md border bg-background px-3 py-2">
               <ImageIcon size={14} className="shrink-0 text-primary" />
               <span className="flex-1 truncate text-xs text-foreground/80">{hi ? "तस्वीर अपलोड हो गई" : "Image uploaded"}</span>
-              <button type="button" onClick={clearFile} className="text-muted-foreground hover:text-destructive">
+              <button type="button" onClick={clearImage} className="text-muted-foreground hover:text-destructive">
                 <X size={14} />
               </button>
             </div>
@@ -110,6 +110,23 @@ export function ImageUploadInput({ name, label, optional, hint, lang = "en" }: P
             </label>
           )}
           {uploadError && <p className="mt-1 text-xs text-destructive">{uploadError}</p>}
+        </div>
+      )}
+
+      {/* Image preview — shown whenever a URL is set in either mode */}
+      {url && (
+        <div className="mt-2 flex items-start gap-2">
+          <div className="relative h-24 w-36 shrink-0 overflow-hidden rounded-md border bg-muted">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="preview" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none" }} />
+          </div>
+          <button
+            type="button"
+            onClick={clearImage}
+            className="mt-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
+          >
+            <X size={12} />{hi ? "हटाएं" : "Remove"}
+          </button>
         </div>
       )}
 

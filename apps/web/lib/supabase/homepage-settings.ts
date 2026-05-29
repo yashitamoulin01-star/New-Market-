@@ -51,7 +51,7 @@ export const DEFAULT_SETTINGS: HomepageSettings = {
   show_right_ad: true,
   left_sidebar_fallback: "trending",
   right_sidebar_fallback: "community",
-  hero_style: "photo",
+  hero_style: "text-split",
   layout_density: "spacious",
 }
 

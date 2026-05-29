@@ -21,6 +21,9 @@ import type { JobCardData } from "@/lib/supabase/jobs-defs"
 import type { HomepageSettings } from "@/lib/supabase/homepage-settings"
 import type { LayoutConfig, LayoutRow, SectionBlock } from "@/lib/supabase/layout-config"
 import { DEFAULT_LAYOUT_CONFIG } from "@/lib/supabase/layout-config"
+import { cookies } from "next/headers"
+import { createClient } from "@/lib/supabase/server"
+import { HomepagePreviewBridge } from "@/components/homepage/preview-bridge"
 
 // ── Category colors ───────────────────────────────────────────────
 
@@ -802,7 +805,7 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
                     {showHero && (
                       effectiveHeroStyle === "photo"
                         ? <HeroFeature article={featured} />
-                        : <ETRetailFeatureStory article={latestItems[1] ?? latestItems[0]} />
+                        : <HeroFeatureTextSplit article={featured} />
                     )}
 
                     {/* 3×2 compact card grid */}
@@ -813,7 +816,7 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
                             <ETRetailCompactCard key={a.id} article={a} />
                           ))}
                         </div>
-                        <div className="border-t sm:border-t-0">
+                        <div className="border-t sm:border-t-0 sm:border-l sm:pl-5">
                           {latestItems.slice(showHero ? 5 : 3, showHero ? 8 : 6).map((a) => (
                             <ETRetailCompactCard key={a.id} article={a} />
                           ))}
@@ -1206,23 +1209,29 @@ async function LayoutRowRenderer({ row, settings }: { row: LayoutRow; settings: 
   const hasNewsSection = row.sections.some((s) => s.enabled && newsIds.has(s.id))
   if (hasNewsSection) {
     return (
-      <Suspense fallback={<NewsGridSkeleton />}>
-        <MainNewsSection settings={settings} density={settings.layout_density} />
-      </Suspense>
+      <div data-section-id={row.id}>
+        <Suspense fallback={<NewsGridSkeleton />}>
+          <MainNewsSection settings={settings} density={settings.layout_density} />
+        </Suspense>
+      </div>
     )
   }
 
   const enabled = row.sections.filter((s) => s.enabled)
   if (enabled.length === 0) return null
 
-  // Full-width single section — no wrapper needed
+  // Full-width single section — minimal wrapper for tracking only
   if (enabled.length === 1 && enabled[0].colSpan === 12) {
-    return <SectionBlockRenderer block={enabled[0]} settings={settings} />
+    return (
+      <div data-section-id={row.id}>
+        <SectionBlockRenderer block={enabled[0]} settings={settings} />
+      </div>
+    )
   }
 
   // Multi-column row
   return (
-    <div className="container py-3">
+    <div data-section-id={row.id} className="container py-3">
       <div className="grid grid-cols-12 gap-4">
         {enabled.map((block) => (
           <div key={block.id} className={SPAN_CLASS[block.colSpan] ?? "col-span-12"}>
@@ -1256,6 +1265,7 @@ async function LayoutConfigPage({ config, settings }: { config: LayoutConfig; se
 
   return (
     <div className="section-alt">
+      <HomepagePreviewBridge />
       <Suspense fallback={null}><MastheadStatStrip /></Suspense>
       {rows.map((row) => (
         <LayoutRowRenderer key={row.id} row={row} settings={settings} />
@@ -1273,8 +1283,20 @@ export default async function HomePage() {
     settings = DEFAULT_SETTINGS
   }
 
-  // Always use the grid-based layout renderer.
-  // Fall back to DEFAULT_LAYOUT_CONFIG if no saved layout exists in the DB yet.
+  // Admin preview mode: use draft layout config from cookie
+  try {
+    const cookieStore = await cookies()
+    const previewCookie = cookieStore.get("nm-preview-layout")
+    if (previewCookie?.value) {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.user_metadata?.role === "admin") {
+        const draftConfig = JSON.parse(previewCookie.value)
+        settings = { ...settings, layout_config: draftConfig }
+      }
+    }
+  } catch {}
+
   const layoutConfig = (settings.layout_config as LayoutConfig | null | undefined)
     ?? DEFAULT_LAYOUT_CONFIG
 

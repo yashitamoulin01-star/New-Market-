@@ -324,11 +324,11 @@ export default async function AdminNewsPage({
                               defaultValue={article.homepage_slot ?? ""}
                               className="appearance-none rounded-lg border bg-background py-1.5 pl-2.5 pr-7 text-xs outline-none focus:border-primary"
                             >
-                              <option value="">None</option>
-                              <option value="headline">Headline</option>
-                              <option value="ticker">Ticker</option>
-                              <option value="sidebar">Sidebar</option>
-                              <option value="featured">Featured</option>
+                              <option value="">— No placement —</option>
+                              <option value="headline">Main Top Story (Hero)</option>
+                              <option value="featured">Top Side Stories (Grid)</option>
+                              <option value="sidebar">Recent News Sidebar</option>
+                              <option value="ticker">Breaking Ticker</option>
                             </select>
                             <ChevronDown size={10} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
                           </div>

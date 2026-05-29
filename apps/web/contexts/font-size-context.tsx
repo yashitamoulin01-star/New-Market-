@@ -2,9 +2,9 @@
 
 import { createContext, useContext, useEffect, useState } from "react"
 
-type FontSize = "normal" | "a1" | "a2" | "a3" | "a4"
+type FontSize = "normal" | "a1" | "a2" | "a3" | "a4" | "a5"
 
-const SIZES: FontSize[] = ["normal", "a1", "a2", "a3", "a4"]
+const SIZES: FontSize[] = ["normal", "a1", "a2", "a3", "a4", "a5"]
 
 const CLASS: Record<FontSize, string> = {
   normal: "fs-normal",
@@ -12,6 +12,7 @@ const CLASS: Record<FontSize, string> = {
   a2:     "fs-a2",
   a3:     "fs-a3",
   a4:     "fs-a4",
+  a5:     "fs-a5",
 }
 
 export const FONT_LABEL: Record<FontSize, string> = {
@@ -20,6 +21,7 @@ export const FONT_LABEL: Record<FontSize, string> = {
   a2:     "A++",
   a3:     "A+++",
   a4:     "A++++",
+  a5:     "A+++++",
 }
 
 interface FontSizeCtx {

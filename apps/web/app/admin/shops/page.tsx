@@ -6,6 +6,8 @@ import {
   type ContentStatus,
 } from "@/lib/supabase/shops"
 import {
+  approveShopAction,
+  rejectShopAction,
   verifyShopAction,
   deleteShopAction,
 } from "./actions"
@@ -17,9 +19,10 @@ interface PageProps {
 export const metadata = { title: "Admin — Shops" }
 
 const STATUS_TABS: { label: string; value: ContentStatus | "" }[] = [
-  { label: "All",      value: "" },
+  { label: "Pending",  value: "PENDING" },
   { label: "Approved", value: "APPROVED" },
   { label: "Rejected", value: "REJECTED" },
+  { label: "All",      value: "" },
 ]
 
 const STATUS_COLORS: Record<ContentStatus, string> = {
@@ -30,7 +33,7 @@ const STATUS_COLORS: Record<ContentStatus, string> = {
 
 export default async function AdminShopsPage({ searchParams }: PageProps) {
   const params = await searchParams
-  const status = (params.status as ContentStatus | "") || ""
+  const status = (params.status as ContentStatus) || "PENDING"
   const page = Number(params.page ?? 1)
 
   const result = await adminListShops({ status: status || undefined, page, limit: 20 })
@@ -73,8 +76,10 @@ export default async function AdminShopsPage({ searchParams }: PageProps) {
       ) : (
         <div className="space-y-4">
           {result.items.map((shop) => {
-            const verifyWithId = verifyShopAction.bind(null, shop.id)
-            const deleteWithId = deleteShopAction.bind(null, shop.id)
+            const approveWithId = approveShopAction.bind(null, shop.id)
+            const rejectWithId  = rejectShopAction.bind(null, shop.id)
+            const verifyWithId  = verifyShopAction.bind(null, shop.id)
+            const deleteWithId  = deleteShopAction.bind(null, shop.id)
 
             return (
               <div key={shop.id} className="rounded-xl border bg-card p-5">
@@ -132,6 +137,34 @@ export default async function AdminShopsPage({ searchParams }: PageProps) {
                   >
                     View
                   </Link>
+
+                  {shop.status !== "APPROVED" && (
+                    <form action={approveWithId}>
+                      <button
+                        type="submit"
+                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700"
+                      >
+                        Approve
+                      </button>
+                    </form>
+                  )}
+
+                  {shop.status !== "REJECTED" && (
+                    <form action={rejectWithId} className="flex items-center gap-2">
+                      <input
+                        name="rejection_note"
+                        type="text"
+                        placeholder="Rejection reason (optional)"
+                        className="rounded-lg border bg-background px-3 py-1.5 text-xs outline-none focus:border-primary"
+                      />
+                      <button
+                        type="submit"
+                        className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-amber-600"
+                      >
+                        Reject
+                      </button>
+                    </form>
+                  )}
 
                   {/* Verify / Unverify toggle */}
                   <form action={verifyWithId}>
