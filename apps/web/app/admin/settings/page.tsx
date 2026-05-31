@@ -2,7 +2,7 @@ import { Youtube, BellRing, Newspaper, CheckSquare, CheckCircle2, AlertCircle } 
 import { getAllSiteSettings } from "@/lib/supabase/site-settings"
 import { updateYouTubeUrlAction, updateSiteNoticeAction, updateTickerEnabledAction } from "./actions"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
-import { FontSizeToggle } from "@/components/layout/font-size-toggle"
+import { FontSizeToolbar } from "@/components/ui/font-size-toolbar"
 
 export const metadata = { title: "Admin — Settings" }
 
@@ -69,11 +69,7 @@ export default async function AdminSettingsPage({
         <div className="flex flex-col gap-4 pl-12">
           <div className="flex items-center justify-between">
             <p className="font-medium text-sm">Font Size</p>
-            <div className="rounded-full bg-primary/10 p-1">
-              <div className="[&>button]:bg-white [&>button]:text-primary [&>button]:border-primary/20 hover:[&>button]:bg-primary/5">
-                <FontSizeToggle />
-              </div>
-            </div>
+            <FontSizeToolbar />
           </div>
           <div className="flex items-center justify-between">
             <p className="font-medium text-sm">Dark Theme</p>
