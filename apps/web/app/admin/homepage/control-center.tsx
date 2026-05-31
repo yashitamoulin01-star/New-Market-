@@ -12,7 +12,7 @@ import { DEFAULT_LAYOUT_META } from "@/lib/supabase/layout-config"
 import { BuilderClient } from "./builder/builder-client"
 import { saveControlCenterAction } from "./actions"
 
-type Tab = "dashboard" | "builder" | "preview"
+type Tab = "dashboard" | "builder"
 type SaveStatus = "idle" | "saving" | "saved" | "error"
 
 // ─── Section groups ───────────────────────────────────────────────────────────
@@ -468,44 +468,6 @@ function DashboardTab({
   )
 }
 
-// ─── Preview Tab ──────────────────────────────────────────────────────────────
-
-function PreviewTab({ previewKey, onRefresh }: { previewKey: number; onRefresh: () => void }) {
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3 border-b bg-muted/20 px-4 py-2">
-        <Monitor size={14} className="text-muted-foreground" />
-        <span className="text-xs font-semibold text-muted-foreground">Live homepage preview</span>
-        <div className="ml-auto flex gap-2">
-          <button
-            type="button"
-            onClick={onRefresh}
-            className="flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition hover:bg-muted/60"
-          >
-            <RefreshCw size={11} /> Refresh
-          </button>
-          <a
-            href="/"
-            target="_blank"
-            className="flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition hover:bg-muted/60"
-          >
-            <ExternalLink size={11} /> Open tab
-          </a>
-        </div>
-      </div>
-      <div className="flex-1 relative">
-        <iframe
-          key={previewKey}
-          src="/"
-          title="Homepage preview"
-          className="absolute inset-0 h-full w-full border-0"
-          sandbox="allow-scripts allow-same-origin allow-forms"
-        />
-      </div>
-    </div>
-  )
-}
-
 // ─── Main Control Center ──────────────────────────────────────────────────────
 
 export function ControlCenter({
@@ -548,7 +510,6 @@ export function ControlCenter({
   const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: "dashboard", label: "Dashboard",      icon: Settings2 },
     { id: "builder",   label: "Visual Builder", icon: Wand2 },
-    { id: "preview",   label: "Live Preview",   icon: Monitor },
   ]
 
   return (
@@ -570,20 +531,18 @@ export function ControlCenter({
           {errorMsg && (
             <p className="hidden text-xs text-red-600 sm:block max-w-[200px] truncate">{errorMsg}</p>
           )}
-          {tab === "dashboard" && (
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={status === "saving"}
-              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
-            >
-              {status === "saving" ? (
-                <><Loader2 size={12} className="animate-spin" /> Saving…</>
-              ) : (
-                <><CheckCircle2 size={12} /> Save & Publish</>
-              )}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={status === "saving"}
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+          >
+            {status === "saving" ? (
+              <><Loader2 size={12} className="animate-spin" /> Saving…</>
+            ) : (
+              <><CheckCircle2 size={12} /> Save & Publish</>
+            )}
+          </button>
           <a
             href="/"
             target="_blank"
@@ -602,7 +561,7 @@ export function ControlCenter({
       </div>
 
       {/* ── Tab content ────────────────────────────────────────── */}
-      <div className="flex-1">
+      <div className="flex-1 overflow-hidden">
         {tab === "dashboard" && (
           <DashboardTab
             settings={settings}
@@ -612,10 +571,44 @@ export function ControlCenter({
           />
         )}
         {tab === "builder" && (
-          <BuilderClient initialConfig={layoutConfig} />
-        )}
-        {tab === "preview" && (
-          <PreviewTab previewKey={previewKey} onRefresh={() => setPreviewKey(k => k + 1)} />
+          <div className="flex h-full">
+            {/* Builder controls */}
+            <div className="w-[420px] shrink-0 overflow-y-auto border-r">
+              <BuilderClient initialConfig={layoutConfig} />
+            </div>
+            {/* Inline live preview */}
+            <div className="flex flex-1 flex-col min-w-0">
+              <div className="flex items-center gap-2 border-b bg-muted/20 px-4 py-2 shrink-0">
+                <Monitor size={13} className="text-muted-foreground" />
+                <span className="text-xs font-semibold text-muted-foreground">Live Preview</span>
+                <div className="ml-auto flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewKey(k => k + 1)}
+                    className="flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition hover:bg-muted/60"
+                  >
+                    <RefreshCw size={11} /> Refresh
+                  </button>
+                  <a
+                    href="/"
+                    target="_blank"
+                    className="flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition hover:bg-muted/60"
+                  >
+                    <ExternalLink size={11} /> Open tab
+                  </a>
+                </div>
+              </div>
+              <div className="relative flex-1">
+                <iframe
+                  key={previewKey}
+                  src="/"
+                  title="Homepage preview"
+                  className="absolute inset-0 h-full w-full border-0"
+                  sandbox="allow-scripts allow-same-origin allow-forms"
+                />
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
