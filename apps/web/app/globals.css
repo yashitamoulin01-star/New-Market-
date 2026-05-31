@@ -114,12 +114,6 @@
     transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Font-size accessibility scaling — zoom scales ALL elements (px and rem) uniformly */
-  html.fs-a1 { zoom: 1.11; }
-  html.fs-a2 { zoom: 1.27; }
-  html.fs-a3 { zoom: 1.44; }
-  html.fs-a4 { zoom: 1.67; }
-
   .section-alt  { background-color: hsl(var(--section-alt)); }
   .section-base { background-color: hsl(var(--section-base)); }
 }

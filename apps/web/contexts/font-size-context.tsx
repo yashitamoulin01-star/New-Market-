@@ -6,17 +6,16 @@ type FontSize = "normal" | "a1" | "a2" | "a3" | "a4"
 
 const SIZES: FontSize[] = ["normal", "a1", "a2", "a3", "a4"]
 
-// html class name used to apply zoom — "normal" uses no class (zoom resets to 1)
-const CLASS: Record<FontSize, string> = {
-  normal: "fs-normal",
-  a1:     "fs-a1",
-  a2:     "fs-a2",
-  a3:     "fs-a3",
-  a4:     "fs-a4",
+const ZOOM: Record<FontSize, string> = {
+  normal: "",
+  a1:     "1.11",
+  a2:     "1.27",
+  a3:     "1.44",
+  a4:     "1.67",
 }
 
 export const FONT_LABEL: Record<FontSize, string> = {
-  normal: "Normal",
+  normal: "A",
   a1:     "A+",
   a2:     "A++",
   a3:     "A+++",
@@ -44,10 +43,8 @@ export function FontSizeProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    const root = document.documentElement
-    // Remove all fs-* classes then add the active one
-    SIZES.forEach((s) => root.classList.remove(CLASS[s]))
-    root.classList.add(CLASS[size])
+    // Apply zoom directly via inline style — faster than class toggling
+    document.documentElement.style.zoom = ZOOM[size]
     localStorage.setItem("nm-font-size", size)
   }, [size])
 

@@ -1,4 +1,4 @@
-import { Youtube, BellRing, Newspaper, CheckSquare } from "lucide-react"
+import { Youtube, BellRing, Newspaper, CheckSquare, CheckCircle2, AlertCircle } from "lucide-react"
 import { getAllSiteSettings } from "@/lib/supabase/site-settings"
 import { updateYouTubeUrlAction, updateSiteNoticeAction, updateTickerEnabledAction } from "./actions"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
@@ -6,7 +6,19 @@ import { FontSizeToggle } from "@/components/layout/font-size-toggle"
 
 export const metadata = { title: "Admin — Settings" }
 
-export default async function AdminSettingsPage() {
+const SAVED_MSG: Record<string, string> = {
+  youtube: "YouTube video URLs saved successfully.",
+  notice:  "Site notice saved successfully.",
+  ticker:  "Ticker setting saved successfully.",
+}
+
+export default async function AdminSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string; error?: string }>
+}) {
+  const { saved, error } = await searchParams
+
   let settings: Record<string, string | null> = {}
   try {
     settings = await getAllSiteSettings()
@@ -21,6 +33,19 @@ export default async function AdminSettingsPage() {
 
   return (
     <div className="container max-w-2xl py-8">
+      {/* Save / error banner */}
+      {saved && SAVED_MSG[saved] && (
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+          <CheckCircle2 size={15} className="shrink-0" />
+          {SAVED_MSG[saved]}
+        </div>
+      )}
+      {error === "invalid_youtube" && (
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:bg-red-950/40 dark:text-red-400">
+          <AlertCircle size={15} className="shrink-0" />
+          No valid YouTube URLs found. Make sure URLs contain a full youtube.com/watch?v= or youtu.be/ link.
+        </div>
+      )}
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Platform Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
