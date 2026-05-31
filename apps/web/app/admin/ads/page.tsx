@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
-import { Megaphone, Eye, EyeOff, Trash2, ExternalLink, Pencil } from "lucide-react"
+import { Megaphone, Eye, EyeOff, Trash2, ExternalLink, Pencil, AlertTriangle, CheckCircle2 } from "lucide-react"
 import { adminListAds } from "@/lib/supabase/ads"
+import type { Advertisement } from "@/lib/supabase/ads-defs"
 import { AD_SLOT_LABELS, AD_SLOTS } from "@/lib/supabase/ads-defs"
 import { toggleAdActiveAction, deleteAdAction, editAdAction } from "./actions"
 import { AdCreateForm } from "./ad-create-form"
@@ -12,8 +13,20 @@ function formatDate(iso: string | null) {
   return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
 }
 
-export default async function AdminAdsPage() {
-  const ads = await adminListAds()
+export default async function AdminAdsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string; error?: string }>
+}) {
+  const { saved, error: qError } = await searchParams
+
+  let ads: Advertisement[] = []
+  let loadError: string | null = null
+  try {
+    ads = await adminListAds()
+  } catch (e) {
+    loadError = e instanceof Error ? e.message : "Failed to load ads"
+  }
 
   const grouped = AD_SLOTS.reduce<Record<string, typeof ads>>((acc, slot) => {
     acc[slot] = ads.filter((a) => a.slot === slot)
@@ -22,6 +35,33 @@ export default async function AdminAdsPage() {
 
   return (
     <div className="container py-8">
+      {/* Schema / load error */}
+      {loadError && (
+        <div className="mb-6 rounded-xl border border-red-300 bg-red-50 p-5 dark:bg-red-950/40">
+          <div className="mb-2 flex items-center gap-2 text-sm font-bold text-red-700 dark:text-red-400">
+            <AlertTriangle size={15} /> Ad Manager — Database Setup Required
+          </div>
+          <p className="mb-3 text-xs text-red-600 dark:text-red-400">
+            The advertisements table is missing required columns. Run the migration below in your Supabase SQL Editor, then refresh.
+          </p>
+          <code className="block rounded bg-red-100 px-3 py-2 text-[11px] text-red-800 dark:bg-red-900/50 dark:text-red-300">
+            supabase/008-ads-schema-update.sql
+          </code>
+          <p className="mt-2 text-[11px] text-red-500">Error: {loadError}</p>
+        </div>
+      )}
+      {/* Save/action feedback */}
+      {saved === "1" && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-400/40 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+          <CheckCircle2 size={14} /> Ad saved successfully.
+        </div>
+      )}
+      {qError && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-400/40 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:bg-red-950/40 dark:text-red-400">
+          <AlertTriangle size={14} /> Error: {qError}
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import {
-  Home, RefreshCw, ExternalLink, Layers, Monitor, Wand2,
+  Home, ExternalLink, Layers, Wand2,
   CheckCircle2, AlertCircle, Loader2, Zap, Settings2,
   Megaphone, Radio, BarChart3, Image, AlignLeft, TrendingUp, X,
 } from "lucide-react"
@@ -480,7 +480,6 @@ export function ControlCenter({
   const [tab, setTab] = useState<Tab>("dashboard")
   const [status, setStatus] = useState<SaveStatus>("idle")
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [previewKey, setPreviewKey] = useState(0)
   const [meta, setMeta] = useState<LayoutMeta>({
     ...DEFAULT_LAYOUT_META,
     ...(layoutConfig.meta ?? {}),
@@ -498,7 +497,6 @@ export function ControlCenter({
       setErrorMsg(result.error)
     } else {
       setStatus("saved")
-      setPreviewKey(k => k + 1)
     }
   }
 
@@ -571,44 +569,7 @@ export function ControlCenter({
           />
         )}
         {tab === "builder" && (
-          <div className="flex h-full">
-            {/* Builder controls */}
-            <div className="w-[420px] shrink-0 overflow-y-auto border-r">
-              <BuilderClient initialConfig={layoutConfig} />
-            </div>
-            {/* Inline live preview */}
-            <div className="flex flex-1 flex-col min-w-0">
-              <div className="flex items-center gap-2 border-b bg-muted/20 px-4 py-2 shrink-0">
-                <Monitor size={13} className="text-muted-foreground" />
-                <span className="text-xs font-semibold text-muted-foreground">Live Preview</span>
-                <div className="ml-auto flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPreviewKey(k => k + 1)}
-                    className="flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition hover:bg-muted/60"
-                  >
-                    <RefreshCw size={11} /> Refresh
-                  </button>
-                  <a
-                    href="/"
-                    target="_blank"
-                    className="flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition hover:bg-muted/60"
-                  >
-                    <ExternalLink size={11} /> Open tab
-                  </a>
-                </div>
-              </div>
-              <div className="relative flex-1">
-                <iframe
-                  key={previewKey}
-                  src="/"
-                  title="Homepage preview"
-                  className="absolute inset-0 h-full w-full border-0"
-                  sandbox="allow-scripts allow-same-origin allow-forms"
-                />
-              </div>
-            </div>
-          </div>
+          <BuilderClient initialConfig={layoutConfig} />
         )}
       </div>
 
