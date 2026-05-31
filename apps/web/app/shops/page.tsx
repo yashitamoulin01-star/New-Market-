@@ -1,15 +1,11 @@
 import Link from "next/link"
 import { Store, Plus } from "lucide-react"
 import { getCachedShops } from "@/lib/data/cached"
-import {
-  SHOP_CATEGORY_LABELS_BI,
-  type ShopCategory,
-} from "@/lib/supabase/shops-defs"
 import { ShopCard } from "@/components/shops/shop-card"
 import { T } from "@/components/ui/t"
 
 interface PageProps {
-  searchParams: Promise<{ category?: string; page?: string }>
+  searchParams: Promise<{ page?: string }>
 }
 
 export const metadata = {
@@ -19,8 +15,7 @@ export const metadata = {
 
 export default async function ShopsPage({ searchParams }: PageProps) {
   const params = await searchParams
-  const category = params.category as ShopCategory | undefined
-  const page     = Number(params.page ?? 1)
+  const page = Number(params.page ?? 1)
 
   let result = {
     items: [] as Awaited<ReturnType<typeof getCachedShops>>["items"],
@@ -29,15 +24,14 @@ export default async function ShopsPage({ searchParams }: PageProps) {
   }
 
   try {
-    result = await getCachedShops({ page, limit: 12, category })
+    result = await getCachedShops({ page, limit: 12 })
   } catch {
     // Supabase unavailable
   }
 
   function buildHref(overrides: Record<string, string | undefined>) {
-    const merged = { category, page: undefined, ...overrides }
+    const merged = { page: undefined, ...overrides }
     const p = new URLSearchParams()
-    if (merged.category) p.set("category", merged.category)
     if (merged.page && merged.page !== "1") p.set("page", merged.page)
     const q = p.toString()
     return `/shops${q ? "?" + q : ""}`
@@ -70,33 +64,6 @@ export default async function ShopsPage({ searchParams }: PageProps) {
           <Plus size={15} />
           <T en="Add Shop" hi="दुकान जोड़ें" />
         </Link>
-      </div>
-
-      {/* Category filters */}
-      <div className="mb-6 flex flex-wrap gap-1.5">
-        <Link
-          href={buildHref({ category: undefined })}
-          className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-            !category
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary"
-          }`}
-        >
-          <T en="All Shops" hi="सभी दुकानें" />
-        </Link>
-        {(Object.entries(SHOP_CATEGORY_LABELS_BI) as [ShopCategory, { en: string; hi: string }][]).map(([key, label]) => (
-          <Link
-            key={key}
-            href={buildHref({ category: key })}
-            className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-              category === key
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary"
-            }`}
-          >
-            <T en={label.en} hi={label.hi} />
-          </Link>
-        ))}
       </div>
 
       {/* Grid */}
@@ -136,19 +103,10 @@ export default async function ShopsPage({ searchParams }: PageProps) {
         <div className="rounded-xl border border-dashed bg-card py-16 text-center">
           <Store size={32} className="mx-auto mb-3 text-muted-foreground/40" />
           <p className="mb-1 font-medium text-muted-foreground">
-            {category
-              ? <T en="No shops in this category yet." hi="इस श्रेणी में कोई दुकान नहीं।" />
-              : <T en="No shops listed yet." hi="अभी कोई दुकान नहीं।" />
-            }
+            <T en="No shops listed yet." hi="अभी कोई दुकान नहीं।" />
           </p>
           <p className="mb-4 text-sm text-muted-foreground">
-            {category ? (
-              <Link href="/shops" className="text-primary hover:underline">
-                <T en="View all categories" hi="सभी श्रेणियाँ देखें" />
-              </Link>
-            ) : (
-              <T en="Be the first to list your shop in New Market." hi="न्यू मार्केट में अपनी दुकान पहले जोड़ें।" />
-            )}
+            <T en="Be the first to list your shop in New Market." hi="न्यू मार्केट में अपनी दुकान पहले जोड़ें।" />
           </p>
           <Link
             href="/shops/add"

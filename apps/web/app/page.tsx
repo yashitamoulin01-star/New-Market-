@@ -8,7 +8,7 @@ import {
 import {
   getCachedNews, getCachedBreakingNews, getCachedHomepageNews,
   getCachedJobs, getCachedShops, getCachedProperties,
-  getCachedActiveElection, getCachedHomepageSettings,
+  getCachedActiveElection, getCachedHomepageSettings, getCachedAds,
 } from "@/lib/data/cached"
 import { NewsTicker } from "@/components/home/news-ticker"
 import { AdBanner } from "@/components/home/ad-banner"
@@ -451,6 +451,36 @@ function CommunitySidebarWidget({ wide }: { wide?: boolean }) {
   )
 }
 
+async function SmartAdSidebar({
+  showAd,
+  slot,
+  fallbackType,
+  items,
+  wide,
+}: {
+  showAd: boolean
+  slot: "homepage-left" | "homepage-right"
+  fallbackType: "trending" | "latest" | "jobs" | "community" | "none"
+  items: NewsCardData[]
+  wide?: boolean
+}) {
+  if (showAd) {
+    let hasAd = false
+    try {
+      const ads = await getCachedAds(slot)
+      hasAd = ads.length > 0
+    } catch { /* table not ready */ }
+
+    if (hasAd) {
+      const cls = wide
+        ? "hidden lg:block shrink-0 rounded-lg overflow-hidden border"
+        : "hidden xl:block shrink-0 rounded-lg overflow-hidden border"
+      return <AdBanner slot={slot} size="skyscraper" className={cls} />
+    }
+  }
+  return <SidebarFallbackPanel type={fallbackType} items={items} wide={wide} />
+}
+
 function SidebarFallbackPanel({
   type,
   items,
@@ -725,8 +755,25 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
 
   if (items.length === 0) return <EmptyNews />
 
-  const headlineIdx = items.findIndex((a) => a.homepage_slot === "headline")
-  const featured = headlineIdx >= 0 ? items[headlineIdx] : items[0]
+  // Read intelligence meta from layout config (Task 9: wire up content priority controls)
+  const layoutMeta = (settings.layout_config as LayoutConfig | null | undefined)?.meta
+  const contentPriority   = layoutMeta?.content_priority   ?? "image_first"
+  const trendingPreference = layoutMeta?.trending_preference ?? "trending"
+
+  // Featured article selection — respects content_priority setting
+  const featured = (() => {
+    if (contentPriority === "image_first") {
+      // Prefer headline slot with image, then any article with image
+      const withImg = items.filter((a) => a.cover_image_url)
+      const headlineWithImg = withImg.find((a) => a.homepage_slot === "headline")
+      if (headlineWithImg) return headlineWithImg
+      return withImg[0] ?? items[0]
+    }
+    // text_first: prefer headline slot regardless of image
+    const headlineIdx = items.findIndex((a) => a.homepage_slot === "headline")
+    return headlineIdx >= 0 ? items[headlineIdx] : items[0]
+  })()
+
   const rest = items.filter((a) => a.id !== featured.id)
 
   const withImages = rest.filter((a) => a.cover_image_url)
@@ -734,10 +781,17 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
   const sideStories  = [...withImages, ...noImages].slice(0, 4)
   const latestItems  = items.slice(0, 8)
   const textStories  = noImages.slice(0, 6)
+
+  // Trending selection — respects trending_preference setting
   const trendingItems = (() => {
+    if (trendingPreference === "latest") {
+      // Show the most recent articles that have images
+      return withImages.slice(0, 5)
+    }
+    // Default: prefer actually trending articles
     const t = items.filter((a) => a.is_trending && a.cover_image_url)
-    return t.length >= 3 ? t : withImages
-  })().slice(0, 5)
+    return (t.length >= 3 ? t : withImages).slice(0, 5)
+  })()
 
   // Compute what's actually shown
   const showHero    = settings.show_hero_news
@@ -747,22 +801,20 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
   const showTrend   = settings.show_trending && trendingItems.length > 0
   const showTexts   = settings.show_text_stories && textStories.length > 0
 
-  // Auto-adapt hero style: switch to text-split if hero image is missing
-  const effectiveHeroStyle =
-    settings.hero_style === "photo" && !featured.cover_image_url ? "text-split" : settings.hero_style
+  // Hero style: prefer layout config's hero variant over settings.hero_style
+  const layoutConfig = settings.layout_config as LayoutConfig | null | undefined
+  const heroVariantFromConfig = layoutConfig?.rows
+    ?.flatMap((r) => r.sections)
+    ?.find((s) => s.id === "hero")
+    ?.variant as "photo" | "text-split" | undefined
+  const heroStylePref = heroVariantFromConfig ?? settings.hero_style
+  const effectiveHeroStyle: "photo" | "text-split" =
+    heroStylePref === "photo" && !featured.cover_image_url ? "text-split" : (heroStylePref ?? "text-split")
 
   const py = density === "compact" ? "py-3" : "py-4"
 
   return (
     <div className="section-base">
-      {/* Top banner ad */}
-      {settings.show_top_ad && (
-        <Suspense fallback={null}>
-          <AdBanner slot="homepage-top" size="leaderboard" className="border-b" />
-        </Suspense>
-      )}
-
-
       {/* Section header bar */}
       <div className="border-b">
         <div className="container flex items-center justify-between py-2">
@@ -783,13 +835,9 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
         <div className="flex items-start gap-3">
 
           {/* Left sidebar */}
-          {settings.show_left_ad ? (
-            <Suspense fallback={null}>
-              <AdBanner slot="homepage-left" size="skyscraper" className="hidden xl:block shrink-0 rounded-lg overflow-hidden border" />
-            </Suspense>
-          ) : (
-            <SidebarFallbackPanel type={settings.left_sidebar_fallback} items={items} />
-          )}
+          <Suspense fallback={null}>
+            <SmartAdSidebar showAd={settings.show_left_ad} slot="homepage-left" fallbackType={settings.left_sidebar_fallback} items={items} />
+          </Suspense>
 
           {/* Center content */}
           <div className="min-w-0 flex-1 space-y-3">
@@ -918,13 +966,9 @@ async function MainNewsSection({ settings, density }: { settings: HomepageSettin
           {/* end center */}
 
           {/* Right sidebar — visible from lg, matches ETRetail right column */}
-          {settings.show_right_ad ? (
-            <Suspense fallback={null}>
-              <AdBanner slot="homepage-right" size="skyscraper" className="hidden xl:block shrink-0 rounded-lg overflow-hidden border" />
-            </Suspense>
-          ) : (
-            <SidebarFallbackPanel type={settings.right_sidebar_fallback} items={items} wide />
-          )}
+          <Suspense fallback={null}>
+            <SmartAdSidebar showAd={settings.show_right_ad} slot="homepage-right" fallbackType={settings.right_sidebar_fallback} items={items} wide />
+          </Suspense>
 
         </div>
       </div>

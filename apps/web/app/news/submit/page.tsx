@@ -7,6 +7,7 @@ import { submitNewsAction } from "./actions"
 import { useLanguage } from "@/contexts/language-context"
 import { ImageUploadInput } from "@/components/ui/image-upload-input"
 import { SubmissionConsent } from "@/components/ui/submission-consent"
+import { PhoneInput } from "@/components/ui/phone-input"
 
 const NEWS_CATEGORIES = [
   { value: "GENERAL",   en: "General",   hi: "सामान्य" },
@@ -49,6 +50,7 @@ export default function SubmitNewsPage() {
   const { lang } = useLanguage()
   const [anon, setAnon] = useState(false)
   const [agreed, setAgreed] = useState(false)
+  const [phoneValid, setPhoneValid] = useState(false)
 
   const t = {
     backToNews:       lang === "hi" ? "← समाचार पर वापस" : "← Back to News",
@@ -265,17 +267,20 @@ export default function SubmitNewsPage() {
 
         <div>
           <label htmlFor="submitter_phone" className={labelClass}>
-            {t.phone} <span className="text-muted-foreground">{t.excerptOptional}</span>
+            {t.phone} <span className="text-destructive">{t.required}</span>
           </label>
-          <input
-            id="submitter_phone" name="submitter_phone"
-            type="tel" maxLength={15} placeholder="+91 …" className={inputClass}
+          <PhoneInput
+            name="submitter_phone"
+            lang={lang}
+            required
+            className={inputClass}
+            onValidChange={setPhoneValid}
           />
         </div>
 
         <SubmissionConsent lang={lang} onChecked={setAgreed} />
 
-        <SubmitButton disabled={!agreed} />
+        <SubmitButton disabled={!agreed || !phoneValid} />
       </form>
     </div>
   )

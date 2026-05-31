@@ -20,7 +20,7 @@ export async function listApprovedShops(params: ListShopsParams = {}) {
   let query = supabase
     .from("shops")
     .select(
-      "id, name, category, address, phone, logo_url, cover_image_url, opening_hours, tags, is_verified, is_featured, view_count, created_at",
+      "id, name, category, address, phone, logo_url, cover_image_url, images, opening_hours, tags, is_verified, is_featured, view_count, created_at",
       { count: "exact" }
     )
     .eq("status", "APPROVED")
@@ -130,6 +130,27 @@ export async function moderateShop(
 export async function adminToggleVerified(id: string, is_verified: boolean) {
   const supabase = await createClient()
   const { error } = await supabase.from("shops").update({ is_verified }).eq("id", id)
+  if (error) throw error
+}
+
+export async function adminUpdateShop(
+  id: string,
+  patch: Partial<Pick<Shop, "name" | "description" | "category" | "address" | "phone" | "email" | "website" | "opening_hours" | "is_featured" | "is_verified">>
+) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("shops")
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq("id", id)
+  if (error) throw error
+}
+
+export async function restoreShop(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("shops")
+    .update({ status: "PENDING", rejection_note: null })
+    .eq("id", id)
   if (error) throw error
 }
 

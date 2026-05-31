@@ -1,6 +1,6 @@
 import Link from "next/link"
-import Image from "next/image"
 import type { Metadata } from "next"
+import { SafeImage } from "@/components/ui/safe-image"
 import {
   Clock, CheckCircle, XCircle, Eye, Inbox, ShieldOff,
   Zap, Pin, Flame, Star, ChevronDown, ChevronUp,
@@ -176,7 +176,7 @@ export default async function AdminNewsPage({
                   {/* Cover image */}
                   {article.cover_image_url && (
                     <div className="relative h-52 w-full border-b overflow-hidden">
-                      <Image src={article.cover_image_url} alt={article.title} fill className="object-cover" />
+                      <SafeImage src={article.cover_image_url} alt={article.title} fill className="object-cover" />
                       <div className="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white">
                         Cover Image
                       </div>

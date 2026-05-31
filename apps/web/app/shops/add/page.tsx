@@ -5,10 +5,11 @@ import { useFormStatus } from "react-dom"
 import Link from "next/link"
 import { Store, CheckCircle, ChevronLeft } from "lucide-react"
 import { addShopAction, type AddShopState } from "./actions"
-import { SHOP_CATEGORY_LABELS_BI } from "@/lib/supabase/shops-defs"
 import { useLanguage } from "@/contexts/language-context"
 import { ImageUploadInput } from "@/components/ui/image-upload-input"
+import { MultiImageGalleryInput } from "@/components/ui/multi-image-gallery-input"
 import { SubmissionConsent } from "@/components/ui/submission-consent"
+import { PhoneInput } from "@/components/ui/phone-input"
 
 const initialState: AddShopState = { success: false }
 
@@ -44,6 +45,7 @@ export default function AddShopPage() {
   const [state, action] = useActionState(addShopAction, initialState)
   const { lang } = useLanguage()
   const [agreed, setAgreed] = useState(false)
+  const [phoneValid, setPhoneValid] = useState(false)
   const hi = lang === "hi"
 
   if (state.success && state.shop) {
@@ -121,18 +123,6 @@ export default function AddShopPage() {
             </div>
 
             <div>
-              <FieldLabel htmlFor="category" required>
-                {hi ? "श्रेणी" : "Category"}
-              </FieldLabel>
-              <select id="category" name="category" required className={selectCls}>
-                <option value="">{hi ? "श्रेणी चुनें" : "Select category"}</option>
-                {Object.entries(SHOP_CATEGORY_LABELS_BI).map(([k, v]) => (
-                  <option key={k} value={k}>{hi ? v.hi : v.en}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
               <FieldLabel htmlFor="description" required>
                 {hi ? "विवरण" : "Description"}
               </FieldLabel>
@@ -204,13 +194,15 @@ export default function AddShopPage() {
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <FieldLabel htmlFor="phone">
+                <FieldLabel htmlFor="phone" required>
                   {hi ? "फ़ोन नंबर" : "Phone Number"}
                 </FieldLabel>
-                <input
-                  id="phone" name="phone" type="tel"
-                  placeholder={hi ? "10 अंकों का मोबाइल नंबर" : "10-digit mobile number"}
+                <PhoneInput
+                  name="phone"
+                  lang={lang}
+                  required
                   className={inputCls}
+                  onValidChange={setPhoneValid}
                 />
               </div>
               <div>
@@ -235,11 +227,17 @@ export default function AddShopPage() {
         {/* ── Media ── */}
         <section className="rounded-xl border bg-card p-5">
           <h2 className="mb-4 font-heading text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            {hi ? "छवियाँ (वैकल्पिक)" : "Images (optional)"}
+            {hi ? "तस्वीरें (वैकल्पिक)" : "Photos (optional)"}
           </h2>
           <div className="space-y-4">
             <ImageUploadInput name="logo_url" label={hi ? "लोगो" : "Logo"} optional lang={lang} />
-            <ImageUploadInput name="cover_image_url" label={hi ? "कवर इमेज" : "Cover Image"} optional lang={lang} />
+            <MultiImageGalleryInput
+              name="gallery_image"
+              label={hi ? "दुकान की तस्वीरें" : "Shop Photos"}
+              lang={lang}
+              maxImages={6}
+              hint={hi ? "पहली तस्वीर कवर के रूप में दिखेगी।" : "First image will be shown as the cover photo."}
+            />
           </div>
         </section>
 
@@ -251,7 +249,7 @@ export default function AddShopPage() {
 
         <SubmissionConsent lang={lang} onChecked={setAgreed} />
 
-        <SubmitButton disabled={!agreed} />
+        <SubmitButton disabled={!agreed || !phoneValid} />
       </form>
     </div>
   )

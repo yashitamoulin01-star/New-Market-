@@ -18,6 +18,7 @@ export interface Shop {
   website: string | null
   logo_url: string | null
   cover_image_url: string | null
+  images: string[]
   opening_hours: string | null
   tags: string[]
   status: ContentStatus
@@ -33,20 +34,21 @@ export interface Shop {
 export type ShopCardData = Pick<
   Shop,
   | "id" | "name" | "category" | "address" | "phone"
-  | "logo_url" | "cover_image_url" | "opening_hours" | "tags"
+  | "logo_url" | "cover_image_url" | "images" | "opening_hours" | "tags"
   | "is_verified" | "is_featured" | "view_count" | "created_at"
 >
 
 export interface SubmitShopInput {
   name: string
   description: string
-  category: ShopCategory
+  category?: ShopCategory
   address: string
   phone?: string
   email?: string
   website?: string
   logo_url?: string
   cover_image_url?: string
+  images?: string[]
   opening_hours?: string
   tags?: string[]
 }

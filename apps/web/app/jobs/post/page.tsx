@@ -7,11 +7,11 @@ import { Briefcase, CheckCircle, ChevronLeft } from "lucide-react"
 import { postJobAction, type PostJobState } from "./actions"
 import {
   JOB_TYPE_LABELS_BI,
-  JOB_CATEGORY_LABELS_BI,
   APP_MODE_LABELS_BI,
 } from "@/lib/supabase/jobs-defs"
 import { useLanguage } from "@/contexts/language-context"
 import { SubmissionConsent } from "@/components/ui/submission-consent"
+import { PhoneInput } from "@/components/ui/phone-input"
 
 const initialState: PostJobState = { success: false }
 
@@ -47,6 +47,7 @@ export default function PostJobPage() {
   const [state, action] = useActionState(postJobAction, initialState)
   const { lang } = useLanguage()
   const [agreed, setAgreed] = useState(false)
+  const [phoneValid, setPhoneValid] = useState(false)
 
   const hi = lang === "hi"
 
@@ -125,29 +126,16 @@ export default function PostJobPage() {
               />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <FieldLabel htmlFor="category" required>
-                  {hi ? "श्रेणी" : "Category"}
-                </FieldLabel>
-                <select id="category" name="category" required className={selectCls}>
-                  <option value="">{hi ? "श्रेणी चुनें" : "Select category"}</option>
-                  {Object.entries(JOB_CATEGORY_LABELS_BI).map(([k, v]) => (
-                    <option key={k} value={k}>{hi ? v.hi : v.en}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <FieldLabel htmlFor="job_type" required>
-                  {hi ? "नौकरी का प्रकार" : "Job Type"}
-                </FieldLabel>
-                <select id="job_type" name="job_type" required className={selectCls}>
-                  <option value="">{hi ? "प्रकार चुनें" : "Select type"}</option>
-                  {Object.entries(JOB_TYPE_LABELS_BI).map(([k, v]) => (
-                    <option key={k} value={k}>{hi ? v.hi : v.en}</option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <FieldLabel htmlFor="job_type" required>
+                {hi ? "नौकरी का प्रकार" : "Job Type"}
+              </FieldLabel>
+              <select id="job_type" name="job_type" required className={selectCls}>
+                <option value="">{hi ? "प्रकार चुनें" : "Select type"}</option>
+                {Object.entries(JOB_TYPE_LABELS_BI).map(([k, v]) => (
+                  <option key={k} value={k}>{hi ? v.hi : v.en}</option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -335,13 +323,15 @@ export default function PostJobPage() {
                 />
               </div>
               <div>
-                <FieldLabel htmlFor="contact_phone">
+                <FieldLabel htmlFor="contact_phone" required>
                   {hi ? "संपर्क फ़ोन" : "Contact Phone"}
                 </FieldLabel>
-                <input
-                  id="contact_phone" name="contact_phone" type="tel"
-                  placeholder={hi ? "10 अंकों का मोबाइल नंबर" : "10-digit mobile number"}
+                <PhoneInput
+                  name="contact_phone"
+                  lang={lang}
+                  required
                   className={inputCls}
+                  onValidChange={setPhoneValid}
                 />
               </div>
             </div>
@@ -366,7 +356,7 @@ export default function PostJobPage() {
 
         <SubmissionConsent lang={lang} onChecked={setAgreed} />
 
-        <SubmitButton disabled={!agreed} />
+        <SubmitButton disabled={!agreed || !phoneValid} />
       </form>
     </div>
   )

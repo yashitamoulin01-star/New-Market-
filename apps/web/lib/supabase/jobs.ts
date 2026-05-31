@@ -127,6 +127,27 @@ export async function moderateJob(
   if (error) throw error
 }
 
+export async function adminUpdateJob(
+  id: string,
+  patch: Partial<Pick<JobListing, "title" | "description" | "requirements" | "benefits" | "shop_name" | "shop_address" | "contact_name" | "contact_email" | "contact_phone" | "salary_label" | "timing" | "is_featured">>
+) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("job_listings")
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq("id", id)
+  if (error) throw error
+}
+
+export async function restoreJob(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("job_listings")
+    .update({ status: "PENDING", rejection_note: null })
+    .eq("id", id)
+  if (error) throw error
+}
+
 export async function adminDeleteJob(id: string) {
   const supabase = await createClient()
   const { error } = await supabase.from("job_listings").delete().eq("id", id)

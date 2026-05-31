@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
-import Image from "next/image"
 import Link from "next/link"
+import { SafeImage } from "@/components/ui/safe-image"
 import type { Metadata } from "next"
 import { ShieldOff } from "lucide-react"
 import { getArticleBySlug } from "@/lib/supabase/news"
@@ -99,7 +99,7 @@ export default async function ArticlePage({
       {/* Cover image */}
       {article.cover_image_url && (
         <div className="relative mb-8 h-56 w-full overflow-hidden rounded-xl sm:h-72 lg:h-96">
-          <Image
+          <SafeImage
             src={article.cover_image_url}
             alt={article.title}
             fill

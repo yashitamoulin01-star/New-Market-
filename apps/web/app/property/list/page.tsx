@@ -7,8 +7,9 @@ import { Building2, CheckCircle, ChevronLeft } from "lucide-react"
 import { listPropertyAction, type ListPropertyState } from "./actions"
 import { PROPERTY_TYPE_LABELS_BI, LISTING_TYPE_LABELS_BI } from "@/lib/supabase/property-defs"
 import { useLanguage } from "@/contexts/language-context"
-import { ImageUploadInput } from "@/components/ui/image-upload-input"
+import { MultiImageGalleryInput } from "@/components/ui/multi-image-gallery-input"
 import { SubmissionConsent } from "@/components/ui/submission-consent"
+import { PhoneInput } from "@/components/ui/phone-input"
 
 const initialState: ListPropertyState = { success: false }
 
@@ -50,6 +51,7 @@ export default function ListPropertyPage() {
   const [state, action] = useActionState(listPropertyAction, initialState)
   const { lang } = useLanguage()
   const [agreed, setAgreed] = useState(false)
+  const [phoneValid, setPhoneValid] = useState(false)
   const hi = lang === "hi"
 
   if (state.success && state.property) {
@@ -301,28 +303,14 @@ export default function ListPropertyPage() {
         {/* ── Images ── */}
         <section className="rounded-xl border bg-card p-5">
           <h2 className="mb-4 font-heading text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            {hi ? "छवियाँ (वैकल्पिक)" : "Images (optional)"}
+            {hi ? "तस्वीरें (वैकल्पिक)" : "Photos (optional)"}
           </h2>
-          <div className="space-y-4">
-            <ImageUploadInput
-              name="cover_image_url"
-              label={hi ? "कवर फ़ोटो" : "Cover Photo"}
-              optional
-              hint={hi ? "यह मुख्य तस्वीर कार्ड पर दिखेगी।" : "This main photo will appear on the listing card."}
-              lang={lang}
-            />
-            <div>
-              <FieldLabel htmlFor="images">
-                {hi ? "अतिरिक्त इमेज URLs (एक प्रति पंक्ति)" : "Additional Image URLs (one per line)"}
-              </FieldLabel>
-              <textarea
-                id="images" name="images"
-                placeholder={"https://example.com/image2.jpg\nhttps://example.com/image3.jpg"}
-                className={textareaCls}
-                style={{ minHeight: 80 }}
-              />
-            </div>
-          </div>
+          <MultiImageGalleryInput
+            name="gallery_image"
+            lang={lang}
+            maxImages={8}
+            hint={hi ? "पहली तस्वीर कार्ड पर दिखेगी। लिंक या डिवाइस से अपलोड करें।" : "First image appears on the listing card. Upload from device or paste a URL."}
+          />
         </section>
 
         {/* ── Contact ── */}
@@ -343,13 +331,15 @@ export default function ListPropertyPage() {
                 />
               </div>
               <div>
-                <FieldLabel htmlFor="contact_phone">
+                <FieldLabel htmlFor="contact_phone" required>
                   {hi ? "फ़ोन नंबर" : "Phone Number"}
                 </FieldLabel>
-                <input
-                  id="contact_phone" name="contact_phone" type="tel"
-                  placeholder={hi ? "10 अंकों का मोबाइल" : "10-digit mobile"}
+                <PhoneInput
+                  name="contact_phone"
+                  lang={lang}
+                  required
                   className={inputCls}
+                  onValidChange={setPhoneValid}
                 />
               </div>
             </div>
@@ -373,7 +363,7 @@ export default function ListPropertyPage() {
 
         <SubmissionConsent lang={lang} onChecked={setAgreed} />
 
-        <SubmitButton disabled={!agreed} />
+        <SubmitButton disabled={!agreed || !phoneValid} />
       </form>
     </div>
   )

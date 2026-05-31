@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Image, { ImageProps } from "next/image"
+import { ImageIcon } from "lucide-react"
 
 interface SafeImageProps extends ImageProps {
   hideOnError?: boolean
@@ -13,7 +14,9 @@ export function SafeImage({ alt, src, className, hideOnError = false, ...props }
   if (error || !src) {
     if (hideOnError) return null
     return (
-      <div className={`flex items-center justify-center bg-muted/50 ${className || ""}`} />
+      <div className={`flex items-center justify-center bg-muted/40 ${className || ""}`}>
+        <ImageIcon size={20} className="text-muted-foreground/30" />
+      </div>
     )
   }
 

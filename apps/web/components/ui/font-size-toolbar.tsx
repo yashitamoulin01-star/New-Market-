@@ -10,12 +10,14 @@ export function FontSizeToolbar() {
       {sizes.map((s) => (
         <button
           key={s}
+          type="button"
           onClick={() => setSize(s)}
           aria-label={`Font size ${FONT_LABEL[s]}`}
-          className={`rounded px-2 py-1 text-[11px] font-semibold transition-all ${
+          aria-pressed={size === s}
+          className={`rounded px-3 py-1.5 text-[12px] font-bold transition-all ${
             size === s
-              ? "bg-background text-foreground shadow-sm ring-1 ring-border"
-              : "text-muted-foreground hover:bg-background/60 hover:text-foreground"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-background/80 hover:text-foreground"
           }`}
         >
           {FONT_LABEL[s]}

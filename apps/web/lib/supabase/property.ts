@@ -127,6 +127,27 @@ export async function moderateProperty(
   if (error) throw error
 }
 
+export async function adminUpdateProperty(
+  id: string,
+  patch: Partial<Pick<PropertyListing, "title" | "description" | "address" | "floor" | "area_sqft" | "price_label" | "contact_name" | "contact_phone" | "contact_email" | "is_featured">>
+) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("property_listings")
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq("id", id)
+  if (error) throw error
+}
+
+export async function restoreProperty(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("property_listings")
+    .update({ status: "PENDING", rejection_note: null })
+    .eq("id", id)
+  if (error) throw error
+}
+
 export async function adminDeleteProperty(id: string) {
   const supabase = await createClient()
   const { error } = await supabase.from("property_listings").delete().eq("id", id)

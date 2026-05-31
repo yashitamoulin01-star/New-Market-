@@ -1,6 +1,6 @@
 "use server"
 
-import { submitShop, type SubmitShopInput, type ShopCategory } from "@/lib/supabase/shops"
+import { submitShop, type SubmitShopInput } from "@/lib/supabase/shops"
 
 export interface AddShopState {
   success: boolean
@@ -31,16 +31,22 @@ export async function addShopAction(
   if (email && !isValidEmail(email))
     return { success: false, error: "Please enter a valid email address." }
 
+  const galleryImages = formData
+    .getAll("gallery_image")
+    .map(v => String(v).trim())
+    .filter(Boolean)
+
   const input: SubmitShopInput = {
     name:            strip(String(raw.name || "")),
     description:     strip(String(raw.description || "")),
-    category:        raw.category as ShopCategory,
+    category:        "OTHER",
     address:         strip(String(raw.address || "")),
     phone:           String(raw.phone || "").trim() || undefined,
     email,
     website:         String(raw.website || "").trim() || undefined,
     logo_url:        String(raw.logo_url || "").trim() || undefined,
-    cover_image_url: String(raw.cover_image_url || "").trim() || undefined,
+    cover_image_url: galleryImages[0] || undefined,
+    images:          galleryImages,
     opening_hours:   strip(String(raw.opening_hours || "")) || undefined,
     tags,
   }
@@ -48,7 +54,6 @@ export async function addShopAction(
   if (!input.name)        return { success: false, error: "Shop name is required." }
   if (input.name.length > 100) return { success: false, error: "Shop name must be under 100 characters." }
   if (!input.description) return { success: false, error: "Description is required." }
-  if (!input.category)    return { success: false, error: "Category is required." }
   if (!input.address)     return { success: false, error: "Address is required." }
 
   try {

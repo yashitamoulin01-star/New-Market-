@@ -55,7 +55,7 @@ export interface SubmitJobInput {
   requirements?: string
   benefits?: string
   job_type: JobType
-  category: JobCategory
+  category?: JobCategory
   shop_name: string
   shop_address?: string
   salary_min?: number

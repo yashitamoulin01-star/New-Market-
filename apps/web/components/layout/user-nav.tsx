@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { signOutAction } from "@/lib/actions/auth"
 import type { User } from "@supabase/supabase-js"
@@ -18,12 +19,12 @@ export function UserNav({ initialUser }: UserNavProps) {
   )
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const router = useRouter()
 
   useEffect(() => {
     const supabase = createClient()
 
-    // Sync state when server re-renders with updated initialUser
-    // (e.g. after sign-in/sign-out navigation)
+    // Sync with latest server-rendered initialUser (changes when root layout re-runs after navigation)
     setUser(initialUser ?? null)
     if (initialUser?.user_metadata?.role === "admin") {
       setIsAdmin(true)
@@ -40,11 +41,16 @@ export function UserNav({ initialUser }: UserNavProps) {
       setIsAdmin(false)
     }
 
-    // Subscribe to live auth changes (sign-in from another tab, token refresh, etc.)
+    // Subscribe to live auth changes and refresh server state when auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         const sessionUser = session?.user ?? null
         setUser(sessionUser)
+
+        // Refresh server components so initialUser is up-to-date
+        if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
+          router.refresh()
+        }
 
         if (!sessionUser) {
           setIsAdmin(false)

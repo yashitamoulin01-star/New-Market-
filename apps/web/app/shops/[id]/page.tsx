@@ -1,11 +1,11 @@
 import Link from "next/link"
-import Image from "next/image"
 import { notFound } from "next/navigation"
+import { SafeImage } from "@/components/ui/safe-image"
 import {
   MapPin, Phone, Mail, Globe, Clock,
   BadgeCheck, Eye, ChevronLeft, Calendar,
 } from "lucide-react"
-import { getShopById, SHOP_CATEGORY_LABELS_BI } from "@/lib/supabase/shops"
+import { getShopById } from "@/lib/supabase/shops"
 import { T } from "@/components/ui/t"
 
 interface PageProps {
@@ -30,8 +30,6 @@ export default async function ShopDetailPage({ params }: PageProps) {
   const listedDate = new Date(shop.created_at).toLocaleDateString("en-IN", {
     day: "numeric", month: "long", year: "numeric",
   })
-  const catLabel = SHOP_CATEGORY_LABELS_BI[shop.category]
-
   return (
     <div className="container py-8">
       <Link
@@ -44,7 +42,7 @@ export default async function ShopDetailPage({ params }: PageProps) {
 
       {shop.cover_image_url && (
         <div className="relative mb-6 h-48 w-full overflow-hidden rounded-xl sm:h-64">
-          <Image
+          <SafeImage
             src={shop.cover_image_url}
             alt={shop.name}
             fill
@@ -61,14 +59,11 @@ export default async function ShopDetailPage({ params }: PageProps) {
             <div className="mb-4 flex items-start gap-4">
               {shop.logo_url && (
                 <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border bg-muted">
-                  <Image src={shop.logo_url} alt={shop.name} fill className="object-contain p-1" />
+                  <SafeImage src={shop.logo_url} alt={shop.name} fill className="object-contain p-1" />
                 </div>
               )}
               <div className="flex-1">
                 <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                    {catLabel ? <T en={catLabel.en} hi={catLabel.hi} /> : shop.category}
-                  </span>
                   {shop.is_verified && (
                     <span className="flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
                       <BadgeCheck size={11} />

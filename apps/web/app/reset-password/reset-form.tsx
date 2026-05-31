@@ -6,6 +6,7 @@ import Link from "next/link"
 import { CheckCircle2 } from "lucide-react"
 import { resetPasswordAction, type AuthState } from "@/lib/actions/auth"
 import { useLanguage } from "@/contexts/language-context"
+import { PasswordInput } from "@/components/ui/password-input"
 
 const initialState: AuthState = {}
 
@@ -68,10 +69,9 @@ export function ResetPasswordForm() {
           <label htmlFor="password" className="mb-1 block text-sm font-medium">
             {hi ? "नया पासवर्ड" : "New password"}
           </label>
-          <input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             required
             minLength={6}
             autoComplete="new-password"
@@ -84,10 +84,9 @@ export function ResetPasswordForm() {
           <label htmlFor="confirm" className="mb-1 block text-sm font-medium">
             {hi ? "पासवर्ड की पुष्टि करें" : "Confirm new password"}
           </label>
-          <input
+          <PasswordInput
             id="confirm"
             name="confirm"
-            type="password"
             required
             minLength={6}
             autoComplete="new-password"

@@ -38,12 +38,11 @@ export async function listPropertyAction(
     ? amenitiesRaw.split(",").map((a) => a.trim()).filter(Boolean).slice(0, 20)
     : []
 
-  const coverUrl = String(raw.cover_image_url || "").trim()
-  const imagesRaw = String(raw.images || "").trim()
-  const additionalImages = imagesRaw
-    ? imagesRaw.split("\n").map((u) => u.trim()).filter(Boolean)
-    : []
-  const images = [coverUrl, ...additionalImages].filter(Boolean).slice(0, 10)
+  const galleryImages = formData
+    .getAll("gallery_image")
+    .map(v => String(v).trim())
+    .filter(Boolean)
+  const images = galleryImages.slice(0, 10)
 
   const contactEmail = String(raw.contact_email || "").trim().toLowerCase()
 

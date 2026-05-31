@@ -3,15 +3,13 @@ import { Briefcase, Plus } from "lucide-react"
 import { getCachedJobs } from "@/lib/data/cached"
 import {
   JOB_TYPE_LABELS_BI,
-  JOB_CATEGORY_LABELS_BI,
-  type JobCategory,
   type JobType,
 } from "@/lib/supabase/jobs-defs"
 import { JobCard } from "@/components/jobs/job-card"
 import { T } from "@/components/ui/t"
 
 interface PageProps {
-  searchParams: Promise<{ category?: string; type?: string; page?: string }>
+  searchParams: Promise<{ type?: string; page?: string }>
 }
 
 export const metadata = {
@@ -21,8 +19,7 @@ export const metadata = {
 
 export default async function JobsPage({ searchParams }: PageProps) {
   const params = await searchParams
-  const category = params.category as JobCategory | undefined
-  const jobType  = params.type     as JobType     | undefined
+  const jobType  = params.type as JobType | undefined
   const page     = Number(params.page ?? 1)
 
   let result = {
@@ -32,16 +29,15 @@ export default async function JobsPage({ searchParams }: PageProps) {
   }
 
   try {
-    result = await getCachedJobs({ page, limit: 12, category, jobType })
+    result = await getCachedJobs({ page, limit: 12, jobType })
   } catch {
     // Supabase unavailable
   }
 
   function buildHref(overrides: Record<string, string | undefined>) {
-    const merged = { category, type: jobType, page: undefined, ...overrides }
+    const merged = { type: jobType, page: undefined, ...overrides }
     const p = new URLSearchParams()
-    if (merged.category) p.set("category", merged.category)
-    if (merged.type)     p.set("type", merged.type)
+    if (merged.type) p.set("type", merged.type)
     if (merged.page && merged.page !== "1") p.set("page", merged.page)
     const q = p.toString()
     return `/jobs${q ? "?" + q : ""}`
@@ -74,33 +70,6 @@ export default async function JobsPage({ searchParams }: PageProps) {
           <Plus size={15} />
           <T en="Post a Job" hi="नौकरी पोस्ट करें" />
         </Link>
-      </div>
-
-      {/* Category filters */}
-      <div className="mb-3 flex flex-wrap gap-1.5">
-        <Link
-          href={buildHref({ category: undefined })}
-          className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-            !category
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary"
-          }`}
-        >
-          <T en="All Categories" hi="सभी श्रेणियाँ" />
-        </Link>
-        {(Object.entries(JOB_CATEGORY_LABELS_BI) as [JobCategory, { en: string; hi: string }][]).map(([key, label]) => (
-          <Link
-            key={key}
-            href={buildHref({ category: key })}
-            className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-              category === key
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary"
-            }`}
-          >
-            <T en={label.en} hi={label.hi} />
-          </Link>
-        ))}
       </div>
 
       {/* Job type filters */}
@@ -167,13 +136,13 @@ export default async function JobsPage({ searchParams }: PageProps) {
         <div className="rounded-xl border border-dashed bg-card py-16 text-center">
           <Briefcase size={32} className="mx-auto mb-3 text-muted-foreground/40" />
           <p className="mb-1 font-medium text-muted-foreground">
-            {category || jobType
+            {jobType
               ? <T en="No jobs match your filters." hi="कोई नौकरी नहीं मिली।" />
               : <T en="No job listings yet." hi="अभी कोई नौकरी नहीं।" />
             }
           </p>
           <p className="mb-4 text-sm text-muted-foreground">
-            {category || jobType ? (
+            {jobType ? (
               <Link href="/jobs" className="text-primary hover:underline">
                 <T en="Clear filters" hi="फ़िल्टर हटाएँ" />
               </Link>

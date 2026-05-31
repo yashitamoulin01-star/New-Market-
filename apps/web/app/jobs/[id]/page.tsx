@@ -7,7 +7,6 @@ import {
 import {
   getJobById,
   JOB_TYPE_LABELS_BI,
-  JOB_CATEGORY_LABELS_BI,
   APP_MODE_LABELS_BI,
   formatSalary,
 } from "@/lib/supabase/jobs"
@@ -55,7 +54,6 @@ export default async function JobDetailPage({ params }: PageProps) {
     day: "numeric", month: "long", year: "numeric",
   })
 
-  const catLabel  = JOB_CATEGORY_LABELS_BI[job.category]
   const typeLabel = JOB_TYPE_LABELS_BI[job.job_type]
   const appLabel  = APP_MODE_LABELS_BI[job.application_mode]
 
@@ -77,9 +75,6 @@ export default async function JobDetailPage({ params }: PageProps) {
             <div className="mb-5 flex flex-wrap items-start gap-2">
               <div className="flex-1">
                 <div className="mb-2 flex flex-wrap gap-1.5">
-                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                    {catLabel ? <T en={catLabel.en} hi={catLabel.hi} /> : job.category}
-                  </span>
                   <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                     {typeLabel ? <T en={typeLabel.en} hi={typeLabel.hi} /> : job.job_type}
                   </span>

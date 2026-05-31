@@ -1,6 +1,6 @@
 "use server"
 
-import { submitJob, type SubmitJobInput, type JobType, type JobCategory, type ApplicationMode } from "@/lib/supabase/jobs"
+import { submitJob, type SubmitJobInput, type JobType, type ApplicationMode } from "@/lib/supabase/jobs"
 
 export interface PostJobState {
   success: boolean
@@ -34,7 +34,7 @@ export async function postJobAction(
     requirements:     strip(String(raw.requirements || "")) || undefined,
     benefits:         strip(String(raw.benefits || "")) || undefined,
     job_type:         raw.job_type as JobType,
-    category:         raw.category as JobCategory,
+    category:         "OTHER",
     shop_name:        strip(String(raw.shop_name || "")),
     shop_address:     strip(String(raw.shop_address || "")) || undefined,
     salary_min:       safeNumber(raw.salary_min),
@@ -53,7 +53,6 @@ export async function postJobAction(
   if (!input.title) return { success: false, error: "Job title is required." }
   if (!input.description) return { success: false, error: "Job description is required." }
   if (!input.job_type) return { success: false, error: "Job type is required." }
-  if (!input.category) return { success: false, error: "Category is required." }
   if (!input.shop_name) return { success: false, error: "Shop / business name is required." }
   if (!input.application_mode) return { success: false, error: "Application mode is required." }
   if (!input.contact_name) return { success: false, error: "Contact name is required." }

@@ -1,6 +1,6 @@
 import Link from "next/link"
-import Image from "next/image"
 import { notFound } from "next/navigation"
+import { SafeImage } from "@/components/ui/safe-image"
 import {
   MapPin, Phone, Mail, Maximize2, Eye,
   ChevronLeft, Calendar, Sofa, IndianRupee, Building2,
@@ -68,7 +68,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               }`}
               style={i === 0 && property.images.length === 1 ? { height: "280px" } : undefined}
             >
-              <Image
+              <SafeImage
                 src={src}
                 alt={`${property.title} image ${i + 1}`}
                 fill

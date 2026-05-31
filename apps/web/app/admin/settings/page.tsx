@@ -15,7 +15,7 @@ export default async function AdminSettingsPage() {
   }
 
   const rawYoutubeUrl = settings["youtube_video_url"] ?? ""
-  const youtubeUrls = rawYoutubeUrl.split(",").map(s => s.trim())
+  const youtubeUrls = rawYoutubeUrl.split(",").map(s => s.trim()).filter(Boolean)
   const siteNotice    = settings["site_notice"] ?? ""
   const tickerEnabled = settings["ticker_enabled"] !== "false"
 
@@ -75,25 +75,26 @@ export default async function AdminSettingsPage() {
           </div>
         </div>
         <form action={updateYouTubeUrlAction} className="space-y-3">
+          <p className="text-xs text-muted-foreground">Paste full YouTube URLs (youtube.com/watch?v=... or youtu.be/...). Invalid URLs are ignored on save.</p>
           <input
             name="youtube_url_1"
-            type="url"
+            type="text"
             defaultValue={youtubeUrls[0] || ""}
-            placeholder="Video 1 URL (e.g. https://www.youtube.com/watch?v=...)"
+            placeholder="Video 1 URL — https://www.youtube.com/watch?v=..."
             className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           />
           <input
             name="youtube_url_2"
-            type="url"
+            type="text"
             defaultValue={youtubeUrls[1] || ""}
-            placeholder="Video 2 URL (Optional)"
+            placeholder="Video 2 URL (optional)"
             className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           />
           <input
             name="youtube_url_3"
-            type="url"
+            type="text"
             defaultValue={youtubeUrls[2] || ""}
-            placeholder="Video 3 URL (Optional)"
+            placeholder="Video 3 URL (optional)"
             className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           />
           <button

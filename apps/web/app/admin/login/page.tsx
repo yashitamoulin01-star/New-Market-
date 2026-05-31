@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { PasswordInput } from "@/components/ui/password-input"
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("")
@@ -66,9 +67,8 @@ export default function AdminLoginPage() {
             >
               Password
             </label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

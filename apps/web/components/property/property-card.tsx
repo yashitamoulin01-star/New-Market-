@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
+import { SafeImage } from "@/components/ui/safe-image"
 import { MapPin, Maximize2, Eye, Sofa } from "lucide-react"
 import {
   type PropertyCardData,
@@ -59,7 +59,7 @@ export function PropertyCard({ property }: { property: PropertyCardData }) {
     >
       {coverImage ? (
         <div className="relative h-44 w-full overflow-hidden">
-          <Image
+          <SafeImage
             src={coverImage}
             alt={property.title}
             fill

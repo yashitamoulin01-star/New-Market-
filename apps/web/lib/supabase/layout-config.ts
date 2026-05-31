@@ -83,7 +83,7 @@ export const DEFAULT_LAYOUT_CONFIG: LayoutConfig = {
       id: "r-hero",
       enabled: true,
       sections: [
-        { id: "hero", enabled: true, colSpan: 8, size: "large", variant: "photo" },
+        { id: "hero", enabled: true, colSpan: 8, size: "large", variant: "text-split" },
         { id: "latest_panel", enabled: true, colSpan: 4, size: "normal" },
       ],
     },

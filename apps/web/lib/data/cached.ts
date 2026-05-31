@@ -120,7 +120,7 @@ export const getCachedShops = unstable_cache(
     let q = supabasePublic
       .from("shops")
       .select(
-        "id, name, category, address, phone, logo_url, cover_image_url, opening_hours, tags, is_verified, is_featured, is_sponsored, view_count, created_at",
+        "id, name, category, address, phone, logo_url, cover_image_url, images, opening_hours, tags, is_verified, is_featured, is_sponsored, view_count, created_at",
         { count: "exact" }
       )
       .eq("status", "APPROVED")

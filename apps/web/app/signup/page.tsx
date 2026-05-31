@@ -6,6 +6,7 @@ import Link from "next/link"
 import { signUpAction, type AuthState } from "@/lib/actions/auth"
 import { Radio } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
+import { PasswordInput } from "@/components/ui/password-input"
 
 const initialState: AuthState = {}
 
@@ -92,10 +93,9 @@ export default function SignUpPage() {
               <label htmlFor="password" className="mb-1 block text-sm font-medium">
                 {hi ? "पासवर्ड" : "Password"}
               </label>
-              <input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 required
                 autoComplete="new-password"
                 minLength={6}
