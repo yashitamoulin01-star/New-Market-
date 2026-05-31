@@ -184,43 +184,49 @@ function HeroFeature({ article }: { article: NewsCardData }) {
   )
 }
 
-// ── Hero Feature (ET Retail text-split style) ─────────────────────
+// ── Hero Feature (text-split: big headline left, image right) ─────
 
 function HeroFeatureTextSplit({ article }: { article: NewsCardData }) {
   return (
-    <Link
-      href={`/news/${article.slug}`}
-      className="group block overflow-hidden rounded-xl border bg-card shadow-md transition hover:shadow-xl"
-    >
-      <div className="flex min-h-[240px] flex-col lg:flex-row lg:min-h-[300px]">
+    <Link href={`/news/${article.slug}`} className="group block">
+      <div className="flex items-start gap-5 py-1">
+
         {/* Text side */}
-        <div className="flex flex-1 flex-col justify-between p-5 lg:p-6">
-          <div>
-            <div className="mb-3 flex flex-wrap gap-1.5">
-              {article.is_breaking && (
-                <span className="rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">⚡ Breaking</span>
-              )}
-              {article.is_pinned && !article.is_breaking && (
-                <span className="rounded bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Pinned</span>
-              )}
-              <span className="rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Top Story</span>
-            </div>
-            <h2 className="editorial-headline text-xl font-extrabold leading-tight text-foreground sm:text-2xl lg:text-[26px] line-clamp-4">
-              {article.title}
-            </h2>
-            {article.excerpt && (
-              <p className="mt-2.5 line-clamp-3 text-sm text-muted-foreground leading-relaxed">{article.excerpt}</p>
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* Badges */}
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {article.is_breaking && (
+              <span className="rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">⚡ Breaking</span>
+            )}
+            {article.is_pinned && !article.is_breaking && (
+              <span className="rounded bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Pinned</span>
             )}
           </div>
-          <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
-            {article.published_at && <span className="flex items-center gap-1"><Clock size={10} />{timeAgo(article.published_at)}</span>}
+
+          {/* Headline */}
+          <h2 className="editorial-headline line-clamp-4 text-2xl font-extrabold leading-tight text-foreground transition-colors group-hover:text-primary sm:text-3xl lg:text-[32px]">
+            {article.title}
+          </h2>
+
+          {/* Excerpt */}
+          {article.excerpt && (
+            <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+              {article.excerpt}
+            </p>
+          )}
+
+          {/* Meta */}
+          <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
+            {article.published_at && (
+              <span className="flex items-center gap-1"><Clock size={10} />{timeAgo(article.published_at)}</span>
+            )}
             <span className="flex items-center gap-1"><Eye size={10} />{article.view_count.toLocaleString()}</span>
-            <span className="ml-auto text-[10px] font-semibold text-primary transition-colors group-hover:text-primary/70">Read Full Story →</span>
           </div>
         </div>
+
         {/* Image side */}
-        {article.cover_image_url ? (
-          <div className="relative h-[180px] overflow-hidden lg:h-auto lg:w-[42%] shrink-0">
+        {article.cover_image_url && (
+          <div className="relative h-[140px] w-[190px] shrink-0 overflow-hidden rounded-xl sm:h-[160px] sm:w-[220px] lg:h-[190px] lg:w-[260px]">
             <SafeImage
               src={article.cover_image_url}
               alt={article.title}
@@ -230,8 +236,6 @@ function HeroFeatureTextSplit({ article }: { article: NewsCardData }) {
               hideOnError
             />
           </div>
-        ) : (
-          <div className={`hidden lg:block lg:w-[42%] shrink-0 ${CAT_BAR[article.category] ?? "bg-primary"} opacity-10`} />
         )}
       </div>
     </Link>
