@@ -1,6 +1,6 @@
 -- 008-ads-schema-update.sql
--- Migrate advertisements table from old schema (position/display_order)
--- to new schema (slot/priority/starts_at/ends_at/click_count)
+-- Migrate advertisements table to new schema (slot/priority/starts_at/ends_at/click_count)
+-- Safe to run multiple times (all operations are idempotent)
 
 -- 1. Add new columns (safe to run even if they already exist)
 alter table advertisements
@@ -10,26 +10,45 @@ alter table advertisements
   add column if not exists ends_at     timestamptz,
   add column if not exists click_count integer not null default 0;
 
--- 2. Migrate old `position` values → new `slot` values for rows that have no slot yet
-update advertisements
-set slot = case position
-  when 'top'    then 'homepage-top'
-  when 'bottom' then 'homepage-bottom'
-  when 'left'   then 'homepage-left'
-  when 'right'  then 'homepage-right'
-  when 'middle' then 'homepage-mid-1'
-  else 'homepage-top'
-end
-where slot is null;
+-- 2. Migrate old `position` values → slot (only if `position` column exists)
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_name = 'advertisements' and column_name = 'position'
+  ) then
+    update advertisements
+    set slot = case position
+      when 'top'    then 'homepage-top'
+      when 'bottom' then 'homepage-bottom'
+      when 'left'   then 'homepage-left'
+      when 'right'  then 'homepage-right'
+      when 'middle' then 'homepage-mid-1'
+      else 'homepage-top'
+    end
+    where slot is null;
+  end if;
+end $$;
 
--- 3. Ensure slot is not null
+-- 3. Fill any remaining null slots with a default
+update advertisements set slot = 'homepage-top' where slot is null;
+
+-- 4. Ensure slot is not null
 alter table advertisements
   alter column slot set not null;
 
--- 4. Migrate display_order → priority where still at default
-update advertisements
-  set priority = display_order
-  where display_order is not null and display_order > 0 and priority = 10;
+-- 5. Migrate display_order → priority where still at default (only if column exists)
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_name = 'advertisements' and column_name = 'display_order'
+  ) then
+    update advertisements
+      set priority = display_order
+      where display_order is not null and display_order > 0 and priority = 10;
+  end if;
+end $$;
 
 -- 5. Ensure title is not null (old rows may have been null)
 update advertisements set title = 'Advertisement' where title is null;
