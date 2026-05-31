@@ -47,7 +47,20 @@ export async function saveControlCenterAction(
 
   const existingRows = (current?.layout_config as { rows?: unknown })?.rows ?? DEFAULT_LAYOUT_CONFIG.rows
   const existingVersion = (current?.layout_config as { version?: number })?.version ?? 1
-  settings.layout_config = { version: existingVersion, rows: existingRows, meta }
+
+  // Sync hero variant in rows with the hero_style control
+  const heroStyle = (settings.hero_style as string) ?? "text-split"
+  type AnyRow = { sections: Array<{ id: string; [k: string]: unknown }> }
+  const syncedRows = Array.isArray(existingRows)
+    ? (existingRows as AnyRow[]).map(row => ({
+        ...row,
+        sections: row.sections.map(s =>
+          s.id === "hero" ? { ...s, variant: heroStyle } : s
+        ),
+      }))
+    : existingRows
+
+  settings.layout_config = { version: existingVersion, rows: syncedRows, meta }
 
   const { error } = await supabase.from("homepage_settings").upsert(settings)
   if (error) return { error: error.message }
